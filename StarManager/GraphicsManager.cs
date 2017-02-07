@@ -88,8 +88,14 @@ namespace StarDisplay
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
 
-            graphics.FillEllipse(yellowBrush, x+1, y+1, 18, 18);
-            graphics.DrawString(lind.text, drawFont, blackBrush, x, y + 2);
+            if (lind.text != "")
+            {
+                graphics.DrawString(lind.text, drawFont, yellowBrush, x, y + 2);
+            }
+            else
+            {
+                graphics.FillRectangle(yellowBrush, x + 8, y + 8, 4, 4);
+            }
         }
 
         public void drawBlackString(Graphics graphics, LineEntry le, LineDescription lind)
@@ -97,7 +103,7 @@ namespace StarDisplay
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
 
-            graphics.FillEllipse(blackBrush, x+1, y+1, 18, 18);
+            graphics.FillRectangle(blackBrush, x+1, y+1, 18, 18);
             graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
         }
     }

@@ -1,2 +1,0 @@
-n64rawgfx.exe -r "Star Revenge 5 Neo Blue Realm.z64" -b star.bmp -m export -f RGBA -d16 -a 0x00807956 -x 16 -y 16
-nconvert.exe -out png star.bmp
