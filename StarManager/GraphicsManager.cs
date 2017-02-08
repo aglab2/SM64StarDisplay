@@ -22,6 +22,7 @@ namespace StarDisplay
         SolidBrush blackBrush;
         SolidBrush drawBrush;
         SolidBrush yellowBrush;
+        SolidBrush greenBrush;
 
         Font drawFont;
         Font bigFont;
@@ -35,6 +36,8 @@ namespace StarDisplay
             blackBrush = new SolidBrush(Color.Black);
             drawBrush = new SolidBrush(Color.LightGray);
             yellowBrush = new SolidBrush(Color.Gold);
+
+            greenBrush = new SolidBrush(Color.FromArgb(0, 177, 64));
 
             PrivateFontCollection collection = new PrivateFontCollection();
             collection.AddFontFile("font/CourierNew.ttf");
@@ -54,9 +57,9 @@ namespace StarDisplay
                     blackSquare.SetPixel(i, j, Color.Black);
         }
 
-        public void paintHUD(Graphics graphics)
+        public void paintHUD(Graphics graphics, int width, int height)
         {
-            graphics.FillRectangle(blackBrush, new Rectangle(0,0,1000,1000));
+            graphics.FillRectangle(blackBrush, new Rectangle(0, 0, width, height));
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {
                 drawLine(graphics, ld.courseDescription[line], line, false);
@@ -100,39 +103,10 @@ namespace StarDisplay
         {
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
-            
-                try
-                {
-                    if (lind.text != "")
-                    {
-                        SolidBrush yellowBrush = new SolidBrush(Color.Gold);
 
-                    PrivateFontCollection collection = new PrivateFontCollection();
-                    collection.AddFontFile("font/CourierNew.ttf");
-                    FontFamily fontFamily = new FontFamily("Courier New", collection);
-
-                    Font drawFont = new Font(fontFamily, 10);
-
-                        graphics.DrawString(lind.text, drawFont, yellowBrush, x, y + 2);
-                    }
-                    else
-                    {
-                        graphics.DrawImage(goldSquare, x + 8, y + 8);
-                        //graphics.FillRectangle(yellowBrush, x + 8, y + 8, 4, 4);
-                    }
-                }
-                catch (Exception) {  }
-        }
-
-        public void drawBlackString(Graphics graphics, LineEntry le, LineDescription lind)
-        {
-            int x = le.isSecret ? 180 : 0;
-            int y = le.line * 23;
-            
-                try
-                {
-                    graphics.DrawImage(blackSquare, x + 1, y + 1);
-                    SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            if (lind.text != "")
+            {
+                SolidBrush yellowBrush = new SolidBrush(Color.Gold);
 
                 PrivateFontCollection collection = new PrivateFontCollection();
                 collection.AddFontFile("font/CourierNew.ttf");
@@ -140,10 +114,30 @@ namespace StarDisplay
 
                 Font drawFont = new Font(fontFamily, 10);
 
-                graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
-                }catch(Exception)
-                {
-                }
+                graphics.DrawString(lind.text, drawFont, yellowBrush, x, y + 2);
+            }
+            else
+            {
+                graphics.DrawImage(goldSquare, x + 8, y + 8);
+            }
+
+        }
+
+        public void drawBlackString(Graphics graphics, LineEntry le, LineDescription lind)
+        {
+            int x = le.isSecret ? 180 : 0;
+            int y = le.line * 23;
+
+            graphics.DrawImage(blackSquare, x + 1, y + 1);
+            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+
+            PrivateFontCollection collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily fontFamily = new FontFamily("Courier New", collection);
+
+            Font drawFont = new Font(fontFamily, 10);
+
+            graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
         }
     }
 }

@@ -124,7 +124,7 @@ namespace StarDisplay
                     Font drawFont = new Font("Courier", 15);
                     SolidBrush drawBrush = new SolidBrush(System.Drawing.Color.Black);
                     int totalStarLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length) + 1;
-                    graphics.FillRectangle(drawBrush, new Rectangle(15, totalStarLine * 23 + 2, 1000, 20));
+                    //graphics.FillRectangle(drawBrush, new Rectangle(15, totalStarLine * 23 + 2, 1000, 20));
                     drawBrush.Dispose();
                     drawBrush = new SolidBrush(System.Drawing.Color.LightGray);
                     graphics.DrawString(starLine, drawFont, drawBrush, 120, totalStarLine * 23 + 2);
@@ -159,7 +159,7 @@ namespace StarDisplay
 
         private void starPicture_Paint(object sender, PaintEventArgs e)
         {
-            gm.paintHUD(e.Graphics);
+            gm.paintHUD(e.Graphics, starPicture.Width, starPicture.Height);
         }
 
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -251,7 +251,7 @@ namespace StarDisplay
             oldStarCount = 0;
             oldTotalCount = "";
             oldLE = new LineEntry(0, 0, 0, false, 0);
-            gm.paintHUD(gm.graphics);
+            gm.paintHUD(gm.graphics, starPicture.Width, starPicture.Height);
         }
 
         private void starPicture_Click(object sender, EventArgs e)
@@ -319,33 +319,10 @@ namespace StarDisplay
             {
                 loadLayout("layout/" + mm.getROMName() + ".sml");
             }catch (IOException){
-                var result = MessageBox.Show("Cannot find layout for this hack. Do you want to load layout from file?", "Layour Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation);
-                if (result == DialogResult.Cancel)
+                var result = MessageBox.Show("Cannot find layout for this hack. Do you want to load layout from file?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                if (result == DialogResult.Yes)
                 {
-                    ld = LayoutDescription.generateDefault();
-                    invalidateCache();
-                }
-                else
-                {
-                    OpenFileDialog openFileDialog = new OpenFileDialog();
-
-                    openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
-                    openFileDialog.FilterIndex = 1;
-                    openFileDialog.RestoreDirectory = false;
-                    openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "/layout";
-
-                    if (openFileDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        try
-                        {
-                            loadLayout(openFileDialog.FileName);
-                        }
-                        catch (IOException)
-                        {
-                            MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-                    }
+                    loadFromToolStripMenuItem_Click(sender, e);
                 }
             }
         }
@@ -362,6 +339,58 @@ namespace StarDisplay
             invalidateCache();
         }
 
+        private void loadFromToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = false;
+            openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    loadLayout(openFileDialog.FileName);
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = false;
+            openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    saveLayout(openFileDialog.FileName);
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to save layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void toolStripMenuItem2_Click(object sender, EventArgs e)
+        {
+            AboutDialog ad = new AboutDialog();
+            ad.ShowDialog();
+        }
+
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
@@ -376,33 +405,10 @@ namespace StarDisplay
             }
             catch (IOException)
             {
-                var result = MessageBox.Show("Cannot save layout for this hack. Do you want to save layout to different file?", "Layour Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Exclamation);
-                if (result == DialogResult.Cancel)
+                var result = MessageBox.Show("Cannot save layout for this hack. Do you want to save layout to different file?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
+                if (result == DialogResult.Yes)
                 {
-                    ld = LayoutDescription.generateDefault();
-                    invalidateCache();
-                }
-                else
-                {
-                    OpenFileDialog openFileDialog = new OpenFileDialog();
-                    
-                    openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
-                    openFileDialog.FilterIndex = 1;
-                    openFileDialog.RestoreDirectory = false;
-                    openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
-
-                    if (openFileDialog.ShowDialog() == DialogResult.OK)
-                    {
-                        try
-                        {
-                            saveLayout(openFileDialog.FileName);
-                        }
-                        catch (IOException)
-                        {
-                            MessageBox.Show("Failed to save layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                            return;
-                        }
-                    }
+                    saveAsToolStripMenuItem_Click(sender, e);
                 }
             }
         }

@@ -195,7 +195,10 @@
             this.Controls.Add(this.stringTextBox);
             this.Controls.Add(this.textOnlyCheckbox);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "Settings";
+            this.ShowIcon = false;
             this.Text = "Settings";
             this.ResumeLayout(false);
             this.PerformLayout();
