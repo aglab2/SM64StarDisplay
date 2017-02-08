@@ -13,6 +13,9 @@ namespace StarDisplay
         public Image darkStar;
         public Image goldStar;
 
+        Bitmap goldSquare;
+        Bitmap blackSquare;
+
         LayoutDescription ld;
         public readonly Graphics graphics;
 
@@ -39,6 +42,16 @@ namespace StarDisplay
             
             drawFont = new Font(fontFamily, 10);
             bigFont = new Font(fontFamily, 15);
+
+            goldSquare = new Bitmap(4, 4);
+            for (int i = 0; i < goldSquare.Width; i++)
+                for (int j = 0; j < goldSquare.Height; j++)
+                    goldSquare.SetPixel(i, j, Color.Gold);
+
+            blackSquare = new Bitmap(18, 18);
+            for (int i = 0; i < blackSquare.Width; i++)
+                for (int j = 0; j < blackSquare.Height; j++)
+                    blackSquare.SetPixel(i, j, Color.Black);
         }
 
         public void paintHUD(Graphics graphics)
@@ -85,26 +98,52 @@ namespace StarDisplay
 
         public void drawYellowString(Graphics graphics, LineEntry le, LineDescription lind)
         {
-            /*int x = le.isSecret ? 180 : 0;
+            int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
+            
+                try
+                {
+                    if (lind.text != "")
+                    {
+                        SolidBrush yellowBrush = new SolidBrush(Color.Gold);
 
-            if (lind.text != "")
-            {
-                graphics.DrawString(lind.text, drawFont, yellowBrush, x, y + 2);
-            }
-            else
-            {
-                graphics.FillRectangle(yellowBrush, x + 8, y + 8, 4, 4);
-            }*/
+                    PrivateFontCollection collection = new PrivateFontCollection();
+                    collection.AddFontFile("font/CourierNew.ttf");
+                    FontFamily fontFamily = new FontFamily("Courier New", collection);
+
+                    Font drawFont = new Font(fontFamily, 10);
+
+                        graphics.DrawString(lind.text, drawFont, yellowBrush, x, y + 2);
+                    }
+                    else
+                    {
+                        graphics.DrawImage(goldSquare, x + 8, y + 8);
+                        //graphics.FillRectangle(yellowBrush, x + 8, y + 8, 4, 4);
+                    }
+                }
+                catch (Exception) {  }
         }
 
         public void drawBlackString(Graphics graphics, LineEntry le, LineDescription lind)
         {
-            /*int x = le.isSecret ? 180 : 0;
+            int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
+            
+                try
+                {
+                    graphics.DrawImage(blackSquare, x + 1, y + 1);
+                    SolidBrush drawBrush = new SolidBrush(Color.LightGray);
 
-            graphics.FillRectangle(blackBrush, x+1, y+1, 18, 18);
-            graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);*/
+                PrivateFontCollection collection = new PrivateFontCollection();
+                collection.AddFontFile("font/CourierNew.ttf");
+                FontFamily fontFamily = new FontFamily("Courier New", collection);
+
+                Font drawFont = new Font(fontFamily, 10);
+
+                graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
+                }catch(Exception)
+                {
+                }
         }
     }
 }

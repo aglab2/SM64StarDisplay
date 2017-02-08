@@ -37,7 +37,7 @@ namespace StarDisplay
             timer.Tick += new EventHandler(updateStars);
             timer.Interval = 1000;
 
-            oldLE = new LineEntry(1000, 0, 0, false, 0);
+            oldLE = new LineEntry(0, 0, 0, false, 0);
         }
 
         private void resetForm()
@@ -87,7 +87,7 @@ namespace StarDisplay
                 if (le.isSecret != oldLE.isSecret || le.line != oldLE.line)
                 {
                     gm.drawYellowString(graphics, le, lind);
-                    if (oldLE.line != 1000)
+                    if (oldLE.line != 0)
                     {
                         LineDescription oldLind = oldLE.isSecret ? ld.secretDescription[oldLE.line] : ld.courseDescription[oldLE.line];
                         gm.drawBlackString(graphics, oldLE, oldLind);
@@ -250,7 +250,7 @@ namespace StarDisplay
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
             oldTotalCount = "";
-            oldLE = new LineEntry(1000, 0, 0, false, 0);
+            oldLE = new LineEntry(0, 0, 0, false, 0);
             gm.paintHUD(gm.graphics);
         }
 
