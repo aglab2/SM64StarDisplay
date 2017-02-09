@@ -104,31 +104,46 @@ namespace StarDisplay
             }
         }
 
-        public void drawYellowString(LineEntry le, LineDescription lind)
+        public void addLineHighlight(LineEntry le, LineDescription lind)
+        {
+            int x = (le.isSecret ? 180 : 0) + 1;
+            int y = le.line * 23 - 2;
+            
+            SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
+            Pen yellowPen = new Pen(yellowBrush);
+            graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 160, 24));
+            yellowPen.Dispose();
+        }
+
+        public void removeLineHighlight(LineEntry le, LineDescription lind)
+        {
+            int x = (le.isSecret ? 180 : 0) + 1;
+            int y = le.line * 23 - 2;
+
+            SolidBrush blackBrush = new SolidBrush(Color.Black);
+            Pen blackPen = new Pen(blackBrush);
+            graphics.DrawRectangle(blackPen, new Rectangle(x, y, 160, 24));
+            blackPen.Dispose();
+        }
+
+        public void drawGreenString(LineEntry le, LineDescription lind)
         {
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
 
-            if (lind.text != "")
-            {
-                SolidBrush yellowBrush = new SolidBrush(Color.Gold);
+            graphics.DrawImage(blackSquare, x + 1, y + 1);
+            SolidBrush drawBrush = new SolidBrush(Color.LightGreen);
 
-                PrivateFontCollection collection = new PrivateFontCollection();
-                collection.AddFontFile("font/CourierNew.ttf");
-                FontFamily fontFamily = new FontFamily("Courier New", collection);
+            PrivateFontCollection collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily fontFamily = new FontFamily("Courier New", collection);
 
-                Font drawFont = new Font(fontFamily, 10);
+            Font drawFont = new Font(fontFamily, 10);
 
-                graphics.DrawString(lind.text, drawFont, yellowBrush, x, y + 2);
-            }
-            else
-            {
-                graphics.DrawImage(goldSquare, x + 8, y + 8);
-            }
-
+            graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
         }
 
-        public void drawBlackString(LineEntry le, LineDescription lind)
+        public void drawGrayString(LineEntry le, LineDescription lind)
         {
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;

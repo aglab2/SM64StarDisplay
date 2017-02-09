@@ -29,10 +29,11 @@ namespace StarDisplay
         }
     }
 
-    public class MemoryManager : IEnumerable<LineEntry> //course, starsByte, diff, isSecret
+    public class MemoryManager : IEnumerable<LineEntry>
     {
         public readonly Process process;
         LayoutDescription ld;
+        GraphicsManager gm;
 
         int prevTime;
         byte[] oldStars;
@@ -42,17 +43,18 @@ namespace StarDisplay
 
         DeepPointer romNamePtr;
         DeepPointer levelPtr;
-
+        
         private int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
         private int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
         private int[] overworldLevels = { 6, 26, 16 };
 
         public int selectedFile;
 
-        public MemoryManager(Process process, LayoutDescription ld)
+        public MemoryManager(Process process, LayoutDescription ld, GraphicsManager gm)
         {
             this.process = process;
             this.ld = ld;
+            this.gm = gm;
             oldStars = new byte[32];
 
             igt = new DeepPointer("Project64.exe", 0xD6A1C, 0x32D580);
@@ -129,6 +131,19 @@ namespace StarDisplay
             return answer;
         }
 
+        public void drawSpecialString(int index, bool isAcquired)
+        {
+            LineDescription lind = ld.secretDescription[index];
+            if (isAcquired)
+            {
+                gm.drawGreenString(new LineEntry(index, 0, 0, true, 0), lind);
+            }
+            else
+            {
+                gm.drawGrayString(new LineEntry(index, 0, 0, true, 0), lind);
+            }
+        }
+
         public IEnumerator<LineEntry> GetEnumerator()
         {
             int length = 32;
@@ -162,6 +177,31 @@ namespace StarDisplay
             {
                 throw new IOException();
             }*/
+
+            if (stars[3] != oldStars[3])
+            {
+                int index; bool isAcquired;
+                index = Array.FindIndex(ld.secretDescription, lind => lind.text == "B1");
+                isAcquired = ((stars[3] & (1 << 4)) != 0) || ((stars[3] & (1 << 6)) != 0);
+                if (index != -1)
+                    drawSpecialString(index, isAcquired);
+                index = Array.FindIndex(ld.secretDescription, lind => lind.text == "B2");
+                isAcquired = ((stars[3] & (1 << 5)) != 0) || ((stars[3] & (1 << 7)) != 0);
+                if (index != -1)
+                    drawSpecialString(index, isAcquired);
+                index = Array.FindIndex(ld.secretDescription, lind => lind.text == "WC");
+                isAcquired = ((stars[3] & (1 << 1)) != 0);
+                if (index != -1)
+                    drawSpecialString(index, isAcquired);
+                index = Array.FindIndex(ld.secretDescription, lind => lind.text == "MC");
+                isAcquired = ((stars[3] & (1 << 2)) != 0);
+                if (index != -1)
+                    drawSpecialString(index, isAcquired);
+                index = Array.FindIndex(ld.secretDescription, lind => lind.text == "VC");
+                isAcquired = ((stars[3] & (1 << 3)) != 0);
+                if (index != -1)
+                    drawSpecialString(index, isAcquired);
+            }
 
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {

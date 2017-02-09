@@ -31,7 +31,7 @@ namespace StarDisplay
             InitializeComponent();
             ld = LayoutDescription.generateDefault();
             gm = new GraphicsManager(starPicture.CreateGraphics(), ld);
-            mm = new MemoryManager(null, ld);
+            mm = new MemoryManager(null, ld, gm);
 
             timer = new Timer();
             timer.Tick += new EventHandler(updateStars);
@@ -94,11 +94,11 @@ namespace StarDisplay
                 LineDescription lind = le.isSecret ? ld.secretDescription[le.line] : ld.courseDescription[le.line];
                 if (le.isSecret != oldLE.isSecret || le.line != oldLE.line)
                 {
-                    gm.drawYellowString(le, lind);
+                    gm.addLineHighlight(le, lind);
                     if (oldLE.line != 0)
                     {
                         LineDescription oldLind = oldLE.isSecret ? ld.secretDescription[oldLE.line] : ld.courseDescription[oldLE.line];
-                        gm.drawBlackString(oldLE, oldLind);
+                        gm.removeLineHighlight(oldLE, oldLind);
                     }
                     oldLE = le;
                 }
@@ -127,19 +127,6 @@ namespace StarDisplay
                 if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
                 {
                     gm.drawStarNumber(totalCountText.Text, starCount);
-                    //TODO: Move to graphics
-                    /*string totalCount = totalCountText.Text;
-                    string starLine = starCount.ToString().PadLeft(3) + "/" + totalCount.PadRight(3);
-
-                    Font drawFont = new Font("Courier", 15);
-                    SolidBrush drawBrush = new SolidBrush(System.Drawing.Color.Black);
-                    int totalStarLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length) + 1;
-                    gm.graphics.FillRectangle(drawBrush, new Rectangle(15, totalStarLine * 23 + 2, 1000, 20));
-                    drawBrush.Dispose();
-                    drawBrush = new SolidBrush(System.Drawing.Color.LightGray);
-                    gm.graphics.DrawString(starLine, drawFont, drawBrush, 120, totalStarLine * 23 + 2);
-                    drawFont.Dispose();
-                    drawBrush.Dispose();*/
                 }
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
@@ -157,7 +144,7 @@ namespace StarDisplay
             try
             {
                 Process process = Process.GetProcessesByName("project64").First();
-                mm = new MemoryManager(process, ld);
+                mm = new MemoryManager(process, ld, gm);
                 connectButton.Enabled = false;
                 layoutToolStripMenuItem.Enabled = true;
                 timer.Start();
@@ -251,8 +238,8 @@ namespace StarDisplay
 
         private void invalidateCache()
         {
-            mm = new MemoryManager(mm.process, ld);
             gm = new GraphicsManager(gm.graphics, ld);
+            mm = new MemoryManager(mm.process, ld, gm);
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
             oldTotalCount = "";
