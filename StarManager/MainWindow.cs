@@ -40,6 +40,14 @@ namespace StarDisplay
             oldLE = new LineEntry(0, 0, 0, false, 0);
         }
 
+        //Wandows, your forms are broken
+        protected override void WndProc(ref Message m)
+        {
+            // Suppress the WM_UPDATEUISTATE message
+            if (m.Msg == 0x128) return;
+            base.WndProc(ref m);
+        }
+
         private void resetForm()
         {
             connectButton.Enabled = true;
