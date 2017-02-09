@@ -69,14 +69,13 @@
             // 
             // starPicture
             // 
-            this.starPicture.BackColor = System.Drawing.Color.White;
+            this.starPicture.BackColor = System.Drawing.Color.Black;
             this.starPicture.Location = new System.Drawing.Point(12, 27);
             this.starPicture.Name = "starPicture";
             this.starPicture.Size = new System.Drawing.Size(345, 431);
             this.starPicture.TabIndex = 2;
             this.starPicture.TabStop = false;
             this.starPicture.Click += new System.EventHandler(this.starPicture_Click);
-            this.starPicture.Paint += new System.Windows.Forms.PaintEventHandler(this.starPicture_Paint);
             this.starPicture.MouseMove += new System.Windows.Forms.MouseEventHandler(this.starPicture_MouseMove);
             // 
             // label1

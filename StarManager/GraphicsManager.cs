@@ -10,14 +10,19 @@ namespace StarDisplay
 {
     public class GraphicsManager
     {
-        public Image darkStar;
-        public Image goldStar;
+        Image darkStar;
+        Image goldStar;
 
         Bitmap goldSquare;
         Bitmap blackSquare;
 
         LayoutDescription ld;
-        public readonly Graphics graphics;
+
+        Graphics _graphics;
+        public Graphics graphics {
+            internal get { return _graphics; }
+            set { _graphics.Dispose(); _graphics = value; }
+        }
 
         SolidBrush blackBrush;
         SolidBrush drawBrush;
@@ -32,7 +37,7 @@ namespace StarDisplay
             darkStar = ld.darkStar;
             goldStar = ld.goldStar;
             this.ld = ld;
-            this.graphics = graphics;
+            _graphics = graphics;
             blackBrush = new SolidBrush(Color.Black);
             drawBrush = new SolidBrush(Color.LightGray);
             yellowBrush = new SolidBrush(Color.Gold);
@@ -57,22 +62,22 @@ namespace StarDisplay
                     blackSquare.SetPixel(i, j, Color.Black);
         }
 
-        public void paintHUD(Graphics graphics, int width, int height)
+        public void paintHUD(int width, int height)
         {
             graphics.FillRectangle(blackBrush, new Rectangle(0, 0, width, height));
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {
-                drawLine(graphics, ld.courseDescription[line], line, false);
+                drawLine(ld.courseDescription[line], line, false);
             }
             for (int line = 0; line < ld.secretDescription.Length; line++)
             {
-                drawLine(graphics, ld.secretDescription[line], line, true);
+                drawLine(ld.secretDescription[line], line, true);
             }
             int lastLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length);
             graphics.DrawString("Savestateless Stars", bigFont, drawBrush, 45, lastLine * 23 + 2);
         }
 
-        public void drawByte(Graphics graphics, byte stars, int lineNumber, bool isSecret, byte mask)
+        public void drawByte(byte stars, int lineNumber, bool isSecret, byte mask)
         {
             for (int i = 1; i <= 7; i++)
             {
@@ -85,7 +90,7 @@ namespace StarDisplay
             }
         }
 
-        public void drawLine(Graphics graphics, LineDescription ld, int lineNumber, bool isSecret)
+        public void drawLine(LineDescription ld, int lineNumber, bool isSecret)
         {
             if (ld.isTextOnly)
             {
@@ -95,11 +100,11 @@ namespace StarDisplay
             {
                 Console.WriteLine(ld.starMask);
                 graphics.DrawString(ld.text, drawFont, drawBrush, isSecret ? 180 : 0, lineNumber * 23 + 2);
-                drawByte(graphics, 0, lineNumber, isSecret, ld.starMask);
+                drawByte(0, lineNumber, isSecret, ld.starMask);
             }
         }
 
-        public void drawYellowString(Graphics graphics, LineEntry le, LineDescription lind)
+        public void drawYellowString(LineEntry le, LineDescription lind)
         {
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;
@@ -123,7 +128,7 @@ namespace StarDisplay
 
         }
 
-        public void drawBlackString(Graphics graphics, LineEntry le, LineDescription lind)
+        public void drawBlackString(LineEntry le, LineDescription lind)
         {
             int x = le.isSecret ? 180 : 0;
             int y = le.line * 23;

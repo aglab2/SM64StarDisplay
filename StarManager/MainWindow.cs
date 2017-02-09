@@ -79,18 +79,18 @@ namespace StarDisplay
             }
 
             //Display stars routine
-            Graphics graphics = starPicture.CreateGraphics();
+            gm.graphics = starPicture.CreateGraphics();
             LineEntry le = mm.getLine();
             if (le != null)
             {
                 LineDescription lind = le.isSecret ? ld.secretDescription[le.line] : ld.courseDescription[le.line];
                 if (le.isSecret != oldLE.isSecret || le.line != oldLE.line)
                 {
-                    gm.drawYellowString(graphics, le, lind);
+                    gm.drawYellowString(le, lind);
                     if (oldLE.line != 0)
                     {
                         LineDescription oldLind = oldLE.isSecret ? ld.secretDescription[oldLE.line] : ld.courseDescription[oldLE.line];
-                        gm.drawBlackString(graphics, oldLE, oldLind);
+                        gm.drawBlackString(oldLE, oldLind);
                     }
                     oldLE = le;
                 }
@@ -107,7 +107,7 @@ namespace StarDisplay
                     bool isSecret = entry.isSecret;
 
                     totalDiff += diff;
-                    gm.drawByte(graphics, stars, line, isSecret, entry.starMask);
+                    gm.drawByte(stars, line, isSecret, entry.starMask);
                 }
 
                 int starCount = oldStarCount + totalDiff;
@@ -118,16 +118,17 @@ namespace StarDisplay
 
                 if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
                 {
+                    //TODO: Move to graphics
                     string totalCount = totalCountText.Text;
                     string starLine = starCount.ToString().PadLeft(3) + "/" + totalCount.PadRight(3);
 
                     Font drawFont = new Font("Courier", 15);
                     SolidBrush drawBrush = new SolidBrush(System.Drawing.Color.Black);
                     int totalStarLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length) + 1;
-                    //graphics.FillRectangle(drawBrush, new Rectangle(15, totalStarLine * 23 + 2, 1000, 20));
+                    gm.graphics.FillRectangle(drawBrush, new Rectangle(15, totalStarLine * 23 + 2, 1000, 20));
                     drawBrush.Dispose();
                     drawBrush = new SolidBrush(System.Drawing.Color.LightGray);
-                    graphics.DrawString(starLine, drawFont, drawBrush, 120, totalStarLine * 23 + 2);
+                    gm.graphics.DrawString(starLine, drawFont, drawBrush, 120, totalStarLine * 23 + 2);
                     drawFont.Dispose();
                     drawBrush.Dispose();
                 }
@@ -143,6 +144,7 @@ namespace StarDisplay
 
         private void connectButton_Click(object sender, EventArgs e)
         {
+            gm.paintHUD(starPicture.Width, starPicture.Height);
             try
             {
                 Process process = Process.GetProcessesByName("project64").First();
@@ -155,11 +157,6 @@ namespace StarDisplay
             {
                 MessageBox.Show("Can not find Project64!", "Process Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
-        }
-
-        private void starPicture_Paint(object sender, PaintEventArgs e)
-        {
-            gm.paintHUD(e.Graphics, starPicture.Width, starPicture.Height);
         }
 
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -251,7 +248,7 @@ namespace StarDisplay
             oldStarCount = 0;
             oldTotalCount = "";
             oldLE = new LineEntry(0, 0, 0, false, 0);
-            gm.paintHUD(gm.graphics, starPicture.Width, starPicture.Height);
+            gm.paintHUD(starPicture.Width, starPicture.Height);
         }
 
         private void starPicture_Click(object sender, EventArgs e)
