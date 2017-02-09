@@ -144,5 +144,23 @@ namespace StarDisplay
 
             graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
         }
+
+        public void drawStarNumber(string totalCount, int starCount)
+        {
+            string starLine = starCount.ToString().PadLeft(3) + "/" + totalCount.PadRight(3);
+            
+            int totalStarLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length) + 1;
+
+            SolidBrush blackBrush = new SolidBrush(Color.Black);
+            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+
+            PrivateFontCollection collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily fontFamily = new FontFamily("Courier New", collection);
+            Font bigFont = new Font(fontFamily, 15);
+
+            graphics.FillRectangle(blackBrush, new Rectangle(15, totalStarLine * 23 + 2, 200, 20));
+            graphics.DrawString(starLine, bigFont, drawBrush, 120, totalStarLine * 23 + 2);
+        }
     }
 }

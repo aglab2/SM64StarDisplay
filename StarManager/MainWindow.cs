@@ -118,8 +118,9 @@ namespace StarDisplay
 
                 if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
                 {
+                    gm.drawStarNumber(totalCountText.Text, starCount);
                     //TODO: Move to graphics
-                    string totalCount = totalCountText.Text;
+                    /*string totalCount = totalCountText.Text;
                     string starLine = starCount.ToString().PadLeft(3) + "/" + totalCount.PadRight(3);
 
                     Font drawFont = new Font("Courier", 15);
@@ -130,7 +131,7 @@ namespace StarDisplay
                     drawBrush = new SolidBrush(System.Drawing.Color.LightGray);
                     gm.graphics.DrawString(starLine, drawFont, drawBrush, 120, totalStarLine * 23 + 2);
                     drawFont.Dispose();
-                    drawBrush.Dispose();
+                    drawBrush.Dispose();*/
                 }
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;

@@ -14,8 +14,8 @@ namespace LiveSplit.ComponentUtil
 
     public class DeepPointer
     {
-        private List<OffsetT> _offsets;
-        private OffsetT _base;
+        public readonly List<OffsetT> _offsets;
+        public readonly OffsetT _base;
         private string _module;
 
         public DeepPointer(string module, OffsetT base_, params OffsetT[] offsets)

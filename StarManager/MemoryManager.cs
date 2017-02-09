@@ -148,6 +148,21 @@ namespace StarDisplay
                 stars[i + 3] = copy[0];
             }
 
+            /*DeepPointer badges = new DeepPointer("Project64.exe", file._base, file._offsets[1] - 2);
+            byte[] badgeByte = badges.DerefBytes(process, 1);
+            Console.WriteLine(string.Join(" ", badgeByte.Select(x => Convert.ToString(x, 2).PadLeft(8, '0'))));
+
+            badgeByte[0] = 1 << 6;
+            IntPtr ptr;
+            if (!badges.DerefOffsets(process, out ptr))
+            {
+                Console.WriteLine("deref fail");
+            }
+            if (!process.WriteBytes(ptr, badgeByte))
+            {
+                throw new IOException();
+            }*/
+
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {
                 var descr = ld.courseDescription[line];
