@@ -51,7 +51,7 @@ namespace StarDisplay
                 for (int j = 0; j < goldSquare.Height; j++)
                     goldSquare.SetPixel(i, j, Color.Gold);
 
-            blackSquare = new Bitmap(18, 18);
+            blackSquare = new Bitmap(4, 4);
             for (int i = 0; i < blackSquare.Width; i++)
                 for (int j = 0; j < blackSquare.Height; j++)
                     blackSquare.SetPixel(i, j, Color.Black);
