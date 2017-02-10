@@ -15,3 +15,9 @@ and press _Connect_ button. If your hack has layout support press _Layout > Load
  * Star Revenge 5: Neo Blue Realm
  * Star Revenge 7: Park of Time
  * Star Revenge 7.5: Kedowser's Return
+
+# Creating New Layouts
+Your hack is not supported? You can easily create a layout yourself! Choose one of the current layouts as basis and edit it with _Settings > Configure Display_. Press on stars to hide/show them and press on text to edit it and switch line view! To get icons from hack you can load them with _Icons > Import Icons_.
+
+# Speedrun
+For speedrunners this program can be useful too! It can soft erase file A on ROM reset that is really handy for reset-heavy runs!
