@@ -24,11 +24,6 @@ namespace StarDisplay
             set { _graphics.Dispose(); _graphics = value; }
         }
 
-        SolidBrush blackBrush;
-        SolidBrush drawBrush;
-        SolidBrush yellowBrush;
-        SolidBrush greenBrush;
-
         Font drawFont;
         Font bigFont;
 
@@ -38,11 +33,6 @@ namespace StarDisplay
             goldStar = ld.goldStar;
             this.ld = ld;
             _graphics = graphics;
-            blackBrush = new SolidBrush(Color.Black);
-            drawBrush = new SolidBrush(Color.LightGray);
-            yellowBrush = new SolidBrush(Color.Gold);
-
-            greenBrush = new SolidBrush(Color.FromArgb(0, 177, 64));
 
             PrivateFontCollection collection = new PrivateFontCollection();
             collection.AddFontFile("font/CourierNew.ttf");
@@ -64,6 +54,9 @@ namespace StarDisplay
 
         public void paintHUD(int width, int height)
         {
+            SolidBrush blackBrush = new SolidBrush(Color.Black);
+            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+
             graphics.FillRectangle(blackBrush, new Rectangle(0, 0, width, height));
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {
@@ -75,6 +68,9 @@ namespace StarDisplay
             }
             int lastLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length);
             graphics.DrawString("Savestateless Stars", bigFont, drawBrush, 45, lastLine * 23 + 2);
+
+            blackBrush.Dispose();
+            drawBrush.Dispose();
         }
 
         public void drawByte(byte stars, int lineNumber, bool isSecret, byte mask)
@@ -92,6 +88,7 @@ namespace StarDisplay
 
         public void drawLine(LineDescription ld, int lineNumber, bool isSecret)
         {
+            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
             if (ld.isTextOnly)
             {
                 graphics.DrawString(ld.text, drawFont, drawBrush, (isSecret ? 180: 0) + 7, lineNumber * 23 + 2);
@@ -102,28 +99,51 @@ namespace StarDisplay
                 graphics.DrawString(ld.text, drawFont, drawBrush, isSecret ? 180 : 0, lineNumber * 23 + 2);
                 drawByte(0, lineNumber, isSecret, ld.starMask);
             }
+            drawBrush.Dispose();
         }
 
         public void addLineHighlight(LineEntry le, LineDescription lind)
         {
-            int x = (le.isSecret ? 180 : 0) + 1;
-            int y = le.line * 23 - 2;
-            
-            SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
-            Pen yellowPen = new Pen(yellowBrush);
-            graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 160, 24));
-            yellowPen.Dispose();
+            if (lind.text != "")
+            {
+                int x = (le.isSecret ? 180 : 0) + 1;
+                int y = le.line * 23 + 2;
+
+                SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
+                Pen yellowPen = new Pen(yellowBrush);
+                graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 17, 17));
+                yellowPen.Dispose();
+                yellowBrush.Dispose();
+            }
+            else
+            {
+                int x = (le.isSecret ? 180 : 0);
+                int y = le.line * 23;
+
+                graphics.DrawImage(goldSquare, x + 8, y + 8);
+            }
         }
 
         public void removeLineHighlight(LineEntry le, LineDescription lind)
         {
-            int x = (le.isSecret ? 180 : 0) + 1;
-            int y = le.line * 23 - 2;
+            if (lind.text != "")
+            {
+                int x = (le.isSecret ? 180 : 0) + 1;
+                int y = le.line * 23 + 2;
 
-            SolidBrush blackBrush = new SolidBrush(Color.Black);
-            Pen blackPen = new Pen(blackBrush);
-            graphics.DrawRectangle(blackPen, new Rectangle(x, y, 160, 24));
-            blackPen.Dispose();
+                SolidBrush blackBrush = new SolidBrush(Color.Black);
+                Pen blackPen = new Pen(blackBrush);
+                graphics.DrawRectangle(blackPen, new Rectangle(x, y, 17, 17));
+                blackPen.Dispose();
+                blackBrush.Dispose();
+            }
+            else
+            {
+                int x = (le.isSecret ? 180 : 0);
+                int y = le.line * 23;
+
+                graphics.DrawImage(blackSquare, x + 8, y + 8);
+            }
         }
 
         public void drawGreenString(LineEntry le, LineDescription lind)
@@ -141,6 +161,8 @@ namespace StarDisplay
             Font drawFont = new Font(fontFamily, 10);
 
             graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
+
+            drawBrush.Dispose();
         }
 
         public void drawGrayString(LineEntry le, LineDescription lind)
@@ -158,6 +180,8 @@ namespace StarDisplay
             Font drawFont = new Font(fontFamily, 10);
 
             graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
+
+            drawBrush.Dispose();
         }
 
         public void drawStarNumber(string totalCount, int starCount)
@@ -176,6 +200,9 @@ namespace StarDisplay
 
             graphics.FillRectangle(blackBrush, new Rectangle(15, totalStarLine * 23 + 2, 200, 20));
             graphics.DrawString(starLine, bigFont, drawBrush, 120, totalStarLine * 23 + 2);
+
+            blackBrush.Dispose();
+            drawBrush.Dispose();
         }
     }
 }
