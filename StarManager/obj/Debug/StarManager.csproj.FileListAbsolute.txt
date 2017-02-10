@@ -1,0 +1,20 @@
+D:\SM64StarManager\StarManager\bin\Debug\StarManager.exe.config
+D:\SM64StarManager\StarManager\bin\Debug\externals\commands.txt
+D:\SM64StarManager\StarManager\bin\Debug\externals\n64rawgfx.exe
+D:\SM64StarManager\StarManager\bin\Debug\externals\nconvert.exe
+D:\SM64StarManager\StarManager\bin\Debug\images\dark_star.png
+D:\SM64StarManager\StarManager\bin\Debug\images\gold_star.png
+D:\SM64StarManager\StarManager\bin\Debug\font\CourierNew.ttf
+D:\SM64StarManager\StarManager\bin\Debug\layout\STAR REVENGE 7.5KR.sml
+D:\SM64StarManager\StarManager\bin\Debug\layout\STAR REVENGE 7.sml
+D:\SM64StarManager\StarManager\bin\Debug\layout\SUPER MARIO 64.sml
+D:\SM64StarManager\StarManager\obj\Debug\StarManager.csprojResolveAssemblyReference.cache
+D:\SM64StarManager\StarManager\obj\Debug\StarDisplay.AboutDialog.resources
+D:\SM64StarManager\StarManager\obj\Debug\StarDisplay.MainWindow.resources
+D:\SM64StarManager\StarManager\obj\Debug\StarManager.Properties.Resources.resources
+D:\SM64StarManager\StarManager\obj\Debug\StarDisplay.Settings.resources
+D:\SM64StarManager\StarManager\obj\Debug\StarManager.csproj.GenerateResource.Cache
+D:\SM64StarManager\StarManager\obj\Debug\StarManager.exe
+D:\SM64StarManager\StarManager\obj\Debug\StarManager.pdb
+D:\SM64StarManager\StarManager\bin\Debug\StarManager.exe
+D:\SM64StarManager\StarManager\bin\Debug\StarManager.pdb

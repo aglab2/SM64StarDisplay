@@ -111,24 +111,6 @@
     <None Include="font\CourierNew.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Include="layout\LUIGI%27S MANSION 64.5.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\Marios Nightmare 64.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\SR Night of Doom.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\STAR REVENGE 2.5 RoD.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\Star Revenge 4.5.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\Star Revenge 5R.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="layout\STAR REVENGE 7.5KR.sml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

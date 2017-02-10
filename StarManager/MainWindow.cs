@@ -357,18 +357,18 @@ namespace StarDisplay
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
+            SaveFileDialog saveFileDialog = new SaveFileDialog();
 
-            openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = false;
-            openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
+            saveFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
+            saveFileDialog.FilterIndex = 1;
+            saveFileDialog.RestoreDirectory = false;
+            saveFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
 
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
                 try
                 {
-                    saveLayout(openFileDialog.FileName);
+                    saveLayout(saveFileDialog.FileName);
                 }
                 catch (IOException)
                 {
@@ -382,6 +382,11 @@ namespace StarDisplay
         {
             AboutDialog ad = new AboutDialog();
             ad.ShowDialog();
+        }
+
+        private void compressToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            gm.compress();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

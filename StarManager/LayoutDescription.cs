@@ -109,7 +109,7 @@ namespace StarDisplay
             secretLD[0] = new LineDescription("Bowser Courses", true, 0, 0);
             secretLD[4] = new LineDescription("Cap Levels", true, 0, 0);
             secretLD[8] = new LineDescription("Slide", true, 0, 0);
-            secretLD[10] = new LineDescription("Overworld stars", true, 0, 0);
+            secretLD[10] = new LineDescription("Overworld Stars", true, 0, 0);
             secretLD[12] = new LineDescription("Secret Stars", true, 0, 0);
 
             return new LayoutDescription(courseLD, secretLD, new Bitmap("images/gold_star.png"), "186");

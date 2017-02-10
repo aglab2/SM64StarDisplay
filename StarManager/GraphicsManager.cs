@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Linq;
 using System.Text;
@@ -32,6 +34,9 @@ namespace StarDisplay
             darkStar = ld.darkStar;
             goldStar = ld.goldStar;
             this.ld = ld;
+
+            compress();
+
             _graphics = graphics;
 
             PrivateFontCollection collection = new PrivateFontCollection();
@@ -203,6 +208,50 @@ namespace StarDisplay
 
             blackBrush.Dispose();
             drawBrush.Dispose();
+        }
+
+        public void compress()
+        {
+            var goldCompressedImage = new Bitmap(20, 20);
+            var darkCompressedImage = new Bitmap(20, 20);
+
+            var destRect = new Rectangle(0, 0, 20, 20);
+
+            using (var graphics = Graphics.FromImage(goldCompressedImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(goldStar, destRect, 0, 0, goldStar.Width, goldStar.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+            goldStar.Dispose();
+            ld.goldStar = goldCompressedImage;
+            goldStar = goldCompressedImage;
+
+            using (var graphics = Graphics.FromImage(darkCompressedImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(darkStar, destRect, 0, 0, darkStar.Width, darkStar.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+            darkStar.Dispose();
+            ld.darkStar = darkCompressedImage;
+            darkStar = darkCompressedImage;
         }
     }
 }
