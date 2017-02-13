@@ -16,10 +16,10 @@ namespace StarDisplay
         public byte starMask;
         public int offset;
 
-        public LineDescription(string text, bool isTextOnly, byte starMask, int offset)
+        public LineDescription(string text, bool textOnly, byte starMask, int offset)
         {
             this.text = text;
-            this.isTextOnly = isTextOnly;
+            this.isTextOnly = textOnly;
             this.starMask = starMask;
             this.offset = offset;
         }
@@ -65,7 +65,7 @@ namespace StarDisplay
             this.darkStar = darkStar;
         }
 
-        public void saturateStar()
+        public void SaturateStar()
         {
             for (int i = 0; i < goldStar.Width; i++)
             {
@@ -85,7 +85,7 @@ namespace StarDisplay
             }
         }
 
-        static public LayoutDescription generateDefault()
+        static public LayoutDescription GenerateDefault()
         {
             LineDescription[] courseLD = new LineDescription[16];
             LineDescription[] secretLD = new LineDescription[16];

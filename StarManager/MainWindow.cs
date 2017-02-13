@@ -29,7 +29,7 @@ namespace StarDisplay
         public MainWindow()
         {
             InitializeComponent();
-            ld = LayoutDescription.generateDefault();
+            ld = LayoutDescription.GenerateDefault();
             gm = new GraphicsManager(starPicture.CreateGraphics(), ld);
             mm = new MemoryManager(null, ld, gm);
 
@@ -62,7 +62,7 @@ namespace StarDisplay
             if (radioButtonC.Checked) mm.selectedFile = 2;
             if (radioButtonD.Checked) mm.selectedFile = 3;
 
-            if (mm.isProcessActive())
+            if (mm.ProcessActive())
             {
                 resetForm();
                 return;
@@ -72,7 +72,7 @@ namespace StarDisplay
             {
                 try
                 {
-                    mm.deleteStars();
+                    mm.DeleteStars();
                 }
                 catch (Win32Exception)
                 {
@@ -88,17 +88,17 @@ namespace StarDisplay
 
             //Display stars routine
             gm.graphics = starPicture.CreateGraphics();
-            LineEntry le = mm.getLine();
+            LineEntry le = mm.GetLine();
             if (le != null)
             {
-                LineDescription lind = le.isSecret ? ld.secretDescription[le.line] : ld.courseDescription[le.line];
-                if (le.isSecret != oldLE.isSecret || le.line != oldLE.line)
+                LineDescription lind = le.Secret ? ld.secretDescription[le.Line] : ld.courseDescription[le.Line];
+                if (le.Secret != oldLE.Secret || le.Line != oldLE.Line)
                 {
-                    gm.addLineHighlight(le, lind);
-                    if (oldLE.line != 0)
+                    gm.AddLineHighlight(le, lind);
+                    if (oldLE.Line != 0)
                     {
-                        LineDescription oldLind = oldLE.isSecret ? ld.secretDescription[oldLE.line] : ld.courseDescription[oldLE.line];
-                        gm.removeLineHighlight(oldLE, oldLind);
+                        LineDescription oldLind = oldLE.Secret ? ld.secretDescription[oldLE.Line] : ld.courseDescription[oldLE.Line];
+                        gm.RemoveLineHighlight(oldLE, oldLind);
                     }
                     oldLE = le;
                 }
@@ -109,13 +109,13 @@ namespace StarDisplay
                 int totalDiff = 0;
                 foreach (var entry in mm)
                 {
-                    int line = entry.line;
-                    byte stars = entry.starByte;
-                    int diff = entry.starDiff;
-                    bool isSecret = entry.isSecret;
+                    int line = entry.Line;
+                    byte stars = entry.StarByte;
+                    int diff = entry.StarDiff;
+                    bool isSecret = entry.Secret;
 
                     totalDiff += diff;
-                    gm.drawByte(stars, line, isSecret, entry.starMask);
+                    gm.DrawByte(stars, line, isSecret, entry.StarMask);
                 }
 
                 int starCount = oldStarCount + totalDiff;
@@ -126,7 +126,7 @@ namespace StarDisplay
 
                 if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
                 {
-                    gm.drawStarNumber(totalCountText.Text, starCount);
+                    gm.DrawStarNumber(totalCountText.Text, starCount);
                 }
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
@@ -140,7 +140,7 @@ namespace StarDisplay
 
         private void connectButton_Click(object sender, EventArgs e)
         {
-            gm.paintHUD(starPicture.Width, starPicture.Height);
+            gm.PaintHUD(starPicture.Width, starPicture.Height);
             try
             {
                 Process process = Process.GetProcessesByName("project64").First();
@@ -231,20 +231,20 @@ namespace StarDisplay
 
                 ld.darkStar = darkStar;
                 ld.goldStar = goldStar;
-                invalidateCache();
+                InvalidateCache();
                 if (timerEnabled) timer.Start();
             }
         }
 
-        private void invalidateCache()
+        private void InvalidateCache()
         {
             gm = new GraphicsManager(gm.graphics, ld);
-            mm = new MemoryManager(mm.process, ld, gm);
+            mm = new MemoryManager(mm.Process, ld, gm);
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
             oldTotalCount = "";
             oldLE = new LineEntry(0, 0, 0, false, 0);
-            gm.paintHUD(starPicture.Width, starPicture.Height);
+            gm.PaintHUD(starPicture.Width, starPicture.Height);
         }
 
         private void starPicture_Click(object sender, EventArgs e)
@@ -272,12 +272,12 @@ namespace StarDisplay
                 {
                     Settings settings = new Settings(curld);
                     settings.ShowDialog();
-                    invalidateCache();
+                    InvalidateCache();
                 }
                 else
                 {
                     curld.starMask = (byte)(curld.starMask ^ (1 << star));
-                    invalidateCache();
+                    InvalidateCache();
                 }
                 return;
             }
@@ -289,16 +289,16 @@ namespace StarDisplay
             picX = e.X; picY = e.Y;
         }
 
-        private void loadLayout(string name)
+        private void LoadLayout(string name)
         {
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
             ld = (LayoutDescription)formatter.Deserialize(stream);
             stream.Close();
-            invalidateCache();
+            InvalidateCache();
         }
 
-        private void saveLayout(string name)
+        private void SaveLayout(string name)
         {
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Create, FileAccess.Write, FileShare.None);
@@ -310,7 +310,7 @@ namespace StarDisplay
         {
             try
             {
-                loadLayout("layout/" + mm.getROMName() + ".sml");
+                LoadLayout("layout/" + mm.GetROMName() + ".sml");
             }catch (IOException){
                 var result = MessageBox.Show("Cannot find layout for this hack. Do you want to load layout from file?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                 if (result == DialogResult.Yes)
@@ -322,14 +322,14 @@ namespace StarDisplay
 
         private void saturateIconToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ld.saturateStar();
-            invalidateCache();
+            ld.SaturateStar();
+            InvalidateCache();
         }
 
         private void loadDefaultToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ld = LayoutDescription.generateDefault();
-            invalidateCache();
+            ld = LayoutDescription.GenerateDefault();
+            InvalidateCache();
         }
 
         private void loadFromToolStripMenuItem_Click(object sender, EventArgs e)
@@ -345,7 +345,7 @@ namespace StarDisplay
             {
                 try
                 {
-                    loadLayout(openFileDialog.FileName);
+                    LoadLayout(openFileDialog.FileName);
                 }
                 catch (IOException)
                 {
@@ -368,7 +368,7 @@ namespace StarDisplay
             {
                 try
                 {
-                    saveLayout(saveFileDialog.FileName);
+                    SaveLayout(saveFileDialog.FileName);
                 }
                 catch (IOException)
                 {
@@ -386,20 +386,20 @@ namespace StarDisplay
 
         private void compressToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            gm.compress();
+            gm.Compress();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                string name = "layout/" + mm.getROMName() + ".sml";
+                string name = "layout/" + mm.GetROMName() + ".sml";
                 if (File.Exists(name))
                 {
                     var result = MessageBox.Show("Layout for this hack already exists! Do you want to overwrite it?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                     if (result == DialogResult.No) throw new IOException();
                 }
-                saveLayout(name);
+                SaveLayout(name);
             }
             catch (IOException)
             {

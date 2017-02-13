@@ -62,9 +62,7 @@
             this.richTextBox1.ReadOnly = true;
             this.richTextBox1.Size = new System.Drawing.Size(247, 83);
             this.richTextBox1.TabIndex = 2;
-            this.richTextBox1.Text = "Created and Designed by aglab2\nTested by Ap616, OcarinaOfTimeFan05, katze789\nDesi" +
-    "gn tips: Karisa113, Ap616, Tomatobird8\nSource code released AS IS: \nwww.github.c" +
-    "om/aglab2/SM64StarManager";
+            this.richTextBox1.Text = resources.GetString("richTextBox1.Text");
             // 
             // AboutDialog
             // 

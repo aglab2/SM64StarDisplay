@@ -77,7 +77,6 @@
     <Compile Include="MainWindow.Designer.cs">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </Compile>
-    <Compile Include="HandlesInfo.cs" />
     <Compile Include="MemoryManager.cs" />
     <Compile Include="ProcessExtensions.cs" />
     <Compile Include="Program.cs" />
