@@ -59,7 +59,7 @@ If bit \textbf{T} is set to 0 Line Descriptor has following structure
 \textit{Mask} - star mask, if bit $i$ is set star $i+1$ presents on display \\
 \textit{Offset} - offset from EEPROM start to ingame star byte for current course \\
 \textit{Text} - $4$ UTF-8 encoded symbols
-\caption{Line Descriptor if $\mathbf{T}=1$}
+\caption{Line Descriptor if $\mathbf{T}=0$}
 \end{figure}
 
 If bit \textbf{T} is set to 1 Line Descriptor has following structure
@@ -73,7 +73,7 @@ If bit \textbf{T} is set to 1 Line Descriptor has following structure
 
 \textit{Control} - Control byte \\
 \textit{Text} - $20$ UTF-8 encoded symbols
-\caption{Line Descriptor if $\mathbf{T}=0$}
+\caption{Line Descriptor if $\mathbf{T}=1$}
 \end{figure}
 
 
