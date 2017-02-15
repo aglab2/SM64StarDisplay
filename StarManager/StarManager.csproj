@@ -110,6 +110,9 @@
     <None Include="font\CourierNew.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="images\star.rgba16">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="layout\STAR REVENGE 7.5KR.sml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -133,15 +136,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="externals\commands.txt">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="externals\n64rawgfx.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="externals\nconvert.exe">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
     <Content Include="images\dark_star.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

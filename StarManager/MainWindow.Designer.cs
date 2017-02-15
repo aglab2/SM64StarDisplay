@@ -40,6 +40,7 @@
             this.loadDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.compressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureDisplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -52,7 +53,7 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.compressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.drawImageFromRAMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -158,6 +159,13 @@
             this.saveAsToolStripMenuItem.Text = "Save As...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
+            // compressToolStripMenuItem
+            // 
+            this.compressToolStripMenuItem.Name = "compressToolStripMenuItem";
+            this.compressToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.compressToolStripMenuItem.Text = "Compress";
+            this.compressToolStripMenuItem.Click += new System.EventHandler(this.compressToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -185,7 +193,9 @@
             // 
             this.iconsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importIconsToolStripMenuItem,
-            this.saturateIconToolStripMenuItem});
+            this.saturateIconToolStripMenuItem,
+            this.drawImageFromRAMToolStripMenuItem});
+            this.iconsToolStripMenuItem.Enabled = false;
             this.iconsToolStripMenuItem.Name = "iconsToolStripMenuItem";
             this.iconsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
             this.iconsToolStripMenuItem.Text = "Icons";
@@ -193,14 +203,14 @@
             // importIconsToolStripMenuItem
             // 
             this.importIconsToolStripMenuItem.Name = "importIconsToolStripMenuItem";
-            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
+            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.importIconsToolStripMenuItem.Text = "Import Icons";
             this.importIconsToolStripMenuItem.Click += new System.EventHandler(this.importIconsToolStripMenuItem_Click);
             // 
             // saturateIconToolStripMenuItem
             // 
             this.saturateIconToolStripMenuItem.Name = "saturateIconToolStripMenuItem";
-            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(143, 22);
+            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
             this.saturateIconToolStripMenuItem.Text = "Saturate Icon";
             this.saturateIconToolStripMenuItem.Click += new System.EventHandler(this.saturateIconToolStripMenuItem_Click);
             // 
@@ -265,12 +275,12 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
-            // compressToolStripMenuItem
+            // drawImageFromRAMToolStripMenuItem
             // 
-            this.compressToolStripMenuItem.Name = "compressToolStripMenuItem";
-            this.compressToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.compressToolStripMenuItem.Text = "Compress";
-            this.compressToolStripMenuItem.Click += new System.EventHandler(this.compressToolStripMenuItem_Click);
+            this.drawImageFromRAMToolStripMenuItem.Name = "drawImageFromRAMToolStripMenuItem";
+            this.drawImageFromRAMToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.drawImageFromRAMToolStripMenuItem.Text = "Draw Image From RAM";
+            this.drawImageFromRAMToolStripMenuItem.Click += new System.EventHandler(this.drawImageFromRAMToolStripMenuItem_Click);
             // 
             // MainWindow
             // 
@@ -324,6 +334,7 @@
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem compressToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem drawImageFromRAMToolStripMenuItem;
     }
 }
 

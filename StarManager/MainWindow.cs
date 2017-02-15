@@ -52,6 +52,7 @@ namespace StarDisplay
         {
             connectButton.Enabled = true;
             layoutToolStripMenuItem.Enabled = false;
+            iconsToolStripMenuItem.Enabled = false;
             timer.Stop();
         }
 
@@ -147,6 +148,7 @@ namespace StarDisplay
                 mm = new MemoryManager(process, ld, gm);
                 connectButton.Enabled = false;
                 layoutToolStripMenuItem.Enabled = true;
+                iconsToolStripMenuItem.Enabled = true;
                 timer.Start();
             }
             catch (InvalidOperationException)
@@ -157,83 +159,9 @@ namespace StarDisplay
 
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-            
-            openFileDialog.Filter = "ROM Files (*.z64)|*.z64|All files (*.*)|*.*";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    File.Delete(Path.GetDirectoryName(Application.ExecutablePath) + "/star.png");
-                }
-                catch (Exception) { }
-                string romName = openFileDialog.FileName;
-                Process pictureLoadProc = new Process();
-                pictureLoadProc.StartInfo.UseShellExecute = false;
-                pictureLoadProc.StartInfo.RedirectStandardOutput = true;
-                pictureLoadProc.StartInfo.WorkingDirectory = Path.GetDirectoryName(Application.ExecutablePath);
-                pictureLoadProc.StartInfo.FileName = "externals/n64rawgfx.exe";
-                pictureLoadProc.StartInfo.Arguments = "-r \"" + romName + "\" -b star.bmp -m export -f RGBA -d16 -a 0x00807956 -x 16 -y 16";
-                pictureLoadProc.StartInfo.CreateNoWindow = true;
-                pictureLoadProc.Start();
-                pictureLoadProc.WaitForExit();
-
-                if (!File.Exists(Path.GetDirectoryName(Application.ExecutablePath) + "/star.bmp"))
-                {
-                    MessageBox.Show("Can not extract data from ROM!", "ROM Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-
-                bool timerEnabled = timer.Enabled;
-                if (timerEnabled) timer.Stop();
-                
-                Process pictureTransformProc = new Process();
-                pictureTransformProc.StartInfo.UseShellExecute = false;
-                pictureTransformProc.StartInfo.RedirectStandardOutput = true;
-                pictureTransformProc.StartInfo.WorkingDirectory = Path.GetDirectoryName(Application.ExecutablePath);
-                pictureTransformProc.StartInfo.FileName = "externals/nconvert.exe";
-                pictureTransformProc.StartInfo.Arguments = "-out png star.bmp";
-                pictureTransformProc.StartInfo.CreateNoWindow = true;
-                pictureTransformProc.Start();
-                pictureTransformProc.WaitForExit();
-                
-                try
-                {
-                    File.Delete(Path.GetDirectoryName(Application.ExecutablePath) + "/star.bmp");
-                }
-                catch (Exception) { }
-
-                Bitmap goldStar;
-                using (var bmpTemp = new Bitmap(Path.GetDirectoryName(Application.ExecutablePath) + "/star.png"))
-                {
-                    goldStar = new Bitmap(bmpTemp);
-                }
-                Bitmap darkStar = new Bitmap(goldStar.Width, goldStar.Height);
-
-                for (int i = 0; i < goldStar.Height; i++) {
-                    for (int j = 0; j < goldStar.Width; j++)
-                    {
-                        double h; double s; double l;
-                        Color c = goldStar.GetPixel(i, j);
-                        ColorRGB crgb = new ColorRGB(c);
-                        ColorRGB.RGB2HSL(crgb, out h, out s, out l);
-
-                        s = 0;
-
-                        ColorRGB nrgb = ColorRGB.HSL2RGB(h, s, l);
-                        Color n = Color.FromArgb(c.A, nrgb.R, nrgb.G, nrgb.B);
-                        darkStar.SetPixel(i, j, n);
-                    }
-                }
-
-                ld.darkStar = darkStar;
-                ld.goldStar = goldStar;
-                InvalidateCache();
-                if (timerEnabled) timer.Start();
-            }
+            Bitmap image = mm.GetImage();
+            ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, image, ld.starAmount);
+            InvalidateCache();
         }
 
         private void InvalidateCache()
@@ -306,6 +234,19 @@ namespace StarDisplay
             stream.Close();
         }
 
+        public void LoadExternal(string name)
+        {
+            byte[] data = File.ReadAllBytes(name);
+            ld = LayoutDescription.DeserializeExternal(data, mm.GetImage());
+            InvalidateCache();
+        }
+
+        public void SaveExternal(string name)
+        {
+            byte[] data = ld.SerializeExternal();
+            File.WriteAllBytes(name, data);
+        }
+
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
@@ -336,7 +277,7 @@ namespace StarDisplay
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
 
-            openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
+            openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*";
             openFileDialog.FilterIndex = 1;
             openFileDialog.RestoreDirectory = false;
             openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
@@ -345,7 +286,10 @@ namespace StarDisplay
             {
                 try
                 {
-                    LoadLayout(openFileDialog.FileName);
+                    if (openFileDialog.FilterIndex == 2)
+                        LoadExternal(openFileDialog.FileName);
+                    else
+                        LoadLayout(openFileDialog.FileName);
                 }
                 catch (IOException)
                 {
@@ -359,7 +303,7 @@ namespace StarDisplay
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog();
 
-            saveFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*";
+            saveFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*";
             saveFileDialog.FilterIndex = 1;
             saveFileDialog.RestoreDirectory = false;
             saveFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
@@ -368,7 +312,11 @@ namespace StarDisplay
             {
                 try
                 {
-                    SaveLayout(saveFileDialog.FileName);
+
+                    if (saveFileDialog.FilterIndex == 2)
+                        SaveExternal(saveFileDialog.FileName);
+                    else
+                        SaveLayout(saveFileDialog.FileName);
                 }
                 catch (IOException)
                 {
@@ -387,6 +335,11 @@ namespace StarDisplay
         private void compressToolStripMenuItem_Click(object sender, EventArgs e)
         {
             gm.Compress();
+        }
+
+        private void drawImageFromRAMToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            gm.graphics.DrawImage(mm.GetImage(), 0, 0);
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

@@ -66,10 +66,12 @@ namespace StarDisplay
             graphics.FillRectangle(blackBrush, new Rectangle(0, 0, width, height));
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {
+                if (ld.courseDescription[line] == null) continue;
                 DrawLine(ld.courseDescription[line], line, false);
             }
             for (int line = 0; line < ld.secretDescription.Length; line++)
             {
+                if (ld.secretDescription[line] == null) continue;
                 DrawLine(ld.secretDescription[line], line, true);
             }
             int lastLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length);
@@ -101,7 +103,6 @@ namespace StarDisplay
             }
             else
             {
-                Console.WriteLine(ld.starMask);
                 graphics.DrawString(ld.text, DrawFont, drawBrush, isSecret ? 180 : 0, lineNumber * 23 + 2);
                 DrawByte(0, lineNumber, isSecret, ld.starMask);
             }

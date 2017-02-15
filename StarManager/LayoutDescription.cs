@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace StarDisplay
 {
-    //If isTextOnly is true, starMask is omitted
+    //If isTextOnly is true, starMask is omitted and offset is omitted
     [Serializable]
     public class LineDescription
     {
@@ -22,6 +20,55 @@ namespace StarDisplay
             this.isTextOnly = textOnly;
             this.starMask = starMask;
             this.offset = offset;
+        }
+
+        public byte[] Serialize(byte control)
+        {
+            MemoryStream ms = new MemoryStream();
+
+            if (isTextOnly)
+            {
+                control |= 1;
+                byte[] txt = Encoding.UTF8.GetBytes(text.PadRight(20, '\0'));
+                ms.WriteByte(control);
+                ms.Write(txt, 0, text.Length);
+            }
+            else
+            {
+                byte[] txt = Encoding.UTF8.GetBytes(text.PadRight(4, '\0'));
+                ms.WriteByte(control);
+                ms.WriteByte((byte)(starMask >> 1));
+                ms.WriteByte((byte)(offset));
+                ms.Write(txt, 0, txt.Length);
+            }
+
+            return ms.ToArray();
+        }
+
+        static public LineDescription Deserialize(BinaryReader ms, out bool isSecret)
+        {
+            byte control = (byte)ms.ReadByte();
+            if ((control & 1) == 0)
+            {
+                byte allStarsByte = (byte)ms.ReadByte();
+                byte mask = (byte)(allStarsByte << 1);
+                byte offset = (byte)ms.ReadByte();
+                byte[] textByte = new byte[4];
+                ms.Read(textByte, 0, 4);
+                string text = new string(Encoding.UTF8.GetChars(textByte)).Trim('\0');
+
+                isSecret = (control & 2) != 0;
+                return new LineDescription(text, false, mask, offset);
+            }
+            else
+            {
+                byte[] textByte = new byte[20];
+                ms.Read(textByte, 0, 20);
+                string text = new string(Encoding.UTF8.GetChars(textByte)).Trim('\0');
+
+                isSecret = (control & 2) != 0;
+                return new LineDescription(text, true, 0, 0);
+            }
         }
     }
 
@@ -83,6 +130,105 @@ namespace StarDisplay
                     goldStar.SetPixel(i, j, n);
                 }
             }
+        }
+
+        public void Trim()
+        {
+            for (int i = courseDescription.Length - 1; i >= 0; i--)
+            {
+                LineDescription lind = courseDescription[i];
+                if (lind == null) continue;
+                if (lind.isTextOnly)
+                {
+                    if (lind.text != null)
+                        break;
+                    else
+                        courseDescription[i] = null;
+                }
+                else
+                {
+                    if (lind.text != null || lind.starMask != 0)
+                        break;
+                    else
+                        courseDescription[i] = null;
+                }
+            }
+
+            for (int i = secretDescription.Length - 1; i >= 0; i--)
+            {
+                LineDescription lind = secretDescription[i];
+                if (lind == null) continue;
+                if (lind.isTextOnly)
+                {
+                    if (lind.text != null)
+                        break;
+                    else
+                        secretDescription[i] = null;
+                }
+                else
+                {
+                    if (lind.text != null || lind.starMask != 0)
+                        break;
+                    else
+                        secretDescription[i] = null;
+                }
+            }
+        }
+
+        public byte[] SerializeExternal()
+        {
+            Trim();
+            MemoryStream ms = new MemoryStream();
+
+            for (int i = 0; i < courseDescription.Length; i++)
+            {
+                LineDescription lind = courseDescription[i];
+                if (lind == null) continue;
+                byte[] data = lind.Serialize(0); //control&2==0 -> course
+                ms.Write(data, 0, data.Length);
+            }
+
+            for (int i = 0; i < secretDescription.Length; i++)
+            {
+                LineDescription lind = secretDescription[i];
+                if (lind == null) continue;
+                byte[] data = lind.Serialize(2); //control&2!=0 -> secret
+                ms.Write(data, 0, data.Length);
+            }
+
+            return ms.ToArray();
+        }
+
+        static public LayoutDescription DeserializeExternal(byte[] data, Bitmap img)
+        {
+            LineDescription[] courseLD = new LineDescription[16];
+            LineDescription[] secretLD = new LineDescription[16];
+
+            int courseCounter = 0;
+            int secretCounter = 0;
+
+            BinaryReader ms = new BinaryReader(new MemoryStream(data));
+            int stars = 0;
+
+            while (ms.BaseStream.Position != ms.BaseStream.Length)
+            {
+                bool isSecret;
+                LineDescription lind = LineDescription.Deserialize(ms, out isSecret);
+                if (!lind.isTextOnly) stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
+
+                if (isSecret)
+                {
+                    if (secretCounter == 16) break;
+                    secretLD[secretCounter++] = lind;
+                }
+                else
+                {
+                    if (courseCounter == 16) break;
+                    courseLD[courseCounter++] = lind;
+                }
+            }
+
+            return new LayoutDescription(courseLD, secretLD, img, stars.ToString());
         }
 
         static public LayoutDescription GenerateDefault()
