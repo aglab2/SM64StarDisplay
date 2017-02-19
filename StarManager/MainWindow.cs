@@ -342,6 +342,38 @@ namespace StarDisplay
             gm.graphics.DrawImage(mm.GetImage(), 0, 0);
         }
 
+        private void importStarMasksToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    ROMManager rm = new ROMManager(openFileDialog.FileName);
+                    rm.Parse(ld);
+                    rm.Dispose();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void recolorIconsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorPicker cp = new ColorPicker(ld);
+            cp.ShowDialog();
+            ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, cp.newImg, ld.starAmount);
+            InvalidateCache();
+        }
+
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
