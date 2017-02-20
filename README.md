@@ -8,6 +8,7 @@ and press _Connect_ button. If your hack has layout support press _Layout > Load
 
 # Layout Support
  * Super Mario 74
+ * Super Mario 74 Extreme Edition
  * Super Mario New Star
  * Mario's Nightmare 64
  * SM64: The Green Stars
@@ -17,6 +18,7 @@ and press _Connect_ button. If your hack has layout support press _Layout > Load
  * Shining Stars 2: Mirror Madness
  * Star Revenge
  * Star Revenge Redone
+ * Star Revenge Redone v2.0
  * Star Revenge 2: Night Of Doom
  * Star Revenge 2.5: Remnanat Of Doom
  * Star Revenge 3: Mario on a Saorie
