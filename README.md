@@ -7,6 +7,7 @@ Start Project64 1.6 and load ROM with hack. Run [Star Display](https://github.co
 and press _Connect_ button. If your hack has layout support press _Layout > Load_ to  load a layout written for this hack.
 
 # Layout Support
+ * SM64: Last Impact
  * Super Mario 74
  * Super Mario 74 Extreme Edition
  * Super Mario New Star
