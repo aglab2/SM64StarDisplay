@@ -44,14 +44,6 @@ namespace StarDisplay
 
         }
 
-        //Wandows, your forms are broken
-        protected override void WndProc(ref Message m)
-        {
-            // Suppress the WM_UPDATEUISTATE message
-            if (m.Msg == 0x128) return;
-            base.WndProc(ref m);
-        }
-
         private void resetForm()
         {
             connectButton.Enabled = true;
@@ -95,6 +87,7 @@ namespace StarDisplay
             Image baseImage = new Bitmap(starPicture.Width, starPicture.Height);
             gm.graphics = Graphics.FromImage(baseImage);
             gm.PaintHUD();
+            gm.DrawLastOutline();
             LineEntry le = mm.GetLine();
             if (le != null)
             {
@@ -137,7 +130,6 @@ namespace StarDisplay
                 //{
                     gm.DrawStarNumber(totalCountText.Text, starCount);
                 //}
-                gm.DrawLastOutline();
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
             }
@@ -246,6 +238,8 @@ namespace StarDisplay
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
             ld = (LayoutDescription)formatter.Deserialize(stream);
+            if (ld.darkStar == null) ld.generateDarkStar();
+            if (ld.outline == null) ld.generateOutline();
             ld.Trim();
             stream.Close();
             InvalidateCache();

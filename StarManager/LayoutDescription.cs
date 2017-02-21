@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Text;
 
@@ -92,61 +94,110 @@ namespace StarDisplay
 
             this.goldStar = star;
             this.darkStar = new Bitmap(goldStar.Width, goldStar.Height);
-            this.outline = new Bitmap(star.Width, star.Height);
+            if (goldStar.Width != 20 || goldStar.Height != 20)
+                Compress();
 
+            generateDarkStar();
+            generateOutline();
+
+            Trim();
+        }
+
+        public void generateDarkStar()
+        {
             for (int i = 0; i < goldStar.Width; i++)
             {
                 for (int j = 0; j < goldStar.Height; j++)
                 {
                     double h; double s; double l;
-                    Color c = star.GetPixel(i, j);
+                    Color c = goldStar.GetPixel(i, j);
                     ColorRGB crgb = new ColorRGB(c);
                     ColorRGB.RGB2HSL(crgb, out h, out s, out l);
-                    
+
                     ColorRGB nrgb = ColorRGB.HSL2RGB(h, 0, l);
-                    ColorRGB orgb = ColorRGB.HSL2RGB(h+0.05 > 1 ? h+0.05-1 : h+0.05, s, l);
+                    ColorRGB orgb = ColorRGB.HSL2RGB(h + 0.05 > 1 ? h + 0.05 - 1 : h + 0.05, s, l);
 
                     Color n = Color.FromArgb(c.A, nrgb.R, nrgb.G, nrgb.B);
-                    Color o = Color.FromArgb(c.A, orgb.R, orgb.G, orgb.B);
 
                     darkStar.SetPixel(i, j, n);
-                    outline.SetPixel(i, j, o);
+                }
+            }
+        }
+
+        public void generateOutline()
+        {
+            this.outline = new Bitmap(goldStar.Width, goldStar.Height);
+            int[,] A = new int[goldStar.Width, goldStar.Height];
+            for (int i = 0; i < goldStar.Width; i++)
+            {
+                for (int j = 0; j < goldStar.Height; j++)
+                {
+                    double h; double s; double l;
+                    Color c = goldStar.GetPixel(i, j);
+                    A[i, j] = c.A;
                 }
             }
 
-            Trim();
+            int[,] outlineAlpha = A;
+            for (int i = 0; i < 10; i++)
+            {
+                outlineAlpha = OutlineAlpha(outlineAlpha);
+            }
+            for (int i = 0; i < goldStar.Width; i++)
+            {
+                for (int j = 0; j < goldStar.Height; j++)
+                {
+                    Color c = Color.FromArgb(outlineAlpha[i, j], 255, 0, 0);
+                    this.outline.SetPixel(i, j, c);
+                }
+            }
         }
 
-        public Bitmap OutlineImage(Bitmap star)
+        private int[,] OutlineAlpha(int[,] alpha)
         {
-            Bitmap outline = new Bitmap(star.Width, star.Height);
+            int[,] ret = new int[goldStar.Width, goldStar.Height];
+
             for (int i = 1; i < goldStar.Width - 1; i++)
             {
                 for (int j = 1; j < goldStar.Height - 1; j++)
                 {
-                    Color tl = star.GetPixel(i - 1, j - 1);
-                    Color tm = star.GetPixel(i, j - 1);
-                    Color tr = star.GetPixel(i + 1, j - 1);
+                    int tl = alpha[i + 1, j + 1];
+                    int tm = alpha[i + 1, j];
+                    int tr = alpha[i + 1, j - 1];
 
-                    Color ml = star.GetPixel(i - 1, j);
-                    Color mm = star.GetPixel(i, j);
-                    Color mr = star.GetPixel(i + 1, j);
+                    int ml = alpha[i, j + 1];
+                    int mm = alpha[i, j];
+                    int mr = alpha[i, j - 1];
 
-                    Color bl = star.GetPixel(i - 1, j + 1);
-                    Color bm = star.GetPixel(i, j + 1);
-                    Color br = star.GetPixel(i + 1, j + 1);
+                    int bl = alpha[i - 1, j + 1];
+                    int bm = alpha[i - 1, j];
+                    int br = alpha[i - 1, j - 1];
 
-                    int A = 0;
-                    A += tl.A / 4 + tr.A / 4 + bl.A / 4 + br.A / 4;
-                    A += tm.A / 4 * 3 + ml.A / 4 * 3 + mr.A / 4 + bm.A / 4 * 3;
-                    A += mm.A;
-                    A /= 5;
+                    int A = tl+tm+tr+ml+mm+mr+br+bm+br;
+                    A /= 9;
 
-                    Color o = Color.FromArgb(A, 255, 0, 0);
-                    outline.SetPixel(i, j, o);
+                    ret[i, j] = A;
                 }
             }
-            return outline;
+
+            ret[0, 0] = alpha[0, 0] + alpha[0, 1] + alpha[1, 0]; ret[0,0] /= 3;
+            ret[goldStar.Width-1, 0] = alpha[goldStar.Width-1, 0] + alpha[goldStar.Width-1, 1] + alpha[goldStar.Width-2, 0]; ret[goldStar.Width-1, 0] /= 3;
+            ret[0, goldStar.Height - 1] = alpha[0, goldStar.Height-1] + alpha[0, goldStar.Height-2] + alpha[1, goldStar.Height-1]; ret[0, goldStar.Height-1] /= 3;
+            ret[goldStar.Width-1, goldStar.Height-1] = alpha[goldStar.Width-1, goldStar.Height-1] + alpha[goldStar.Width-1, goldStar.Height - 2] + alpha[goldStar.Width - 2, goldStar.Height-1]; ret[goldStar.Width-1, goldStar.Height-1] /= 3;
+
+            for (int i = 1; i < goldStar.Width - 1; i++)
+            {
+                ret[i, 0] = ret[i - 1, 0] + ret[i, 0] + ret[i + 1, 0] + ret[i - 1, 1] + ret[i, 1] + ret[i + 1, 1]; ret[i, 0] /= 6;
+                ret[i, goldStar.Height-1] = ret[i - 1, goldStar.Height-1] + ret[i, goldStar.Height-1] + ret[i + 1, goldStar.Height-1] + ret[i - 1, goldStar.Height - 2] + ret[i, goldStar.Height - 2] + ret[i + 1, goldStar.Height - 2]; ret[i, goldStar.Height-1] /= 6;
+            }
+
+            for (int j = 1; j < goldStar.Height - 1; j++)
+            {
+                ret[0, j] = ret[0, j - 1] + ret[0, j] + ret[0, j + 1] + ret[1, j - 1] + ret[1, j] + ret[1, j + 1]; ret[0, j] /= 6;
+                ret[goldStar.Width-1, j] = ret[goldStar.Width-1, j - 1] + ret[goldStar.Width-1, j] + ret[goldStar.Width-1, j + 1] + ret[goldStar.Width-2, j - 1] + ret[goldStar.Width-2, j] + ret[goldStar.Width-2, j + 1]; ret[goldStar.Width-1, j] /= 6;
+            }
+
+            return ret;
         }
 
         public void SaturateStar()
@@ -210,6 +261,48 @@ namespace StarDisplay
                         secretDescription[i] = null;
                 }
             }
+        }
+
+        public void Compress()
+        {
+            var goldCompressedImage = new Bitmap(20, 20);
+            var darkCompressedImage = new Bitmap(20, 20);
+
+            var destRect = new Rectangle(0, 0, 20, 20);
+
+            using (var graphics = Graphics.FromImage(goldCompressedImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(goldStar, destRect, 0, 0, goldStar.Width, goldStar.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+            goldStar.Dispose();
+            goldStar = goldCompressedImage;
+
+            using (var graphics = Graphics.FromImage(darkCompressedImage))
+            {
+                graphics.CompositingMode = CompositingMode.SourceCopy;
+                graphics.CompositingQuality = CompositingQuality.HighQuality;
+                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                graphics.SmoothingMode = SmoothingMode.HighQuality;
+                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                using (var wrapMode = new ImageAttributes())
+                {
+                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                    graphics.DrawImage(darkStar, destRect, 0, 0, darkStar.Width, darkStar.Height, GraphicsUnit.Pixel, wrapMode);
+                }
+            }
+            darkStar.Dispose();
+            darkStar = darkCompressedImage;
         }
 
         public byte[] SerializeExternal()

@@ -36,9 +36,6 @@ namespace StarDisplay
             this.ld = ld;
             this._graphics = graphics;
 
-            if (darkStar.Width != 20 || goldStar.Height != 20)
-                Compress();
-
             goldSquare = new Bitmap(4, 4);
             for (int i = 0; i < goldSquare.Width; i++)
                 for (int j = 0; j < goldSquare.Height; j++)
@@ -99,6 +96,8 @@ namespace StarDisplay
             }
         }
 
+        int firstCalls = 3;
+
         byte lastStars = 0;
         int lastLineNumber = -1;
         bool lastIsSecret = true;
@@ -110,11 +109,18 @@ namespace StarDisplay
             lastLineNumber = lineNumber;
             lastIsSecret = isSecret;
             lastMask = mask;
-            DrawLastOutline();
+            if (firstCalls == 0)
+                DrawLastOutline();
         }
 
         public void DrawLastOutline()
         {
+            if (firstCalls > 0)
+            {
+                firstCalls--;
+                lastLineNumber = -1;
+                return;
+            }
             if (lastLineNumber == -1) return;
             for (int i = 1; i <= 7; i++)
             {
@@ -122,7 +128,7 @@ namespace StarDisplay
                 int x = (lastIsSecret ? 180 : 0) + i * 20;
                 int y = lastLineNumber * 23;
                 bool isAcquired = (lastStars & (1 << (i - 1))) != 0;
-                if (isAcquired && outline != null)
+                if (isAcquired)
                     graphics.DrawImage(outline, x, y, 20, 20);
             }
         }
