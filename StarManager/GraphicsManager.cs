@@ -14,6 +14,7 @@ namespace StarDisplay
     {
         Image darkStar;
         Image goldStar;
+        Image outline;
 
         Bitmap goldSquare;
         Bitmap blackSquare;
@@ -28,8 +29,10 @@ namespace StarDisplay
 
         public GraphicsManager(Graphics graphics, LayoutDescription ld)
         {
-            darkStar = ld.darkStar;
-            goldStar = ld.goldStar;
+            this.darkStar = ld.darkStar;
+            this.goldStar = ld.goldStar;
+            this.outline = ld.outline;
+
             this.ld = ld;
             this._graphics = graphics;
 
@@ -93,6 +96,34 @@ namespace StarDisplay
                 bool isAcquired = (stars & (1 << (i - 1))) != 0;
                 Image img = isAcquired ? goldStar : darkStar;
                 graphics.DrawImage(img, x, y, 20, 20);
+            }
+        }
+
+        byte lastStars = 0;
+        int lastLineNumber = -1;
+        bool lastIsSecret = true;
+        byte lastMask = 0;
+
+        public void DrawOutlines(byte stars, int lineNumber, bool isSecret, byte mask)
+        {
+            lastStars = stars;
+            lastLineNumber = lineNumber;
+            lastIsSecret = isSecret;
+            lastMask = mask;
+            DrawLastOutline();
+        }
+
+        public void DrawLastOutline()
+        {
+            if (lastLineNumber == -1) return;
+            for (int i = 1; i <= 7; i++)
+            {
+                if ((lastMask & (1 << i)) == 0) continue;
+                int x = (lastIsSecret ? 180 : 0) + i * 20;
+                int y = lastLineNumber * 23;
+                bool isAcquired = (lastStars & (1 << (i - 1))) != 0;
+                if (isAcquired && outline != null)
+                    graphics.DrawImage(outline, x, y, 20, 20);
             }
         }
 

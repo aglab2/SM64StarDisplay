@@ -80,6 +80,7 @@ namespace StarDisplay
 
         public Bitmap goldStar;
         public Bitmap darkStar;
+        public Bitmap outline;
 
         public string starAmount;
 
@@ -90,7 +91,8 @@ namespace StarDisplay
             this.starAmount = starAmount;
 
             this.goldStar = star;
-            Bitmap darkStar = new Bitmap(goldStar.Width, goldStar.Height);
+            this.darkStar = new Bitmap(goldStar.Width, goldStar.Height);
+            this.outline = new Bitmap(star.Width, star.Height);
 
             for (int i = 0; i < goldStar.Width; i++)
             {
@@ -100,17 +102,51 @@ namespace StarDisplay
                     Color c = star.GetPixel(i, j);
                     ColorRGB crgb = new ColorRGB(c);
                     ColorRGB.RGB2HSL(crgb, out h, out s, out l);
+                    
+                    ColorRGB nrgb = ColorRGB.HSL2RGB(h, 0, l);
+                    ColorRGB orgb = ColorRGB.HSL2RGB(h+0.05 > 1 ? h+0.05-1 : h+0.05, s, l);
 
-                    s = 0;
-
-                    ColorRGB nrgb = ColorRGB.HSL2RGB(h, s, l);
                     Color n = Color.FromArgb(c.A, nrgb.R, nrgb.G, nrgb.B);
+                    Color o = Color.FromArgb(c.A, orgb.R, orgb.G, orgb.B);
+
                     darkStar.SetPixel(i, j, n);
+                    outline.SetPixel(i, j, o);
                 }
             }
 
-            this.darkStar = darkStar;
             Trim();
+        }
+
+        public Bitmap OutlineImage(Bitmap star)
+        {
+            Bitmap outline = new Bitmap(star.Width, star.Height);
+            for (int i = 1; i < goldStar.Width - 1; i++)
+            {
+                for (int j = 1; j < goldStar.Height - 1; j++)
+                {
+                    Color tl = star.GetPixel(i - 1, j - 1);
+                    Color tm = star.GetPixel(i, j - 1);
+                    Color tr = star.GetPixel(i + 1, j - 1);
+
+                    Color ml = star.GetPixel(i - 1, j);
+                    Color mm = star.GetPixel(i, j);
+                    Color mr = star.GetPixel(i + 1, j);
+
+                    Color bl = star.GetPixel(i - 1, j + 1);
+                    Color bm = star.GetPixel(i, j + 1);
+                    Color br = star.GetPixel(i + 1, j + 1);
+
+                    int A = 0;
+                    A += tl.A / 4 + tr.A / 4 + bl.A / 4 + br.A / 4;
+                    A += tm.A / 4 * 3 + ml.A / 4 * 3 + mr.A / 4 + bm.A / 4 * 3;
+                    A += mm.A;
+                    A /= 5;
+
+                    Color o = Color.FromArgb(A, 255, 0, 0);
+                    outline.SetPixel(i, j, o);
+                }
+            }
+            return outline;
         }
 
         public void SaturateStar()

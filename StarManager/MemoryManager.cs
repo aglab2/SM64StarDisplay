@@ -215,10 +215,12 @@ namespace StarDisplay
                 byte newStarByte = stars[descr.offset];
                 byte starMask2 = (byte)(descr.starMask >> 1);
 
-                //if (oldStarByte != newStarByte)
-                //{
-                    yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), false, descr.starMask);
-                //}
+                if (oldStarByte != newStarByte)
+                {
+                    byte diffByte = (byte) (((oldStarByte) ^ (newStarByte)) & newStarByte);
+                    gm.DrawOutlines(diffByte, line, false, descr.starMask);
+                }
+                yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), false, descr.starMask);
             }
 
             for (int line = 0; line < ld.secretDescription.Length; line++)
@@ -230,10 +232,12 @@ namespace StarDisplay
                 byte newStarByte = stars[descr.offset];
                 byte starMask2 = (byte)(descr.starMask >> 1);
 
-                //if (oldStarByte != newStarByte)
-                //{
-                    yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), true, descr.starMask);
-                //}
+                if (oldStarByte != newStarByte)
+                {
+                    byte diffByte = (byte)(((oldStarByte) ^ (newStarByte)) & newStarByte);
+                    gm.DrawOutlines(diffByte, line, true, descr.starMask);
+                }
+                yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), true, descr.starMask);
             }
             oldStars = stars;
         }

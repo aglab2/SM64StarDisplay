@@ -137,6 +137,7 @@ namespace StarDisplay
                 //{
                     gm.DrawStarNumber(totalCountText.Text, starCount);
                 //}
+                gm.DrawLastOutline();
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
             }
