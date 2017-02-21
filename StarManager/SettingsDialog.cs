@@ -18,7 +18,7 @@ namespace StarDisplay
         {
             InitializeComponent();
             this.lind = lind;
-
+            
             textOnlyCheckbox.Checked = lind.isTextOnly;
             stringTextBox.Text = lind.text;
             if (lind.offset != 0)

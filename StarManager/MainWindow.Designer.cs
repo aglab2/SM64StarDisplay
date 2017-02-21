@@ -40,7 +40,6 @@
             this.loadDefaultToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.compressToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importStarMasksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -48,14 +47,13 @@
             this.iconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saturateIconToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.drawImageFromRAMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.recolorIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.radioButtonA = new System.Windows.Forms.RadioButton();
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.recolorIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -120,7 +118,6 @@
             this.loadDefaultToolStripMenuItem,
             this.loadFromToolStripMenuItem,
             this.saveAsToolStripMenuItem,
-            this.compressToolStripMenuItem,
             this.importStarMasksToolStripMenuItem});
             this.layoutToolStripMenuItem.Enabled = false;
             this.layoutToolStripMenuItem.Name = "layoutToolStripMenuItem";
@@ -162,13 +159,6 @@
             this.saveAsToolStripMenuItem.Text = "Save As...";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.saveAsToolStripMenuItem_Click);
             // 
-            // compressToolStripMenuItem
-            // 
-            this.compressToolStripMenuItem.Name = "compressToolStripMenuItem";
-            this.compressToolStripMenuItem.Size = new System.Drawing.Size(169, 22);
-            this.compressToolStripMenuItem.Text = "Compress";
-            this.compressToolStripMenuItem.Click += new System.EventHandler(this.compressToolStripMenuItem_Click);
-            // 
             // importStarMasksToolStripMenuItem
             // 
             this.importStarMasksToolStripMenuItem.Name = "importStarMasksToolStripMenuItem";
@@ -204,7 +194,6 @@
             this.iconsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importIconsToolStripMenuItem,
             this.saturateIconToolStripMenuItem,
-            this.drawImageFromRAMToolStripMenuItem,
             this.recolorIconsToolStripMenuItem});
             this.iconsToolStripMenuItem.Enabled = false;
             this.iconsToolStripMenuItem.Name = "iconsToolStripMenuItem";
@@ -214,23 +203,23 @@
             // importIconsToolStripMenuItem
             // 
             this.importIconsToolStripMenuItem.Name = "importIconsToolStripMenuItem";
-            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.importIconsToolStripMenuItem.Text = "Import Icons";
             this.importIconsToolStripMenuItem.Click += new System.EventHandler(this.importIconsToolStripMenuItem_Click);
             // 
             // saturateIconToolStripMenuItem
             // 
             this.saturateIconToolStripMenuItem.Name = "saturateIconToolStripMenuItem";
-            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
+            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.saturateIconToolStripMenuItem.Text = "Saturate Icon";
             this.saturateIconToolStripMenuItem.Click += new System.EventHandler(this.saturateIconToolStripMenuItem_Click);
             // 
-            // drawImageFromRAMToolStripMenuItem
+            // recolorIconsToolStripMenuItem
             // 
-            this.drawImageFromRAMToolStripMenuItem.Name = "drawImageFromRAMToolStripMenuItem";
-            this.drawImageFromRAMToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
-            this.drawImageFromRAMToolStripMenuItem.Text = "Draw Image From RAM";
-            this.drawImageFromRAMToolStripMenuItem.Click += new System.EventHandler(this.drawImageFromRAMToolStripMenuItem_Click);
+            this.recolorIconsToolStripMenuItem.Name = "recolorIconsToolStripMenuItem";
+            this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.recolorIconsToolStripMenuItem.Text = "Recolor Icons";
+            this.recolorIconsToolStripMenuItem.Click += new System.EventHandler(this.recolorIconsToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
@@ -293,13 +282,6 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
-            // recolorIconsToolStripMenuItem
-            // 
-            this.recolorIconsToolStripMenuItem.Name = "recolorIconsToolStripMenuItem";
-            this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(197, 22);
-            this.recolorIconsToolStripMenuItem.Text = "Recolor Icons";
-            this.recolorIconsToolStripMenuItem.Click += new System.EventHandler(this.recolorIconsToolStripMenuItem_Click);
-            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -351,8 +333,6 @@
         private System.Windows.Forms.ToolStripMenuItem loadFromToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
-        private System.Windows.Forms.ToolStripMenuItem compressToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem drawImageFromRAMToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem importStarMasksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem recolorIconsToolStripMenuItem;
     }

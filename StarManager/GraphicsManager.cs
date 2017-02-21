@@ -19,33 +19,22 @@ namespace StarDisplay
         Bitmap blackSquare;
 
         LayoutDescription ld;
-
         Graphics _graphics;
-        public Graphics graphics {
+        public Graphics graphics
+        {
             internal get { return _graphics; }
             set { _graphics.Dispose(); _graphics = value; }
         }
-
-        Font DrawFont;
-        Font BigFont;
 
         public GraphicsManager(Graphics graphics, LayoutDescription ld)
         {
             darkStar = ld.darkStar;
             goldStar = ld.goldStar;
             this.ld = ld;
+            this._graphics = graphics;
 
             if (darkStar.Width != 20 || goldStar.Height != 20)
                 Compress();
-
-            _graphics = graphics;
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-            
-            DrawFont = new Font(fontFamily, 10);
-            BigFont = new Font(fontFamily, 15);
 
             goldSquare = new Bitmap(4, 4);
             for (int i = 0; i < goldSquare.Width; i++)
@@ -58,27 +47,40 @@ namespace StarDisplay
                     blackSquare.SetPixel(i, j, Color.Black);
         }
 
-        public void PaintHUD(int width, int height)
+        public void PaintHUD()
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
 
-            graphics.FillRectangle(blackBrush, new Rectangle(0, 0, width, height));
-            for (int line = 0; line < ld.courseDescription.Length; line++)
+            PrivateFontCollection collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily fontFamily = new FontFamily("Courier New", collection);
+
+            Font bigFont = new Font(fontFamily, 15);
+
+            graphics.Clear(Color.Black);
+
+            int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
+            int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
+
+            for (int line = 0; line < courseDescriptionLength; line++)
             {
                 if (ld.courseDescription[line] == null) continue;
                 DrawLine(ld.courseDescription[line], line, false);
             }
-            for (int line = 0; line < ld.secretDescription.Length; line++)
+            for (int line = 0; line < secretDescriptionLength; line++)
             {
                 if (ld.secretDescription[line] == null) continue;
                 DrawLine(ld.secretDescription[line], line, true);
             }
-            int lastLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length);
-            graphics.DrawString("Savestateless Stars", BigFont, drawBrush, 45, lastLine * 23 + 2);
+            int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
+            graphics.DrawString("Savestateless Stars", bigFont, drawBrush, 45, lastLine * 23 + 2);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
+            bigFont.Dispose();
+            fontFamily.Dispose();
+            collection.Dispose();
         }
 
         public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask)
@@ -96,17 +98,26 @@ namespace StarDisplay
 
         public void DrawLine(LineDescription ld, int lineNumber, bool isSecret)
         {
+            PrivateFontCollection collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily fontFamily = new FontFamily("Courier New", collection);
+
+            Font drawFont = new Font(fontFamily, 10);
+
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
             if (ld.isTextOnly)
             {
-                graphics.DrawString(ld.text, DrawFont, drawBrush, (isSecret ? 180: 0) + 7, lineNumber * 23 + 2);
+                graphics.DrawString(ld.text, drawFont, drawBrush, (isSecret ? 180: 0) + 7, lineNumber * 23 + 2);
             }
             else
             {
-                graphics.DrawString(ld.text, DrawFont, drawBrush, isSecret ? 180 : 0, lineNumber * 23 + 2);
+                graphics.DrawString(ld.text, drawFont, drawBrush, isSecret ? 180 : 0, lineNumber * 23 + 2);
                 DrawByte(0, lineNumber, isSecret, ld.starMask);
             }
             drawBrush.Dispose();
+            drawFont.Dispose();
+            fontFamily.Dispose();
+            collection.Dispose();
         }
 
         public void AddLineHighlight(LineEntry le, LineDescription lind)
@@ -170,6 +181,9 @@ namespace StarDisplay
             graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
 
             drawBrush.Dispose();
+            drawFont.Dispose();
+            fontFamily.Dispose();
+            collection.Dispose();
         }
 
         public void DrawGrayString(LineEntry le, LineDescription lind)
@@ -189,13 +203,18 @@ namespace StarDisplay
             graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
 
             drawBrush.Dispose();
+            drawFont.Dispose();
+            fontFamily.Dispose();
+            collection.Dispose();
         }
 
         public void DrawStarNumber(string totalCount, int starCount)
         {
             string starLine = starCount.ToString().PadLeft(3) + "/" + totalCount.PadRight(3);
-            
-            int totalStarLine = Math.Max(ld.courseDescription.Length, ld.secretDescription.Length) + 1;
+
+            int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
+            int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
+            int totalStarLine = Math.Max(courseDescriptionLength, secretDescriptionLength) + 1;
 
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
@@ -210,6 +229,8 @@ namespace StarDisplay
 
             blackBrush.Dispose();
             drawBrush.Dispose();
+            fontFamily.Dispose();
+            collection.Dispose();
         }
 
         public void Compress()

@@ -110,6 +110,7 @@ namespace StarDisplay
             }
 
             this.darkStar = darkStar;
+            Trim();
         }
 
         public void SaturateStar()
@@ -140,14 +141,14 @@ namespace StarDisplay
                 if (lind == null) continue;
                 if (lind.isTextOnly)
                 {
-                    if (lind.text != null)
+                    if (lind.text != "")
                         break;
                     else
                         courseDescription[i] = null;
                 }
                 else
                 {
-                    if (lind.text != null || lind.starMask != 0)
+                    if (lind.text != "" || lind.starMask != 0)
                         break;
                     else
                         courseDescription[i] = null;
@@ -160,14 +161,14 @@ namespace StarDisplay
                 if (lind == null) continue;
                 if (lind.isTextOnly)
                 {
-                    if (lind.text != null)
+                    if (lind.text != "")
                         break;
                     else
                         secretDescription[i] = null;
                 }
                 else
                 {
-                    if (lind.text != null || lind.starMask != 0)
+                    if (lind.text != "" || lind.starMask != 0)
                         break;
                     else
                         secretDescription[i] = null;

@@ -181,8 +181,8 @@ namespace StarDisplay
                 throw new IOException();
             }*/
 
-            if (stars[3] != oldStars[3])
-            {
+            //if (stars[3] != oldStars[3])
+            //{
                 int index; bool isAcquired;
                 index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "B1");
                 isAcquired = ((stars[3] & (1 << 4)) != 0) || ((stars[3] & (1 << 6)) != 0);
@@ -204,7 +204,7 @@ namespace StarDisplay
                 isAcquired = ((stars[3] & (1 << 3)) != 0);
                 if (index != -1)
                     DrawSpecialString(index, isAcquired);
-            }
+           // }
 
             for (int line = 0; line < ld.courseDescription.Length; line++)
             {
@@ -215,10 +215,10 @@ namespace StarDisplay
                 byte newStarByte = stars[descr.offset];
                 byte starMask2 = (byte)(descr.starMask >> 1);
 
-                if (oldStarByte != newStarByte)
-                {
+                //if (oldStarByte != newStarByte)
+                //{
                     yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), false, descr.starMask);
-                }
+                //}
             }
 
             for (int line = 0; line < ld.secretDescription.Length; line++)
@@ -230,10 +230,10 @@ namespace StarDisplay
                 byte newStarByte = stars[descr.offset];
                 byte starMask2 = (byte)(descr.starMask >> 1);
 
-                if (oldStarByte != newStarByte)
-                {
+                //if (oldStarByte != newStarByte)
+                //{
                     yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), true, descr.starMask);
-                }
+                //}
             }
             oldStars = stars;
         }

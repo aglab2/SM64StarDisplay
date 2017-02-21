@@ -29,8 +29,11 @@ namespace StarDisplay
         public MainWindow()
         {
             InitializeComponent();
+
             ld = LayoutDescription.GenerateDefault();
-            gm = new GraphicsManager(starPicture.CreateGraphics(), ld);
+            Image randomImage = new Bitmap(1,1);
+            gm = new GraphicsManager(Graphics.FromImage(randomImage), ld);
+            starPicture.Image = randomImage;
             mm = new MemoryManager(null, ld, gm);
 
             timer = new Timer();
@@ -38,6 +41,7 @@ namespace StarDisplay
             timer.Interval = 1000;
 
             oldLE = new LineEntry(0, 0, 0, false, 0);
+
         }
 
         //Wandows, your forms are broken
@@ -88,21 +92,25 @@ namespace StarDisplay
             }
 
             //Display stars routine
-            gm.graphics = starPicture.CreateGraphics();
+            Image baseImage = new Bitmap(starPicture.Width, starPicture.Height);
+            gm.graphics = Graphics.FromImage(baseImage);
+            gm.PaintHUD();
             LineEntry le = mm.GetLine();
             if (le != null)
             {
                 LineDescription lind = le.Secret ? ld.secretDescription[le.Line] : ld.courseDescription[le.Line];
+                gm.AddLineHighlight(le, lind);
+                /*
                 if (le.Secret != oldLE.Secret || le.Line != oldLE.Line)
                 {
-                    gm.AddLineHighlight(le, lind);
-                    if (oldLE.Line != 0)
+                    
+                    /*if (oldLE.Line != 0)
                     {
                         LineDescription oldLind = oldLE.Secret ? ld.secretDescription[oldLE.Line] : ld.courseDescription[oldLE.Line];
                         gm.RemoveLineHighlight(oldLE, oldLind);
                     }
                     oldLE = le;
-                }
+                }*/
             }
 
             try
@@ -125,10 +133,10 @@ namespace StarDisplay
                     ld.starAmount = totalCountText.Text;
                 }
 
-                if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
-                {
+                //if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
+                //{
                     gm.DrawStarNumber(totalCountText.Text, starCount);
-                }
+                //}
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
             }
@@ -137,11 +145,12 @@ namespace StarDisplay
                 resetForm();
                 return;
             }
+            starPicture.Image.Dispose();
+            starPicture.Image = baseImage;
         }
 
         private void connectButton_Click(object sender, EventArgs e)
         {
-            gm.PaintHUD(starPicture.Width, starPicture.Height);
             try
             {
                 Process process = Process.GetProcessesByName("project64").First();
@@ -150,6 +159,7 @@ namespace StarDisplay
                 layoutToolStripMenuItem.Enabled = true;
                 iconsToolStripMenuItem.Enabled = true;
                 timer.Start();
+                updateStars(null, null);
             }
             catch (InvalidOperationException)
             {
@@ -172,7 +182,9 @@ namespace StarDisplay
             oldStarCount = 0;
             oldTotalCount = "";
             oldLE = new LineEntry(0, 0, 0, false, 0);
-            gm.PaintHUD(starPicture.Width, starPicture.Height);
+            timer.Stop();
+            updateStars(null, null);
+            timer.Start();
         }
 
         private void starPicture_Click(object sender, EventArgs e)
@@ -190,16 +202,27 @@ namespace StarDisplay
                 if (isSecret)
                 {
                     curld = ld.secretDescription[line];
+                    if (curld == null)
+                    {
+                        ld.secretDescription[line] = new LineDescription("", true, 0, 0);
+                        curld = ld.secretDescription[line];
+                    }
                 }
                 else
                 {
                     curld = ld.courseDescription[line];
+                    if (curld == null)
+                    {
+                        ld.courseDescription[line] = new LineDescription("", true, 0, 0);
+                        curld = ld.courseDescription[line];
+                    }
                 }
 
                 if (star == 0 || curld.isTextOnly)
                 {
                     Settings settings = new Settings(curld);
                     settings.ShowDialog();
+                    ld.Trim();
                     InvalidateCache();
                 }
                 else
@@ -222,12 +245,14 @@ namespace StarDisplay
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
             ld = (LayoutDescription)formatter.Deserialize(stream);
+            ld.Trim();
             stream.Close();
             InvalidateCache();
         }
 
         private void SaveLayout(string name)
         {
+            ld.Trim();
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Create, FileAccess.Write, FileShare.None);
             formatter.Serialize(stream, ld);
@@ -334,7 +359,7 @@ namespace StarDisplay
 
         private void compressToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            gm.Compress();
+            ld.Trim();
         }
 
         private void drawImageFromRAMToolStripMenuItem_Click(object sender, EventArgs e)

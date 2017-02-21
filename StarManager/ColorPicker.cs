@@ -48,7 +48,7 @@ namespace StarDisplay
             midHue = h;
             midVal = v;
 
-            newImg = new Bitmap(img.Width, img.Height);
+            newImg = new Bitmap(img); 
             InitializeComponent();
         }
 
@@ -86,8 +86,6 @@ namespace StarDisplay
             
             double expectedHue = (double) e.X / pictureBox.Width;
             double expectedVal = (double) e.Y / pictureBox.Height;
-
-            Console.Write(expectedVal);
 
             double h, s, v;
 

@@ -46,6 +46,6 @@ For speedrunners this program can be useful too! It can soft erase file A on ROM
 
 # Credits
  * Original idea: FramePerfection
- * Beta testers: Ap616, OcarinaOfFan05, katze789, Sir_Flareon
+ * Beta testers: Ap616, Tomatobird8, OcarinaOfFan05, katze789, Sir_Flareon
  * Design tips: Ap616, Karisa113, Tomatobird8
  * Layouts development: Mariocrash64, CaptainBowser, Sir_Flareon
