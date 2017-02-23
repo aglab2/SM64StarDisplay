@@ -15,10 +15,11 @@ namespace StarDisplay
         public readonly Process Process;
         LayoutDescription ld;
         GraphicsManager gm;
+        ROMManager rm;
 
         int previousTime;
         byte[] oldStars;
-        byte[] highlightPivot;
+        public byte[] highlightPivot { get; private set; }
 
         byte[] defPicture;
 
@@ -26,6 +27,8 @@ namespace StarDisplay
         public readonly DeepPointer[] files;
 
         DeepPointer romNamePtr;
+        DeepPointer absoluteRomPathPtr;
+
         DeepPointer levelPtr;
         DeepPointer starPtr;
         DeepPointer redsPtr;
@@ -36,11 +39,13 @@ namespace StarDisplay
 
         public int selectedFile;
 
-        public MemoryManager(Process process, LayoutDescription ld, GraphicsManager gm)
+        public MemoryManager(Process process, LayoutDescription ld, GraphicsManager gm, ROMManager rm, byte[] highlightPivot)
         {
             this.Process = process;
             this.ld = ld;
             this.gm = gm;
+            this.rm = rm;
+            this.highlightPivot = highlightPivot;
             oldStars = new byte[32];
 
             igt = new DeepPointer("Project64.exe", 0xD6A1C, 0x32D580);
@@ -51,6 +56,8 @@ namespace StarDisplay
             files[3] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207858);
 
             romNamePtr = new DeepPointer("Project64.exe", 0xAF1F8);
+            absoluteRomPathPtr = new DeepPointer("Project64.exe", 0xAF0F0);
+
             levelPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x32DDFA);
             starPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x064F80 + 0x04800);
             redsPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x3613FD);
@@ -86,6 +93,11 @@ namespace StarDisplay
         public string GetROMName()
         {
             return romNamePtr.DerefString(Process, 32);
+        }
+
+        public string GetAbsoluteROMPath()
+        {
+            return absoluteRomPathPtr.DerefString(Process, 255);
         }
 
         private int GetCurrentOffset()
@@ -124,11 +136,6 @@ namespace StarDisplay
         public sbyte GetReds()
         {
             return redsPtr.Deref<sbyte>(Process);
-        }
-
-        public void InvalidateCache()
-        {
-            oldStars = new byte[32];
         }
 
         public Bitmap GetImage()
@@ -199,9 +206,37 @@ namespace StarDisplay
             {
                 highlightPivot = stars;
             }
-            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot);
+
+            int totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction()) : -1;
+            int reds = totalReds == 0 ? 0 : GetReds() + totalReds - 8;
+
+            if (totalReds == -1)
+            {
+                totalReds = 0; reds = 0;
+            }
+            
+            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot, reds, totalReds);
             oldStars = stars;
             return da;
+        }
+
+        public int SearchObjects(UInt32 searchBehaviour)
+        {
+            int count = 0;
+
+            UInt32 address = 0x33D488;
+            do
+            {
+                DeepPointer currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
+                byte[] data = currentObject.DerefBytes(Process, 0x260);
+                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
+
+                UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
+                UInt32 behaviourActive1 = BitConverter.ToUInt32(data, 0x1CC);
+                
+                if (behaviourActive1 == searchBehaviour) count++;
+            } while (address != 0x33D488);
+            return count;
         }
     }
 }

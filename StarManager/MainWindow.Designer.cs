@@ -48,13 +48,14 @@
             this.importIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saturateIconToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.recolorIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.resetHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.radioButtonA = new System.Windows.Forms.RadioButton();
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.resetHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.showRedsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -62,7 +63,7 @@
             // 
             // connectButton
             // 
-            this.connectButton.Location = new System.Drawing.Point(12, 466);
+            this.connectButton.Location = new System.Drawing.Point(12, 495);
             this.connectButton.Name = "connectButton";
             this.connectButton.Size = new System.Drawing.Size(75, 23);
             this.connectButton.TabIndex = 1;
@@ -75,7 +76,7 @@
             this.starPicture.BackColor = System.Drawing.Color.Black;
             this.starPicture.Location = new System.Drawing.Point(12, 27);
             this.starPicture.Name = "starPicture";
-            this.starPicture.Size = new System.Drawing.Size(345, 431);
+            this.starPicture.Size = new System.Drawing.Size(345, 462);
             this.starPicture.TabIndex = 2;
             this.starPicture.TabStop = false;
             this.starPicture.Click += new System.EventHandler(this.starPicture_Click);
@@ -84,7 +85,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(225, 469);
+            this.label1.Location = new System.Drawing.Point(225, 501);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(72, 13);
             this.label1.TabIndex = 4;
@@ -92,7 +93,7 @@
             // 
             // totalCountText
             // 
-            this.totalCountText.Location = new System.Drawing.Point(303, 466);
+            this.totalCountText.Location = new System.Drawing.Point(303, 498);
             this.totalCountText.MaxLength = 3;
             this.totalCountText.Name = "totalCountText";
             this.totalCountText.Size = new System.Drawing.Size(54, 20);
@@ -171,7 +172,8 @@
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.enableAutoDeleteToolStripMenuItem,
-            this.configureDisplayToolStripMenuItem});
+            this.configureDisplayToolStripMenuItem,
+            this.showRedsToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(61, 20);
             this.toolStripMenuItem1.Text = "Settings";
@@ -222,6 +224,13 @@
             this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.recolorIconsToolStripMenuItem.Text = "Recolor Icons";
             this.recolorIconsToolStripMenuItem.Click += new System.EventHandler(this.recolorIconsToolStripMenuItem_Click);
+            // 
+            // resetHighlightToolStripMenuItem
+            // 
+            this.resetHighlightToolStripMenuItem.Name = "resetHighlightToolStripMenuItem";
+            this.resetHighlightToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.resetHighlightToolStripMenuItem.Text = "Reset Highlight";
+            this.resetHighlightToolStripMenuItem.Click += new System.EventHandler(this.resetHighlightToolStripMenuItem_Click);
             // 
             // toolStripMenuItem2
             // 
@@ -284,18 +293,20 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
-            // resetHighlightToolStripMenuItem
+            // showRedsToolStripMenuItem
             // 
-            this.resetHighlightToolStripMenuItem.Name = "resetHighlightToolStripMenuItem";
-            this.resetHighlightToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
-            this.resetHighlightToolStripMenuItem.Text = "Reset Highlight";
-            this.resetHighlightToolStripMenuItem.Click += new System.EventHandler(this.resetHighlightToolStripMenuItem_Click);
+            this.showRedsToolStripMenuItem.Checked = true;
+            this.showRedsToolStripMenuItem.CheckOnClick = true;
+            this.showRedsToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.showRedsToolStripMenuItem.Name = "showRedsToolStripMenuItem";
+            this.showRedsToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.showRedsToolStripMenuItem.Text = "Show Reds";
             // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(369, 498);
+            this.ClientSize = new System.Drawing.Size(369, 530);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.totalCountText);
             this.Controls.Add(this.label1);
@@ -345,6 +356,7 @@
         private System.Windows.Forms.ToolStripMenuItem importStarMasksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem recolorIconsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem resetHighlightToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem showRedsToolStripMenuItem;
     }
 }
 

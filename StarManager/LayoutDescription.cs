@@ -106,23 +106,7 @@ namespace StarDisplay
 
         public void generateDarkStar()
         {
-            for (int i = 0; i < goldStar.Width; i++)
-            {
-                for (int j = 0; j < goldStar.Height; j++)
-                {
-                    double h; double s; double l;
-                    Color c = goldStar.GetPixel(i, j);
-                    ColorRGB crgb = new ColorRGB(c);
-                    ColorRGB.RGB2HSL(crgb, out h, out s, out l);
-
-                    ColorRGB nrgb = ColorRGB.HSL2RGB(h, 0, l);
-                    ColorRGB orgb = ColorRGB.HSL2RGB(h + 0.05 > 1 ? h + 0.05 - 1 : h + 0.05, s, l);
-
-                    Color n = Color.FromArgb(c.A, nrgb.R, nrgb.G, nrgb.B);
-
-                    darkStar.SetPixel(i, j, n);
-                }
-            }
+            darkStar = ImageProcessing.Desaturate(goldStar);
         }
 
         public void generateOutline()
@@ -130,20 +114,11 @@ namespace StarDisplay
             this.redOutline = new Bitmap(goldStar.Width, goldStar.Height);
             this.greenOutline = new Bitmap(goldStar.Width, goldStar.Height);
 
-            int[,] A = new int[goldStar.Width, goldStar.Height];
-            for (int i = 0; i < goldStar.Width; i++)
-            {
-                for (int j = 0; j < goldStar.Height; j++)
-                {
-                    Color c = goldStar.GetPixel(i, j);
-                    A[i, j] = c.A;
-                }
-            }
 
-            int[,] outlineAlpha = A;
+            int[,] outlineAlpha = ImageProcessing.GetAlpha(goldStar);
             for (int i = 0; i < 10; i++)
             {
-                outlineAlpha = OutlineAlpha(outlineAlpha);
+                outlineAlpha = ImageProcessing.OutlineAlpha(outlineAlpha, goldStar);
             }
             for (int i = 0; i < goldStar.Width; i++)
             {
@@ -155,71 +130,9 @@ namespace StarDisplay
             }
         }
 
-        private int[,] OutlineAlpha(int[,] alpha)
-        {
-            int[,] ret = new int[goldStar.Width, goldStar.Height];
-
-            for (int i = 1; i < goldStar.Width - 1; i++)
-            {
-                for (int j = 1; j < goldStar.Height - 1; j++)
-                {
-                    int tl = alpha[i + 1, j + 1];
-                    int tm = alpha[i + 1, j];
-                    int tr = alpha[i + 1, j - 1];
-
-                    int ml = alpha[i, j + 1];
-                    int mm = alpha[i, j];
-                    int mr = alpha[i, j - 1];
-
-                    int bl = alpha[i - 1, j + 1];
-                    int bm = alpha[i - 1, j];
-                    int br = alpha[i - 1, j - 1];
-
-                    int A = tl+tm+tr+ml+mm+mr+br+bm+br;
-                    A /= 9;
-
-                    ret[i, j] = A;
-                }
-            }
-
-            ret[0, 0] = alpha[0, 0] + alpha[0, 1] + alpha[1, 0]; ret[0,0] /= 3;
-            ret[goldStar.Width-1, 0] = alpha[goldStar.Width-1, 0] + alpha[goldStar.Width-1, 1] + alpha[goldStar.Width-2, 0]; ret[goldStar.Width-1, 0] /= 3;
-            ret[0, goldStar.Height - 1] = alpha[0, goldStar.Height-1] + alpha[0, goldStar.Height-2] + alpha[1, goldStar.Height-1]; ret[0, goldStar.Height-1] /= 3;
-            ret[goldStar.Width-1, goldStar.Height-1] = alpha[goldStar.Width-1, goldStar.Height-1] + alpha[goldStar.Width-1, goldStar.Height - 2] + alpha[goldStar.Width - 2, goldStar.Height-1]; ret[goldStar.Width-1, goldStar.Height-1] /= 3;
-
-            for (int i = 1; i < goldStar.Width - 1; i++)
-            {
-                ret[i, 0] = ret[i - 1, 0] + ret[i, 0] + ret[i + 1, 0] + ret[i - 1, 1] + ret[i, 1] + ret[i + 1, 1]; ret[i, 0] /= 6;
-                ret[i, goldStar.Height-1] = ret[i - 1, goldStar.Height-1] + ret[i, goldStar.Height-1] + ret[i + 1, goldStar.Height-1] + ret[i - 1, goldStar.Height - 2] + ret[i, goldStar.Height - 2] + ret[i + 1, goldStar.Height - 2]; ret[i, goldStar.Height-1] /= 6;
-            }
-
-            for (int j = 1; j < goldStar.Height - 1; j++)
-            {
-                ret[0, j] = ret[0, j - 1] + ret[0, j] + ret[0, j + 1] + ret[1, j - 1] + ret[1, j] + ret[1, j + 1]; ret[0, j] /= 6;
-                ret[goldStar.Width-1, j] = ret[goldStar.Width-1, j - 1] + ret[goldStar.Width-1, j] + ret[goldStar.Width-1, j + 1] + ret[goldStar.Width-2, j - 1] + ret[goldStar.Width-2, j] + ret[goldStar.Width-2, j + 1]; ret[goldStar.Width-1, j] /= 6;
-            }
-
-            return ret;
-        }
-
         public void SaturateStar()
         {
-            for (int i = 0; i < goldStar.Width; i++)
-            {
-                for (int j = 0; j < goldStar.Height; j++)
-                {
-                    double h; double s; double l;
-                    Color c = goldStar.GetPixel(i, j);
-                    ColorRGB crgb = new ColorRGB(c);
-                    ColorRGB.RGB2HSL(crgb, out h, out s, out l);
-
-                    s = Math.Min(s + 0.1, 1);
-
-                    ColorRGB nrgb = ColorRGB.HSL2RGB(h, s, l);
-                    Color n = Color.FromArgb(c.A, nrgb.R, nrgb.G, nrgb.B);
-                    goldStar.SetPixel(i, j, n);
-                }
-            }
+            ImageProcessing.Saturate(goldStar);
         }
 
         public void Trim()

@@ -16,6 +16,9 @@ namespace StarDisplay
 
         GraphicsManager gm;
         MemoryManager mm;
+        ROMManager rm;
+
+        string oldPath;
 
         Timer timer;
 
@@ -23,8 +26,7 @@ namespace StarDisplay
         string oldTotalCount;
 
         int picX, picY;
-
-        //LineEntry oldLE;
+        
 
         public MainWindow()
         {
@@ -32,16 +34,15 @@ namespace StarDisplay
 
             ld = LayoutDescription.GenerateDefault();
             Image randomImage = new Bitmap(1,1);
-            gm = new GraphicsManager(Graphics.FromImage(randomImage), ld);
+            gm = new GraphicsManager(Graphics.FromImage(randomImage), ld, null);
             starPicture.Image = randomImage;
-            mm = new MemoryManager(null, ld, gm);
+            mm = new MemoryManager(null, ld, gm, null, null);
 
             timer = new Timer();
             timer.Tick += new EventHandler(updateStars);
             timer.Interval = 1000;
 
-            //oldLE = new LineEntry(0, 0, 0, false, 0);
-
+            oldPath = "";
         }
 
         private void resetForm()
@@ -50,6 +51,12 @@ namespace StarDisplay
             layoutToolStripMenuItem.Enabled = false;
             iconsToolStripMenuItem.Enabled = false;
             timer.Stop();
+            gm = new GraphicsManager(gm.graphics, ld, null);
+            mm = new MemoryManager(mm.Process, ld, gm, null, null);
+            rm = null;
+            totalCountText.Text = "";
+            oldStarCount = 0;
+            oldTotalCount = "";
         }
 
         private void updateStars(object sender, EventArgs e)
@@ -94,11 +101,27 @@ namespace StarDisplay
                 gm.AddLineHighlight(act);
             }
 
+            string currentROMPath = mm.GetAbsoluteROMPath();
+            if (oldPath != currentROMPath)
+            {
+                oldPath = currentROMPath;
+                try
+                {
+                    rm = new ROMManager(currentROMPath);
+                }
+                catch (IOException)
+                {
+                    oldPath = "";
+                }
+                InvalidateCache();
+            }
+
             try
             {
                 int totalDiff = 0;
                 foreach (var entry in mm.GetDrawActions())
                 {
+                    if (entry is RedsDrawAction && !showRedsToolStripMenuItem.Checked) continue;
                     entry.execute(gm);
                     LineDrawAction lda = entry as LineDrawAction;
                     if (lda != null) totalDiff += lda.StarDiff;
@@ -111,11 +134,15 @@ namespace StarDisplay
                 }
 
                 gm.DrawStarNumber(totalCountText.Text, starCount);
-                //gm.DrawReds(mm.GetReds());
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
             }
             catch (Win32Exception)
+            {
+                resetForm();
+                return;
+            }
+            catch (NullReferenceException)
             {
                 resetForm();
                 return;
@@ -129,7 +156,7 @@ namespace StarDisplay
             try
             {
                 Process process = Process.GetProcessesByName("project64").First();
-                mm = new MemoryManager(process, ld, gm);
+                mm = new MemoryManager(process, ld, gm, rm, mm.highlightPivot);
                 connectButton.Enabled = false;
                 layoutToolStripMenuItem.Enabled = true;
                 iconsToolStripMenuItem.Enabled = true;
@@ -151,8 +178,8 @@ namespace StarDisplay
 
         private void InvalidateCache()
         {
-            gm = new GraphicsManager(gm.graphics, ld);
-            mm = new MemoryManager(mm.Process, ld, gm);
+            gm = new GraphicsManager(gm.graphics, ld, gm.lastSHA);
+            mm = new MemoryManager(mm.Process, ld, gm, rm, mm.highlightPivot);
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
             oldTotalCount = "";
@@ -356,7 +383,7 @@ namespace StarDisplay
                 try
                 {
                     ROMManager rm = new ROMManager(openFileDialog.FileName);
-                    rm.Parse(ld);
+                    rm.ParseStars(ld);
                     rm.Dispose();
                 }
                 catch (IOException)
@@ -378,6 +405,31 @@ namespace StarDisplay
         private void resetHighlightToolStripMenuItem_Click(object sender, EventArgs e)
         {
             mm.resetHighlightPivot();
+            gm.IsFirstCall = true;
+        }
+
+        private void getRedsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    ROMManager rm = new ROMManager(openFileDialog.FileName);
+                    rm.ParseReds(ld, mm.GetCurrentLineAction());
+                    rm.Dispose();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

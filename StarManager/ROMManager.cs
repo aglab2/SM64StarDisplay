@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace StarDisplay
 {
-    class ROMManager : IDisposable
+    public class ROMManager : IDisposable
     {
         BinaryReader reader;
-        static int[] courseForOffset = { 0x10, 0x0F, 0x08, 0x11, 0x13, 0x0C, 0x15, 0x16,
+        static int[] ROMOffsetforEEPOffset = { 0x10, 0x0F, 0x08, 0x11, 0x13, 0x0C, 0x15, 0x16,
                 0x0E, 0x18, 0x19, 0x1A, 0x08, 0x1B, 0x21, 0x1C, 0x23, 0x1D, 0x12,
                 0x14, 0x0D, 0x24, 0x08, 0x1E, 0x1F, 0x20, -1, 0x22, -1, -1, 0x17 };
 
@@ -36,10 +36,15 @@ namespace StarDisplay
 
         static byte[] bossMIPSBehaviour = { 0x00, 0x44, 0xFC };
 
+        static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
+
         public ROMManager(string fileName)
         {
-            reader = new BinaryReader(File.Open(fileName, FileMode.Open));
+            if (fileName == "") throw new IOException("Bad name");
+            byte[] data = File.ReadAllBytes(fileName);
+            reader = new BinaryReader(new MemoryStream(data));
         }
+
         public void Dispose()
         {
             reader.Dispose();
@@ -91,25 +96,56 @@ namespace StarDisplay
             return reader.ReadByte();
         }
 
-        public void Parse(LayoutDescription ld)
+        public void ParseStars(LayoutDescription ld)
         {
             LineDescription[] descriptions = ld.courseDescription;
             for (int i = 0; i < descriptions.Length; i++)
             {
-                int course = descriptions[i].offset + 8;
-                int index = Array.FindIndex(courseForOffset, el => el == course);
+                int eeprom = descriptions[i].offset + 8;
+                int index = Array.FindIndex(ROMOffsetforEEPOffset, el => el == eeprom);
                 if (index == -1) continue;
                 
                 int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
                 int levelAddressEnd = ReadInt32();
 
-                Console.WriteLine("{0}({1}) is address {2:x} -> {3:x} - {4:x}", course, index, reader.BaseStream.Position - 0x08, levelAddressStart, levelAddressEnd);
+                Console.WriteLine("{0}({1}) is address {2:x} -> {3:x} - {4:x}", eeprom, index, reader.BaseStream.Position - 0x08, levelAddressStart, levelAddressEnd);
 
                 generateStarMask(levelAddressStart, levelAddressEnd);
             }
         }
 
-        private void generateStarMask(int start, int end)
+        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA)
+        {
+            if (currentTHA == null) return -1;
+            int line = currentTHA.Line;
+            int course = (currentTHA.IsSecret ? ld.secretDescription[line].offset : ld.courseDescription[line].offset) + 8;
+            int index = Array.FindIndex(ROMOffsetforEEPOffset, el => el == course);
+
+            if (index == -1) return -1;
+            int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
+            int levelAddressEnd = ReadInt32();
+
+            return getRedsAmount(levelAddressStart, levelAddressEnd);
+        }
+
+        private int getRedsAmount(int start, int end)
+        {
+            int counter = 0;
+            for (int offset = start; offset < end; offset++)
+            {
+                reader.BaseStream.Position = offset;
+                if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
+                byte[] behaviour = ReadBehaviour(offset);
+                if (behaviour.SequenceEqual(redsBehaviour))
+                {
+                    counter++;
+                    //Console.WriteLine("Red detected!");
+                }
+            }
+            return counter;
+        }
+
+        private void generateStarMask(int start, int end) //Does not work :(
         {
             for (int offset = start; offset < end; offset ++)
             {

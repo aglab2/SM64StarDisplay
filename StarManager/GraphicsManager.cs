@@ -16,13 +16,17 @@ namespace StarDisplay
         public readonly Image goldStar;
         public readonly Image redOutline;
         public readonly Image greenOutline;
+        public readonly Image reds;
+        public readonly Image darkReds;
 
         Bitmap goldSquare;
         Bitmap blackSquare;
 
         public readonly LayoutDescription ld;
         Graphics _graphics;
-        public StarHighlightAction lastSHA = null;
+        public LastHighlight lastSHA;
+
+        public bool IsFirstCall = true;
 
         public Graphics graphics
         {
@@ -30,12 +34,13 @@ namespace StarDisplay
             set { _graphics.Dispose(); _graphics = value; }
         }
 
-        public GraphicsManager(Graphics graphics, LayoutDescription ld)
+        public GraphicsManager(Graphics graphics, LayoutDescription ld, LastHighlight lastSHA)
         {
             this.darkStar = ld.darkStar;
             this.goldStar = ld.goldStar;
             this.redOutline = ld.redOutline;
             this.greenOutline = ld.greenOutline;
+            this.lastSHA = lastSHA;
 
             this.ld = ld;
             this._graphics = graphics;
@@ -49,6 +54,10 @@ namespace StarDisplay
             for (int i = 0; i < blackSquare.Width; i++)
                 for (int j = 0; j < blackSquare.Height; j++)
                     blackSquare.SetPixel(i, j, Color.Black);
+
+            Bitmap redsBitmap = new Bitmap("images/red.png");
+            this.reds = redsBitmap;
+            darkReds = ImageProcessing.Desaturate(redsBitmap);
         }
 
         public void PaintHUD()
@@ -145,28 +154,6 @@ namespace StarDisplay
                 graphics.DrawImage(goldSquare, x + 8, y + 8);
             }
         }
-        
-        public void DrawGreenString(TextHighlightAction le, LineDescription lind)
-        {
-            int x = le.IsSecret ? 180 : 0;
-            int y = le.Line * 23;
-
-            graphics.DrawImage(blackSquare, x + 1, y + 1);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGreen);
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-
-            Font drawFont = new Font(fontFamily, 10);
-
-            graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
-
-            drawBrush.Dispose();
-            drawFont.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
-        }
 
         public void DrawStarNumber(string totalCount, int starCount)
         {
@@ -187,30 +174,6 @@ namespace StarDisplay
             graphics.DrawString(starLine, bigFont, drawBrush, 120, totalStarLine * 23 + 2);
 
             blackBrush.Dispose();
-            drawBrush.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
-        }
-
-        public void DrawReds(int reds)
-        {
-            string starLine = reds.ToString().PadLeft(3);
-
-            int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
-            int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
-            int totalStarLine = Math.Max(courseDescriptionLength, secretDescriptionLength) + 2;
-
-            SolidBrush redBrush = new SolidBrush(Color.DarkRed);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-            Font bigFont = new Font(fontFamily, 15);
-
-            graphics.DrawString(starLine, bigFont, redBrush, 0, totalStarLine * 23);
-
-            redBrush.Dispose();
             drawBrush.Dispose();
             fontFamily.Dispose();
             collection.Dispose();
