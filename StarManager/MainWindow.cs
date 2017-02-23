@@ -24,7 +24,7 @@ namespace StarDisplay
 
         int picX, picY;
 
-        LineEntry oldLE;
+        //LineEntry oldLE;
 
         public MainWindow()
         {
@@ -40,7 +40,7 @@ namespace StarDisplay
             timer.Tick += new EventHandler(updateStars);
             timer.Interval = 1000;
 
-            oldLE = new LineEntry(0, 0, 0, false, 0);
+            //oldLE = new LineEntry(0, 0, 0, false, 0);
 
         }
 
@@ -87,37 +87,21 @@ namespace StarDisplay
             Image baseImage = new Bitmap(starPicture.Width, starPicture.Height);
             gm.graphics = Graphics.FromImage(baseImage);
             gm.PaintHUD();
-            gm.DrawLastOutline();
-            LineEntry le = mm.GetLine();
-            if (le != null)
+            
+            TextHighlightAction act = mm.GetCurrentLineAction();
+            if (act != null)
             {
-                LineDescription lind = le.Secret ? ld.secretDescription[le.Line] : ld.courseDescription[le.Line];
-                gm.AddLineHighlight(le, lind);
-                /*
-                if (le.Secret != oldLE.Secret || le.Line != oldLE.Line)
-                {
-                    
-                    /*if (oldLE.Line != 0)
-                    {
-                        LineDescription oldLind = oldLE.Secret ? ld.secretDescription[oldLE.Line] : ld.courseDescription[oldLE.Line];
-                        gm.RemoveLineHighlight(oldLE, oldLind);
-                    }
-                    oldLE = le;
-                }*/
+                gm.AddLineHighlight(act);
             }
 
             try
             {
                 int totalDiff = 0;
-                foreach (var entry in mm)
+                foreach (var entry in mm.GetDrawActions())
                 {
-                    int line = entry.Line;
-                    byte stars = entry.StarByte;
-                    int diff = entry.StarDiff;
-                    bool isSecret = entry.Secret;
-
-                    totalDiff += diff;
-                    gm.DrawByte(stars, line, isSecret, entry.StarMask);
+                    entry.execute(gm);
+                    LineDrawAction lda = entry as LineDrawAction;
+                    if (lda != null) totalDiff += lda.StarDiff;
                 }
 
                 int starCount = oldStarCount + totalDiff;
@@ -126,10 +110,8 @@ namespace StarDisplay
                     ld.starAmount = totalCountText.Text;
                 }
 
-                //if (starCount != oldStarCount || oldTotalCount != totalCountText.Text)
-                //{
-                    gm.DrawStarNumber(totalCountText.Text, starCount);
-                //}
+                gm.DrawStarNumber(totalCountText.Text, starCount);
+                //gm.DrawReds(mm.GetReds());
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
             }
@@ -174,7 +156,6 @@ namespace StarDisplay
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
             oldTotalCount = "";
-            oldLE = new LineEntry(0, 0, 0, false, 0);
             timer.Stop();
             updateStars(null, null);
             timer.Start();
@@ -239,7 +220,7 @@ namespace StarDisplay
             Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
             ld = (LayoutDescription)formatter.Deserialize(stream);
             if (ld.darkStar == null) ld.generateDarkStar();
-            if (ld.outline == null) ld.generateOutline();
+            if (ld.redOutline == null) ld.generateOutline();
             ld.Trim();
             stream.Close();
             InvalidateCache();
@@ -392,6 +373,11 @@ namespace StarDisplay
             cp.ShowDialog();
             ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, cp.newImg, ld.starAmount);
             InvalidateCache();
+        }
+
+        private void resetHighlightToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            mm.resetHighlightPivot();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

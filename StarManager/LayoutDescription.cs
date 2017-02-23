@@ -82,7 +82,8 @@ namespace StarDisplay
 
         public Bitmap goldStar;
         public Bitmap darkStar;
-        public Bitmap outline;
+        public Bitmap redOutline;
+        public Bitmap greenOutline;
 
         public string starAmount;
 
@@ -126,13 +127,14 @@ namespace StarDisplay
 
         public void generateOutline()
         {
-            this.outline = new Bitmap(goldStar.Width, goldStar.Height);
+            this.redOutline = new Bitmap(goldStar.Width, goldStar.Height);
+            this.greenOutline = new Bitmap(goldStar.Width, goldStar.Height);
+
             int[,] A = new int[goldStar.Width, goldStar.Height];
             for (int i = 0; i < goldStar.Width; i++)
             {
                 for (int j = 0; j < goldStar.Height; j++)
                 {
-                    double h; double s; double l;
                     Color c = goldStar.GetPixel(i, j);
                     A[i, j] = c.A;
                 }
@@ -147,8 +149,8 @@ namespace StarDisplay
             {
                 for (int j = 0; j < goldStar.Height; j++)
                 {
-                    Color c = Color.FromArgb(outlineAlpha[i, j], 255, 0, 0);
-                    this.outline.SetPixel(i, j, c);
+                    redOutline.SetPixel(i, j, Color.FromArgb(outlineAlpha[i, j], 255, 0, 0));
+                    greenOutline.SetPixel(i, j, Color.FromArgb(outlineAlpha[i, j], 0, 255, 0));
                 }
             }
         }
@@ -261,6 +263,13 @@ namespace StarDisplay
                         secretDescription[i] = null;
                 }
             }
+        }
+
+        public int GetLength()
+        {
+            int courseDescriptionLength = Array.FindLastIndex(courseDescription, item => item != null) + 1;
+            int secretDescriptionLength = Array.FindLastIndex(secretDescription, item => item != null) + 1;
+            return Math.Max(courseDescriptionLength, secretDescriptionLength);
         }
 
         public void Compress()

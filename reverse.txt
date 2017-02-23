@@ -1,0 +1,4 @@
+803316D0 -- 00C1D150 #coin counter?
+803613FD -- 00C4CE7D #red coin counter
+8032DDF6 -- 00C19876 #current file
+         -- 00C19054

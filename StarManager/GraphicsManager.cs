@@ -12,15 +12,18 @@ namespace StarDisplay
 {
     public class GraphicsManager
     {
-        Image darkStar;
-        Image goldStar;
-        Image outline;
+        public readonly Image darkStar;
+        public readonly Image goldStar;
+        public readonly Image redOutline;
+        public readonly Image greenOutline;
 
         Bitmap goldSquare;
         Bitmap blackSquare;
 
-        LayoutDescription ld;
+        public readonly LayoutDescription ld;
         Graphics _graphics;
+        public StarHighlightAction lastSHA = null;
+
         public Graphics graphics
         {
             internal get { return _graphics; }
@@ -31,7 +34,8 @@ namespace StarDisplay
         {
             this.darkStar = ld.darkStar;
             this.goldStar = ld.goldStar;
-            this.outline = ld.outline;
+            this.redOutline = ld.redOutline;
+            this.greenOutline = ld.greenOutline;
 
             this.ld = ld;
             this._graphics = graphics;
@@ -96,43 +100,6 @@ namespace StarDisplay
             }
         }
 
-        int firstCalls = 3;
-
-        byte lastStars = 0;
-        int lastLineNumber = -1;
-        bool lastIsSecret = true;
-        byte lastMask = 0;
-
-        public void DrawOutlines(byte stars, int lineNumber, bool isSecret, byte mask)
-        {
-            lastStars = stars;
-            lastLineNumber = lineNumber;
-            lastIsSecret = isSecret;
-            lastMask = mask;
-            if (firstCalls == 0)
-                DrawLastOutline();
-        }
-
-        public void DrawLastOutline()
-        {
-            if (firstCalls > 0)
-            {
-                firstCalls--;
-                lastLineNumber = -1;
-                return;
-            }
-            if (lastLineNumber == -1) return;
-            for (int i = 1; i <= 7; i++)
-            {
-                if ((lastMask & (1 << i)) == 0) continue;
-                int x = (lastIsSecret ? 180 : 0) + i * 20;
-                int y = lastLineNumber * 23;
-                bool isAcquired = (lastStars & (1 << (i - 1))) != 0;
-                if (isAcquired)
-                    graphics.DrawImage(outline, x, y, 20, 20);
-            }
-        }
-
         public void DrawLine(LineDescription ld, int lineNumber, bool isSecret)
         {
             PrivateFontCollection collection = new PrivateFontCollection();
@@ -157,12 +124,12 @@ namespace StarDisplay
             collection.Dispose();
         }
 
-        public void AddLineHighlight(LineEntry le, LineDescription lind)
+        public void AddLineHighlight(TextHighlightAction act)
         {
-            if (lind.text != "")
+            if (act.Text != "")
             {
-                int x = (le.Secret ? 180 : 0) + 1;
-                int y = le.Line * 23 + 2;
+                int x = (act.IsSecret ? 180 : 0) + 1;
+                int y = act.Line * 23 + 2;
 
                 SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
                 Pen yellowPen = new Pen(yellowBrush);
@@ -172,64 +139,20 @@ namespace StarDisplay
             }
             else
             {
-                int x = (le.Secret ? 180 : 0);
-                int y = le.Line * 23;
+                int x = (act.IsSecret ? 180 : 0);
+                int y = act.Line * 23;
 
                 graphics.DrawImage(goldSquare, x + 8, y + 8);
             }
         }
-
-        public void RemoveLineHighlight(LineEntry le, LineDescription lind)
+        
+        public void DrawGreenString(TextHighlightAction le, LineDescription lind)
         {
-            if (lind.text != "")
-            {
-                int x = (le.Secret ? 180 : 0) + 1;
-                int y = le.Line * 23 + 2;
-
-                SolidBrush blackBrush = new SolidBrush(Color.Black);
-                Pen blackPen = new Pen(blackBrush);
-                graphics.DrawRectangle(blackPen, new Rectangle(x, y, 17, 17));
-                blackPen.Dispose();
-                blackBrush.Dispose();
-            }
-            else
-            {
-                int x = (le.Secret ? 180 : 0);
-                int y = le.Line * 23;
-
-                graphics.DrawImage(blackSquare, x + 8, y + 8);
-            }
-        }
-
-        public void DrawGreenString(LineEntry le, LineDescription lind)
-        {
-            int x = le.Secret ? 180 : 0;
+            int x = le.IsSecret ? 180 : 0;
             int y = le.Line * 23;
 
             graphics.DrawImage(blackSquare, x + 1, y + 1);
             SolidBrush drawBrush = new SolidBrush(Color.LightGreen);
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-
-            Font drawFont = new Font(fontFamily, 10);
-
-            graphics.DrawString(lind.text, drawFont, drawBrush, x, y + 2);
-
-            drawBrush.Dispose();
-            drawFont.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
-        }
-
-        public void DrawGrayString(LineEntry le, LineDescription lind)
-        {
-            int x = le.Secret ? 180 : 0;
-            int y = le.Line * 23;
-
-            graphics.DrawImage(blackSquare, x + 1, y + 1);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
 
             PrivateFontCollection collection = new PrivateFontCollection();
             collection.AddFontFile("font/CourierNew.ttf");
@@ -261,7 +184,6 @@ namespace StarDisplay
             FontFamily fontFamily = new FontFamily("Courier New", collection);
             Font bigFont = new Font(fontFamily, 15);
 
-            graphics.FillRectangle(blackBrush, new Rectangle(15, totalStarLine * 23 + 2, 200, 20));
             graphics.DrawString(starLine, bigFont, drawBrush, 120, totalStarLine * 23 + 2);
 
             blackBrush.Dispose();
@@ -270,48 +192,28 @@ namespace StarDisplay
             collection.Dispose();
         }
 
-        public void Compress()
+        public void DrawReds(int reds)
         {
-            var goldCompressedImage = new Bitmap(20, 20);
-            var darkCompressedImage = new Bitmap(20, 20);
+            string starLine = reds.ToString().PadLeft(3);
 
-            var destRect = new Rectangle(0, 0, 20, 20);
+            int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
+            int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
+            int totalStarLine = Math.Max(courseDescriptionLength, secretDescriptionLength) + 2;
 
-            using (var graphics = Graphics.FromImage(goldCompressedImage))
-            {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            SolidBrush redBrush = new SolidBrush(Color.DarkRed);
+            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
 
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(goldStar, destRect, 0, 0, goldStar.Width, goldStar.Height, GraphicsUnit.Pixel, wrapMode);
-                }
-            }
-            goldStar.Dispose();
-            ld.goldStar = goldCompressedImage;
-            goldStar = goldCompressedImage;
+            PrivateFontCollection collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily fontFamily = new FontFamily("Courier New", collection);
+            Font bigFont = new Font(fontFamily, 15);
 
-            using (var graphics = Graphics.FromImage(darkCompressedImage))
-            {
-                graphics.CompositingMode = CompositingMode.SourceCopy;
-                graphics.CompositingQuality = CompositingQuality.HighQuality;
-                graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                graphics.SmoothingMode = SmoothingMode.HighQuality;
-                graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            graphics.DrawString(starLine, bigFont, redBrush, 0, totalStarLine * 23);
 
-                using (var wrapMode = new ImageAttributes())
-                {
-                    wrapMode.SetWrapMode(WrapMode.TileFlipXY);
-                    graphics.DrawImage(darkStar, destRect, 0, 0, darkStar.Width, darkStar.Height, GraphicsUnit.Pixel, wrapMode);
-                }
-            }
-            darkStar.Dispose();
-            ld.darkStar = darkCompressedImage;
-            darkStar = darkCompressedImage;
+            redBrush.Dispose();
+            drawBrush.Dispose();
+            fontFamily.Dispose();
+            collection.Dispose();
         }
     }
 }

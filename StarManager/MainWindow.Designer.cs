@@ -54,6 +54,7 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
+            this.resetHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -194,7 +195,8 @@
             this.iconsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importIconsToolStripMenuItem,
             this.saturateIconToolStripMenuItem,
-            this.recolorIconsToolStripMenuItem});
+            this.recolorIconsToolStripMenuItem,
+            this.resetHighlightToolStripMenuItem});
             this.iconsToolStripMenuItem.Enabled = false;
             this.iconsToolStripMenuItem.Name = "iconsToolStripMenuItem";
             this.iconsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
@@ -203,21 +205,21 @@
             // importIconsToolStripMenuItem
             // 
             this.importIconsToolStripMenuItem.Name = "importIconsToolStripMenuItem";
-            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.importIconsToolStripMenuItem.Text = "Import Icons";
             this.importIconsToolStripMenuItem.Click += new System.EventHandler(this.importIconsToolStripMenuItem_Click);
             // 
             // saturateIconToolStripMenuItem
             // 
             this.saturateIconToolStripMenuItem.Name = "saturateIconToolStripMenuItem";
-            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.saturateIconToolStripMenuItem.Text = "Saturate Icon";
             this.saturateIconToolStripMenuItem.Click += new System.EventHandler(this.saturateIconToolStripMenuItem_Click);
             // 
             // recolorIconsToolStripMenuItem
             // 
             this.recolorIconsToolStripMenuItem.Name = "recolorIconsToolStripMenuItem";
-            this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
             this.recolorIconsToolStripMenuItem.Text = "Recolor Icons";
             this.recolorIconsToolStripMenuItem.Click += new System.EventHandler(this.recolorIconsToolStripMenuItem_Click);
             // 
@@ -282,6 +284,13 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
+            // resetHighlightToolStripMenuItem
+            // 
+            this.resetHighlightToolStripMenuItem.Name = "resetHighlightToolStripMenuItem";
+            this.resetHighlightToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.resetHighlightToolStripMenuItem.Text = "Reset Highlight";
+            this.resetHighlightToolStripMenuItem.Click += new System.EventHandler(this.resetHighlightToolStripMenuItem_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -335,6 +344,7 @@
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem importStarMasksToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem recolorIconsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem resetHighlightToolStripMenuItem;
     }
 }
 

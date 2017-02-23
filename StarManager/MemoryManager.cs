@@ -6,28 +6,11 @@ using System.Linq;
 using LiveSplit.ComponentUtil;
 using System.IO;
 using System.Drawing;
+using System.Drawing.Text;
 
 namespace StarDisplay
 {
-    public class LineEntry
-    {
-        public int Line;
-        public byte StarByte;
-        public int StarDiff;
-        public bool Secret;
-        public byte StarMask;
-
-        public LineEntry(int line, byte starByte, int starDiff, bool secret, byte starMask)
-        {
-            this.Line = line;
-            this.StarByte = starByte;
-            this.StarDiff = starDiff;
-            this.Secret = secret;
-            this.StarMask = starMask;
-        }
-    }
-
-    public class MemoryManager : IEnumerable<LineEntry>
+    public class MemoryManager
     {
         public readonly Process Process;
         LayoutDescription ld;
@@ -35,15 +18,18 @@ namespace StarDisplay
 
         int previousTime;
         byte[] oldStars;
+        byte[] highlightPivot;
+
         byte[] defPicture;
 
         DeepPointer igt;
-        DeepPointer[] files;
+        public readonly DeepPointer[] files;
 
         DeepPointer romNamePtr;
         DeepPointer levelPtr;
         DeepPointer starPtr;
-        
+        DeepPointer redsPtr;
+
         private int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
         private int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
         private int[] overworldLevels = { 6, 26, 16 };
@@ -67,6 +53,7 @@ namespace StarDisplay
             romNamePtr = new DeepPointer("Project64.exe", 0xAF1F8);
             levelPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x32DDFA);
             starPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x064F80 + 0x04800);
+            redsPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x3613FD);
 
             defPicture = File.ReadAllBytes("images/star.rgba16");
         }
@@ -80,7 +67,7 @@ namespace StarDisplay
         {
             int curTime = igt.Deref<int>(Process);
             if (curTime > 200 || curTime < 60) return;
-            
+
             previousTime = curTime;
             byte[] data = Enumerable.Repeat((byte)0x00, 0x70).ToArray();
             IntPtr ptr;
@@ -101,7 +88,7 @@ namespace StarDisplay
             return romNamePtr.DerefString(Process, 32);
         }
 
-        private int GetOffset()
+        private int GetCurrentOffset()
         {
             int level = levelPtr.Deref<byte>(Process);
             if (level == 0) return -1;
@@ -114,14 +101,14 @@ namespace StarDisplay
             return -2;
         }
 
-        public LineEntry GetLine()
+        public TextHighlightAction GetCurrentLineAction()
         {
-            int offset = GetOffset();
-            
+            int offset = GetCurrentOffset();
+
             int courseIndex = Array.FindIndex(ld.courseDescription, lind => lind != null && !lind.isTextOnly && lind.offset == offset);
-            if (courseIndex != -1) return new LineEntry(courseIndex, 0, 0, false, 0);
+            if (courseIndex != -1) return new TextHighlightAction(courseIndex, false, ld.courseDescription[courseIndex].text);
             int secretIndex = Array.FindIndex(ld.secretDescription, lind => lind != null && !lind.isTextOnly && lind.offset == offset);
-            if (secretIndex != -1) return new LineEntry(secretIndex, 0, 0, true, 0);
+            if (secretIndex != -1) return new TextHighlightAction(secretIndex, true, ld.secretDescription[secretIndex].text);
 
             return null;
         }
@@ -134,117 +121,9 @@ namespace StarDisplay
             return answer;
         }
 
-        public void DrawSpecialString(int index, bool isAcquired)
+        public sbyte GetReds()
         {
-            LineDescription lind = ld.secretDescription[index];
-            if (isAcquired)
-            {
-                gm.DrawGreenString(new LineEntry(index, 0, 0, true, 0), lind);
-            }
-            else
-            {
-                gm.DrawGrayString(new LineEntry(index, 0, 0, true, 0), lind);
-            }
-        }
-
-        public IEnumerator<LineEntry> GetEnumerator()
-        {
-            int length = 32;
-
-            DeepPointer file = files[selectedFile];
-            byte[] stars = file.DerefBytes(Process, length);
-            for (int i = 0; i < length; i += 4) //TODO: Better ending convert
-            {
-                byte[] copy = new byte[4];
-                copy[0] = stars[i + 0];
-                copy[1] = stars[i + 1];
-                copy[2] = stars[i + 2];
-                copy[3] = stars[i + 3];
-                stars[i + 0] = copy[3];
-                stars[i + 1] = copy[2];
-                stars[i + 2] = copy[1];
-                stars[i + 3] = copy[0];
-            }
-
-            /*DeepPointer badges = new DeepPointer("Project64.exe", file._base, file._offsets[1] - 2);
-            byte[] badgeByte = badges.DerefBytes(process, 1);
-            Console.WriteLine(string.Join(" ", badgeByte.Select(x => Convert.ToString(x, 2).PadLeft(8, '0'))));
-
-            badgeByte[0] = 1 << 6;
-            IntPtr ptr;
-            if (!badges.DerefOffsets(process, out ptr))
-            {
-                Console.WriteLine("deref fail");
-            }
-            if (!process.WriteBytes(ptr, badgeByte))
-            {
-                throw new IOException();
-            }*/
-
-            //if (stars[3] != oldStars[3])
-            //{
-                int index; bool isAcquired;
-                index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "B1");
-                isAcquired = ((stars[3] & (1 << 4)) != 0) || ((stars[3] & (1 << 6)) != 0);
-                if (index != -1)
-                    DrawSpecialString(index, isAcquired);
-                index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "B2");
-                isAcquired = ((stars[3] & (1 << 5)) != 0) || ((stars[3] & (1 << 7)) != 0);
-                if (index != -1)
-                    DrawSpecialString(index, isAcquired);
-                index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "WC");
-                isAcquired = ((stars[3] & (1 << 1)) != 0);
-                if (index != -1)
-                    DrawSpecialString(index, isAcquired);
-                index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "MC");
-                isAcquired = ((stars[3] & (1 << 2)) != 0);
-                if (index != -1)
-                    DrawSpecialString(index, isAcquired);
-                index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "VC");
-                isAcquired = ((stars[3] & (1 << 3)) != 0);
-                if (index != -1)
-                    DrawSpecialString(index, isAcquired);
-           // }
-
-            for (int line = 0; line < ld.courseDescription.Length; line++)
-            {
-                var descr = ld.courseDescription[line];
-                if (descr == null || descr.isTextOnly) continue;
-
-                byte oldStarByte = oldStars[descr.offset];
-                byte newStarByte = stars[descr.offset];
-                byte starMask2 = (byte)(descr.starMask >> 1);
-
-                if (oldStarByte != newStarByte)
-                {
-                    byte diffByte = (byte) (((oldStarByte) ^ (newStarByte)) & newStarByte);
-                    gm.DrawOutlines(diffByte, line, false, descr.starMask);
-                }
-                yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), false, descr.starMask);
-            }
-
-            for (int line = 0; line < ld.secretDescription.Length; line++)
-            {
-                var descr = ld.secretDescription[line];
-                if (descr == null || descr.isTextOnly) continue;
-
-                byte oldStarByte = oldStars[descr.offset];
-                byte newStarByte = stars[descr.offset];
-                byte starMask2 = (byte)(descr.starMask >> 1);
-
-                if (oldStarByte != newStarByte)
-                {
-                    byte diffByte = (byte)(((oldStarByte) ^ (newStarByte)) & newStarByte);
-                    gm.DrawOutlines(diffByte, line, true, descr.starMask);
-                }
-                yield return new LineEntry(line, newStarByte, countStars((byte)(newStarByte & starMask2)) - countStars((byte)(oldStarByte & starMask2)), true, descr.starMask);
-            }
-            oldStars = stars;
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
+            return redsPtr.Deref<sbyte>(Process);
         }
 
         public void InvalidateCache()
@@ -274,13 +153,15 @@ namespace StarDisplay
         public Bitmap FromRGBA16(byte[] data)
         {
             Bitmap picture = new Bitmap(16, 16);
-            for (int i = 0; i < 16; i++) {
-                for (int j = 0; j < 16; j++) {
+            for (int i = 0; i < 16; i++)
+            {
+                for (int j = 0; j < 16; j++)
+                {
                     int offset = (16 * j + i) * 2;
-                    int colorARGB = (data[offset + 1] & 0x01) * 255 << 24 
-                        | (data[offset] & 0xF8) << 16 | (data[offset] & 0xE0) << 11 
-                        | (data[offset] & 0x07) << 13 | (data[offset] & 0x07) << 8 
-                        | (data[offset + 1] & 0xC0) << 5 
+                    int colorARGB = (data[offset + 1] & 0x01) * 255 << 24
+                        | (data[offset] & 0xF8) << 16 | (data[offset] & 0xE0) << 11
+                        | (data[offset] & 0x07) << 13 | (data[offset] & 0x07) << 8
+                        | (data[offset + 1] & 0xC0) << 5
                         | (data[offset + 1] & 0x3E) << 2 | (data[offset + 1] & 0x38) >> 3;
 
                     Color c = Color.FromArgb(colorARGB);
@@ -288,6 +169,39 @@ namespace StarDisplay
                 }
             }
             return picture;
+        }
+
+        public void resetHighlightPivot()
+        {
+            highlightPivot = null;
+        }
+
+        public DrawActions GetDrawActions()
+        {
+            int length = 32;
+            DeepPointer file = files[selectedFile];
+            byte[] stars = file.DerefBytes(Process, length);
+
+            for (int i = 0; i < length; i += 4) //TODO: Better ending convert
+            {
+                byte[] copy = new byte[4];
+                copy[0] = stars[i + 0];
+                copy[1] = stars[i + 1];
+                copy[2] = stars[i + 2];
+                copy[3] = stars[i + 3];
+                stars[i + 0] = copy[3];
+                stars[i + 1] = copy[2];
+                stars[i + 2] = copy[1];
+                stars[i + 3] = copy[0];
+            }
+
+            if (highlightPivot == null)
+            {
+                highlightPivot = stars;
+            }
+            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot);
+            oldStars = stars;
+            return da;
         }
     }
 }

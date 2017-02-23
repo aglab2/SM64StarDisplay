@@ -75,6 +75,7 @@
       <DependentUpon>ColorPicker.cs</DependentUpon>
     </Compile>
     <Compile Include="DeepPointer.cs" />
+    <Compile Include="DrawActions.cs" />
     <Compile Include="GraphicsManager.cs" />
     <Compile Include="LayoutDescription.cs" />
     <Compile Include="MainWindow.cs">
@@ -120,6 +121,9 @@
     <None Include="font\CourierNew.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="images\red.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="images\star.rgba16">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
