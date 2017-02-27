@@ -3,8 +3,7 @@ This is program to display acquired stars in casual playthrough! App reads game 
 Caps automatically. The level you are at is highlighted with yellow rectangle. 
 
 # How to use?
-Start Project64 1.6 and load ROM with hack. Run [Star Display](https://github.com/aglab2/SM64StarManager/blob/master/StarDisplay.zip?raw=true) 
-and press _Connect_ button. If your hack has layout support press _Layout > Load_ to  load a layout written for this hack.
+Start Project64 1.6 and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarManager/blob/master/StarDisplay.zip?raw=true), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and press _Connect_ button. If your hack has layout support press _Layout > Load_ to  load a layout written for this hack.
 
 # Layout Support
  * SM64: Last Impact
@@ -47,5 +46,5 @@ For speedrunners this program can be useful too! It can soft erase file A on ROM
 # Credits
  * Original idea: FramePerfection
  * Beta testers: Ap616, Tomatobird8, OcarinaOfFan05, katze789, Sir_Flareon
- * Design tips: Ap616, Karisa113, Tomatobird8
+ * Design tips: Ap616, Karisa113, Tomatobird8, CaptainYoshi64
  * Layouts development: Mariocrash64, CaptainBowser, Sir_Flareon
