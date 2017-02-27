@@ -6,16 +6,15 @@ using System.Linq;
 using LiveSplit.ComponentUtil;
 using System.IO;
 using System.Drawing;
-using System.Drawing.Text;
 
 namespace StarDisplay
 {
     public class MemoryManager
     {
         public readonly Process Process;
-        LayoutDescription ld;
+        public LayoutDescription ld;
         GraphicsManager gm;
-        ROMManager rm;
+        public ROMManager rm;
 
         int previousTime;
         byte[] oldStars;
@@ -32,6 +31,8 @@ namespace StarDisplay
         DeepPointer levelPtr;
         DeepPointer starPtr;
         DeepPointer redsPtr;
+
+        DeepPointer segmentsTablePtr;
 
         private int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
         private int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
@@ -61,6 +62,8 @@ namespace StarDisplay
             levelPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x32DDFA);
             starPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x064F80 + 0x04800);
             redsPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x3613FD);
+
+            segmentsTablePtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B400);
 
             defPicture = File.ReadAllBytes("images/star.rgba16");
         }
@@ -237,6 +240,11 @@ namespace StarDisplay
                 if (behaviourActive1 == searchBehaviour) count++;
             } while (address != 0x33D488);
             return count;
+        }
+
+        public void InvalidateCache()
+        {
+            oldStars = new byte[32];
         }
     }
 }

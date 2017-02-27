@@ -1,49 +1,40 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Drawing.Text;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace StarDisplay
 {
     public class GraphicsManager
     {
-        public readonly Image darkStar;
-        public readonly Image goldStar;
-        public readonly Image redOutline;
-        public readonly Image greenOutline;
-        public readonly Image reds;
-        public readonly Image darkReds;
+        public Image reds;
+        public Image darkReds;
 
         Bitmap goldSquare;
         Bitmap blackSquare;
 
-        public readonly LayoutDescription ld;
+        public LayoutDescription ld;
         Graphics _graphics;
         public LastHighlight lastSHA;
 
         public bool IsFirstCall = true;
 
+        public PrivateFontCollection collection;
+        public FontFamily fontFamily;
+        public string fontName;
+
+        public int drawFontSize = 10;
+        public int bigFontSize = 15;
+
         public Graphics graphics
         {
             internal get { return _graphics; }
-            set { _graphics.Dispose(); _graphics = value; }
+            set { /*_graphics.Dispose();*/ _graphics = value; }
         }
 
-        public GraphicsManager(Graphics graphics, LayoutDescription ld, LastHighlight lastSHA)
+        public GraphicsManager(Graphics graphics, LayoutDescription ld)
         {
-            this.darkStar = ld.darkStar;
-            this.goldStar = ld.goldStar;
-            this.redOutline = ld.redOutline;
-            this.greenOutline = ld.greenOutline;
-            this.lastSHA = lastSHA;
-
             this.ld = ld;
-            this._graphics = graphics;
+            _graphics = graphics;
 
             goldSquare = new Bitmap(4, 4);
             for (int i = 0; i < goldSquare.Width; i++)
@@ -58,18 +49,18 @@ namespace StarDisplay
             Bitmap redsBitmap = new Bitmap("images/red.png");
             this.reds = redsBitmap;
             darkReds = ImageProcessing.Desaturate(redsBitmap);
+
+            collection = new PrivateFontCollection();
+            collection.AddFontFile("font/CourierNew.ttf");
+            fontFamily = new FontFamily("Courier New", collection);
         }
 
         public void PaintHUD()
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-
-            Font bigFont = new Font(fontFamily, 15);
+            
+            Font bigFont = new Font(fontFamily, bigFontSize);
 
             graphics.Clear(Color.Black);
 
@@ -92,8 +83,6 @@ namespace StarDisplay
             blackBrush.Dispose();
             drawBrush.Dispose();
             bigFont.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
         }
 
         public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask)
@@ -104,18 +93,14 @@ namespace StarDisplay
                 int x = (isSecret ? 180 : 0) + i * 20;
                 int y = lineNumber * 23;
                 bool isAcquired = (stars & (1 << (i - 1))) != 0;
-                Image img = isAcquired ? goldStar : darkStar;
+                Image img = isAcquired ? ld.goldStar : ld.darkStar;
                 graphics.DrawImage(img, x, y, 20, 20);
             }
         }
 
         public void DrawLine(LineDescription ld, int lineNumber, bool isSecret)
         {
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-
-            Font drawFont = new Font(fontFamily, 10);
+            Font drawFont = new Font(fontFamily, drawFontSize);
 
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
             if (ld.isTextOnly)
@@ -129,8 +114,6 @@ namespace StarDisplay
             }
             drawBrush.Dispose();
             drawFont.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
         }
 
         public void AddLineHighlight(TextHighlightAction act)
@@ -165,18 +148,18 @@ namespace StarDisplay
 
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-            Font bigFont = new Font(fontFamily, 15);
+            
+            Font bigFont = new Font(fontFamily, bigFontSize);
 
             graphics.DrawString(starLine, bigFont, drawBrush, 120, totalStarLine * 23 + 2);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
+        }
+
+        public void InvalidateCache()
+        {
+            IsFirstCall = true;
         }
     }
 }

@@ -65,10 +65,13 @@ namespace StarDisplay
                     Color c = img.GetPixel(i, j);
                     ColorRGB.RGB2HSL(new ColorRGB(c), out h, out s, out v);
                     h += expectedHue - midHue;
-
                     if (h < 0) h += 1;
                     if (h > 1) h -= 1;
-                    newImg.SetPixel(i, j, ColorRGB.HSL2RGB(h, s, v));
+
+                    Color o = ColorRGB.HSL2RGB(h, s, v);
+                    Color oa = Color.FromArgb(c.A, o.R, o.G, o.B);
+
+                    newImg.SetPixel(i, j, oa);
                 }
             }
 
@@ -99,12 +102,10 @@ namespace StarDisplay
                     if (h < 0) h += 1;
                     if (h > 1) h -= 1;
 
-                    //v += expectedVal - midVal;
-                    //if (v < 0) v = 0;
-                    //if (v > 1) v = 1;
+                    Color o = ColorRGB.HSL2RGB(h, s, v);
+                    Color oa = Color.FromArgb(c.A, o.R, o.G, o.B);
 
-
-                    newImg.SetPixel(i, j, ColorRGB.HSL2RGB(h, s, v));
+                    newImg.SetPixel(i, j, oa);
                 }
             }
 

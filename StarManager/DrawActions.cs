@@ -39,7 +39,7 @@ namespace StarDisplay
                 int x = (IsSecret ? 180 : 0) + i * 20;
                 int y = Line * 23;
                 bool isAcquired = (StarByte & (1 << (i - 1))) != 0;
-                Image img = isAcquired ? gm.goldStar : gm.darkStar;
+                Image img = isAcquired ? gm.ld.goldStar : gm.ld.darkStar;
                 gm.graphics.DrawImage(img, x, y, 20, 20);
             }
         }
@@ -68,8 +68,8 @@ namespace StarDisplay
                 int x = (IsSecret ? 180 : 0) + i * 20;
                 int y = Line * 23;
                 bool isAcquired = (HighlightByte & (1 << (i - 1))) != 0;
-                if (isAcquired)
-                    gm.graphics.DrawImage(gm.redOutline, x, y, 20, 20);
+                //if (isAcquired)
+                //    gm.graphics.DrawImage(gm.ld.redOutline, x, y, 20, 20);
             }
         }
     }
@@ -95,19 +95,16 @@ namespace StarDisplay
 
                 SolidBrush redBrush = new SolidBrush(Color.IndianRed);
                 SolidBrush drawBrush = new SolidBrush(Color.LightGray);
-
-                PrivateFontCollection collection = new PrivateFontCollection();
-                collection.AddFontFile("font/CourierNew.ttf");
-                FontFamily fontFamily = new FontFamily("Courier New", collection);
-                Font bigFont = new Font(fontFamily, 13);
+                
+                Font bigFont = new Font(gm.fontFamily, (gm.drawFontSize + gm.bigFontSize) / 2);
 
                 gm.graphics.DrawImage(gm.reds, 20, totalStarLine * 23 + 10, 20, 20);
                 gm.graphics.DrawString(starLine, bigFont, redBrush, 40, totalStarLine * 23 + 10);
 
                 redBrush.Dispose();
                 drawBrush.Dispose();
-                fontFamily.Dispose();
-                collection.Dispose();
+
+                bigFont.Dispose();
             }
             else
             {
@@ -143,7 +140,7 @@ namespace StarDisplay
                 bool isAcquired = (gm.lastSHA.HighlightByte & (1 << (i - 1))) != 0;
                 if (isAcquired)
                 {
-                    gm.graphics.DrawImage(gm.greenOutline, x, y, 20, 20);
+                    gm.graphics.DrawImage(gm.ld.redOutline, x, y, 20, 20);
                 }
             }
         }
@@ -167,19 +164,13 @@ namespace StarDisplay
             int y = Line * 23;
 
             SolidBrush drawBrush = new SolidBrush(Color.LightGreen);
-
-            PrivateFontCollection collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            FontFamily fontFamily = new FontFamily("Courier New", collection);
-
-            Font drawFont = new Font(fontFamily, 10);
+            
+            Font drawFont = new Font(gm.fontFamily, gm.drawFontSize);
 
             gm.graphics.DrawString(Text, drawFont, drawBrush, x, y + 2);
 
             drawBrush.Dispose();
             drawFont.Dispose();
-            fontFamily.Dispose();
-            collection.Dispose();
         }
     }
 

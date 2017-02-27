@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
 using System.Text;
 
@@ -16,10 +17,10 @@ namespace StarDisplay
         public byte starMask;
         public int offset;
 
-        public LineDescription(string text, bool textOnly, byte starMask, int offset)
+        public LineDescription(string text, bool isTextOnly, byte starMask, int offset)
         {
             this.text = text;
-            this.isTextOnly = textOnly;
+            this.isTextOnly = isTextOnly;
             this.starMask = starMask;
             this.offset = offset;
         }

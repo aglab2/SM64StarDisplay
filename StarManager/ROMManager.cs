@@ -131,6 +131,7 @@ namespace StarDisplay
         private int getRedsAmount(int start, int end)
         {
             int counter = 0;
+            if (start < 0) return counter;
             for (int offset = start; offset < end; offset++)
             {
                 reader.BaseStream.Position = offset;

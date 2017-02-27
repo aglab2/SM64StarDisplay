@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
+using System.Drawing.Text;
 
 namespace StarDisplay
 {
@@ -26,7 +27,8 @@ namespace StarDisplay
         string oldTotalCount;
 
         int picX, picY;
-        
+
+        Image baseImage;
 
         public MainWindow()
         {
@@ -34,13 +36,15 @@ namespace StarDisplay
 
             ld = LayoutDescription.GenerateDefault();
             Image randomImage = new Bitmap(1,1);
-            gm = new GraphicsManager(Graphics.FromImage(randomImage), ld, null);
+            gm = new GraphicsManager(Graphics.FromImage(randomImage), ld);
             starPicture.Image = randomImage;
             mm = new MemoryManager(null, ld, gm, null, null);
 
             timer = new Timer();
             timer.Tick += new EventHandler(updateStars);
             timer.Interval = 1000;
+
+            baseImage = new Bitmap(starPicture.Width, starPicture.Height);
 
             oldPath = "";
         }
@@ -51,7 +55,7 @@ namespace StarDisplay
             layoutToolStripMenuItem.Enabled = false;
             iconsToolStripMenuItem.Enabled = false;
             timer.Stop();
-            gm = new GraphicsManager(gm.graphics, ld, null);
+            gm = new GraphicsManager(gm.graphics, ld);
             mm = new MemoryManager(mm.Process, ld, gm, null, null);
             rm = null;
             totalCountText.Text = "";
@@ -91,7 +95,9 @@ namespace StarDisplay
             }
 
             //Display stars routine
-            Image baseImage = new Bitmap(starPicture.Width, starPicture.Height);
+            Graphics baseGraphics = Graphics.FromImage(baseImage);
+            baseGraphics.Clear(Color.Black);
+            baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
             gm.graphics = Graphics.FromImage(baseImage);
             gm.PaintHUD();
             
@@ -108,6 +114,7 @@ namespace StarDisplay
                 try
                 {
                     rm = new ROMManager(currentROMPath);
+                    mm.rm = rm;
                 }
                 catch (IOException)
                 {
@@ -147,8 +154,11 @@ namespace StarDisplay
                 resetForm();
                 return;
             }
-            starPicture.Image.Dispose();
+
+            baseGraphics.Dispose();
+            //Image img = starPicture.Image;
             starPicture.Image = baseImage;
+            //img.Dispose();
         }
 
         private void connectButton_Click(object sender, EventArgs e)
@@ -178,8 +188,10 @@ namespace StarDisplay
 
         private void InvalidateCache()
         {
-            gm = new GraphicsManager(gm.graphics, ld, gm.lastSHA);
-            mm = new MemoryManager(mm.Process, ld, gm, rm, mm.highlightPivot);
+            mm.ld = ld;
+            gm.ld = ld;
+            mm.InvalidateCache();
+            gm.InvalidateCache();
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
             oldTotalCount = "";
@@ -398,7 +410,8 @@ namespace StarDisplay
         {
             ColorPicker cp = new ColorPicker(ld);
             cp.ShowDialog();
-            ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, cp.newImg, ld.starAmount);
+            ld.goldStar = cp.newImg;
+            ld.generateDarkStar();
             InvalidateCache();
         }
 
@@ -423,6 +436,36 @@ namespace StarDisplay
                     ROMManager rm = new ROMManager(openFileDialog.FileName);
                     rm.ParseReds(ld, mm.GetCurrentLineAction());
                     rm.Dispose();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void loadCustomFontToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "Font file (*.ttf)|*.ttf";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    PrivateFontCollection collection = new PrivateFontCollection();
+                    collection.AddFontFile(openFileDialog.FileName);
+                    FontFamily[] fontFamilies = collection.Families;
+                    FontFamily fontFamily = fontFamilies.First();
+                    if (fontFamily == null) return;
+
+                    gm.collection = collection;
+                    gm.fontFamily = fontFamily;
+                    gm.fontName = fontFamily.Name;
                 }
                 catch (IOException)
                 {
