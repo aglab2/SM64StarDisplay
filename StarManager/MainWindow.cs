@@ -475,6 +475,14 @@ namespace StarDisplay
             }
         }
 
+        private void changeStarTextToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ChangeTextDialog ctd = new ChangeTextDialog(gm.StarText);
+            ctd.ShowDialog();
+            gm.StarText = ctd.text;
+            InvalidateCache();
+        }
+
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try

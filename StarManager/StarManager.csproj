@@ -67,6 +67,12 @@
     <Compile Include="AboutDialog.Designer.cs">
       <DependentUpon>AboutDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="ChangeTextDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ChangeTextDialog.Designer.cs">
+      <DependentUpon>ChangeTextDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="Color.cs" />
     <Compile Include="ColorPicker.cs">
       <SubType>Form</SubType>
@@ -99,6 +105,9 @@
     <Compile Include="WinAPI.cs" />
     <EmbeddedResource Include="AboutDialog.resx">
       <DependentUpon>AboutDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ChangeTextDialog.resx">
+      <DependentUpon>ChangeTextDialog.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="ColorPicker.resx">
       <DependentUpon>ColorPicker.cs</DependentUpon>

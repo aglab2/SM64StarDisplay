@@ -132,17 +132,22 @@ namespace StarDisplay
         {
             int counter = 0;
             if (start < 0) return counter;
-            for (int offset = start; offset < end; offset++)
+
+            try
             {
-                reader.BaseStream.Position = offset;
-                if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
-                byte[] behaviour = ReadBehaviour(offset);
-                if (behaviour.SequenceEqual(redsBehaviour))
+                for (int offset = start; offset < end; offset++)
                 {
-                    counter++;
-                    //Console.WriteLine("Red detected!");
+                    reader.BaseStream.Position = offset;
+                    if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
+                    byte[] behaviour = ReadBehaviour(offset);
+                    if (behaviour.SequenceEqual(redsBehaviour))
+                    {
+                        counter++;
+                        //Console.WriteLine("Red detected!");
+                    }
                 }
             }
+            catch (IOException) { }
             return counter;
         }
 

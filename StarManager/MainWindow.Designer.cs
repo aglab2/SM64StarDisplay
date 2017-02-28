@@ -41,6 +41,7 @@
             this.loadFromToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importStarMasksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadCustomFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureDisplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -56,7 +57,7 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.loadCustomFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.changeStarTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -122,7 +123,8 @@
             this.loadFromToolStripMenuItem,
             this.saveAsToolStripMenuItem,
             this.importStarMasksToolStripMenuItem,
-            this.loadCustomFontToolStripMenuItem});
+            this.loadCustomFontToolStripMenuItem,
+            this.changeStarTextToolStripMenuItem});
             this.layoutToolStripMenuItem.Enabled = false;
             this.layoutToolStripMenuItem.Name = "layoutToolStripMenuItem";
             this.layoutToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
@@ -169,6 +171,13 @@
             this.importStarMasksToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.importStarMasksToolStripMenuItem.Text = "Import Star Masks";
             this.importStarMasksToolStripMenuItem.Click += new System.EventHandler(this.importStarMasksToolStripMenuItem_Click);
+            // 
+            // loadCustomFontToolStripMenuItem
+            // 
+            this.loadCustomFontToolStripMenuItem.Name = "loadCustomFontToolStripMenuItem";
+            this.loadCustomFontToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.loadCustomFontToolStripMenuItem.Text = "Load Custom Font";
+            this.loadCustomFontToolStripMenuItem.Click += new System.EventHandler(this.loadCustomFontToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
@@ -304,12 +313,12 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
-            // loadCustomFontToolStripMenuItem
+            // changeStarTextToolStripMenuItem
             // 
-            this.loadCustomFontToolStripMenuItem.Name = "loadCustomFontToolStripMenuItem";
-            this.loadCustomFontToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.loadCustomFontToolStripMenuItem.Text = "Load Custom Font";
-            this.loadCustomFontToolStripMenuItem.Click += new System.EventHandler(this.loadCustomFontToolStripMenuItem_Click);
+            this.changeStarTextToolStripMenuItem.Name = "changeStarTextToolStripMenuItem";
+            this.changeStarTextToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.changeStarTextToolStripMenuItem.Text = "Change Star Text";
+            this.changeStarTextToolStripMenuItem.Click += new System.EventHandler(this.changeStarTextToolStripMenuItem_Click);
             // 
             // MainWindow
             // 
@@ -367,6 +376,7 @@
         private System.Windows.Forms.ToolStripMenuItem resetHighlightToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem showRedsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadCustomFontToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem changeStarTextToolStripMenuItem;
     }
 }
 

@@ -25,6 +25,8 @@ namespace StarDisplay
         public int drawFontSize = 10;
         public int bigFontSize = 15;
 
+        public string StarText = "Savestateless Stars";
+
         public Graphics graphics
         {
             internal get { return _graphics; }
@@ -78,7 +80,7 @@ namespace StarDisplay
                 DrawLine(ld.secretDescription[line], line, true);
             }
             int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
-            graphics.DrawString("Savestateless Stars", bigFont, drawBrush, 45, lastLine * 23 + 2);
+            graphics.DrawString(StarText, bigFont, drawBrush, 140 - 5 * StarText.Length, lastLine * 23 + 2);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
