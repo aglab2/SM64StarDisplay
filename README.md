@@ -16,14 +16,16 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * SM64: Twisted Adventures
  * SM64: Shining Stars
  * Shining Stars 2: Mirror Madness
+ * Ztar Attack 0.5: Mario Escape from the Jail
  * Star Revenge
  * Star Revenge Redone
  * Star Revenge Redone v2.0
  * Star Revenge 2: Night Of Doom
- * Star Revenge 2.5: Remnanat Of Doom
+ * Star Revenge 2.5: Remnant Of Doom
  * Star Revenge 3: Mario on a Saorie
  * Star Revenge 4: The Kedama Takeover
  * Star Revenge 4.5: The Kedama Takeover Rewritten
+ * Star Revenge 0.5: Unused Levels
  * Star Revenge 5: Neo Blue Realm
  * Star Revenge 6.5: Wrath of the Dimensional Flower
  * Star Revenge 7: Park of Time
@@ -32,6 +34,8 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * Luigi and the Forest Ruins Rebooted
  * Luigi's Mansion 64.5
  * Super Donkey 64
+ * Super Banjo Kazooie 64
+ * Super Banjo Tooie 64
  * Super Mario 64 Extra
  * Super Mario 65: Rainbow Stars
  * SM64: Planet Stardust
