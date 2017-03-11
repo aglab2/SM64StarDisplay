@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO.Compression;
 
 namespace StarDisplay
 {
@@ -41,7 +42,66 @@ namespace StarDisplay
         public ROMManager(string fileName)
         {
             if (fileName == "") throw new IOException("Bad name");
-            byte[] data = File.ReadAllBytes(fileName);
+
+            byte[] data = null;
+            if (fileName.EndsWith(".zip")) //unpack
+            {
+                using (FileStream zipToOpen = new FileStream(fileName, FileMode.Open))
+                {
+                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+                    {
+                        foreach (ZipArchiveEntry entry in archive.Entries)
+                        {
+                            if (entry.FullName.EndsWith(".z64") || entry.FullName.EndsWith(".n64") || entry.FullName.EndsWith(".v64"))
+                            {
+                                fileName = entry.FullName;
+                                using (Stream stream = entry.Open())
+                                {
+                                    using (var memoryStream = new MemoryStream())
+                                    {
+                                        stream.CopyTo(memoryStream);
+                                        data = memoryStream.ToArray();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else
+            {
+                data = File.ReadAllBytes(fileName);
+            }
+
+            if (fileName.EndsWith(".n64")) //big-endian
+            {
+                byte[] stuff = new byte[4];
+                for (int i = 0; i < data.Length; i += 4)
+                {
+                    stuff[0] = data[i + 3];
+                    stuff[1] = data[i + 2];
+                    stuff[2] = data[i + 1];
+                    stuff[3] = data[i + 0];
+
+                    data[i + 0] = stuff[0];
+                    data[i + 1] = stuff[1];
+                    data[i + 2] = stuff[2];
+                    data[i + 3] = stuff[3];
+                }
+            }
+            else if (fileName.EndsWith(".v64")) //byte swapped
+            {
+                byte[] stuff = new byte[2];
+                for (int i = 0; i < data.Length; i += 2)
+                {
+                    stuff[0] = data[i + 1];
+                    stuff[1] = data[i + 0];
+
+                    data[i + 0] = stuff[0];
+                    data[i + 1] = stuff[1];
+                }
+            }
+
             reader = new BinaryReader(new MemoryStream(data));
         }
 

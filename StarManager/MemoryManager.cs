@@ -49,21 +49,49 @@ namespace StarDisplay
             this.highlightPivot = highlightPivot;
             oldStars = new byte[32];
 
-            igt = new DeepPointer("Project64.exe", 0xD6A1C, 0x32D580);
-            files = new DeepPointer[4];
-            files[0] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207708);
-            files[1] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207778);
-            files[2] = new DeepPointer("Project64.exe", 0xD6A1C, 0x2077E8);
-            files[3] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207858);
+            if (process != null)
+            {
+                //string version = process.MainModule.FileVersionInfo.FileVersion;
 
-            romNamePtr = new DeepPointer("Project64.exe", 0xAF1F8);
-            absoluteRomPathPtr = new DeepPointer("Project64.exe", 0xAF0F0);
+                //if (version == null || version.Contains("1.6"))
+                //{
+                    igt = new DeepPointer("Project64.exe", 0xD6A1C, 0x32D580);
+                    files = new DeepPointer[4];
+                    files[0] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207708);
+                    files[1] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207778);
+                    files[2] = new DeepPointer("Project64.exe", 0xD6A1C, 0x2077E8);
+                    files[3] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207858);
 
-            levelPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x32DDFA);
-            starPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x064F80 + 0x04800);
-            redsPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x3613FD);
+                    romNamePtr = new DeepPointer("Project64.exe", 0xAF1F8);
+                    absoluteRomPathPtr = new DeepPointer("Project64.exe", 0xAF0F0);
 
-            segmentsTablePtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B400);
+                    levelPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x32DDFA);
+                    starPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x064F80 + 0x04800);
+                    redsPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x3613FD);
+
+                    segmentsTablePtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B400);
+                /*}
+                else if (version.Contains("2.3"))
+                {
+                    int baseOffset = 0x4B120000 - process.MainModule.BaseAddress.ToInt32();
+
+                    igt = new DeepPointer("Project64.exe", baseOffset + 0x32D580);
+                    files = new DeepPointer[4];
+                    files[0] = new DeepPointer("Project64.exe", baseOffset + 0x207708);
+                    files[1] = new DeepPointer("Project64.exe", baseOffset + 0x207778);
+                    files[2] = new DeepPointer("Project64.exe", baseOffset + 0x2077E8);
+                    files[3] = new DeepPointer("Project64.exe", baseOffset + 0x207858);
+
+                    romNamePtr = null; //new DeepPointer("Project64.exe", 0xAF1F8); //rip these options
+                    absoluteRomPathPtr = null; //new DeepPointer("Project64.exe", 0xAF0F0);
+
+                    levelPtr = new DeepPointer("Project64.exe", baseOffset + 0x32DDFA);
+                    starPtr = new DeepPointer("Project64.exe", baseOffset + 0x064F80 + 0x04800);
+                    redsPtr = new DeepPointer("Project64.exe", baseOffset + 0x3613FD);
+
+                    segmentsTablePtr = new DeepPointer("Project64.exe", baseOffset + 0x33B400);
+                }*/
+            }
 
             defPicture = File.ReadAllBytes("images/star.rgba16");
         }
@@ -95,11 +123,13 @@ namespace StarDisplay
 
         public string GetROMName()
         {
+            if (romNamePtr == null) return "";
             return romNamePtr.DerefString(Process, 32);
         }
 
         public string GetAbsoluteROMPath()
         {
+            if (absoluteRomPathPtr == null) return "";
             return absoluteRomPathPtr.DerefString(Process, 255);
         }
 

@@ -51,12 +51,13 @@ namespace StarDisplay
 
         private void resetForm()
         {
+            Console.WriteLine("stuffs");
             connectButton.Enabled = true;
             layoutToolStripMenuItem.Enabled = false;
             iconsToolStripMenuItem.Enabled = false;
             timer.Stop();
             gm = new GraphicsManager(gm.graphics, ld);
-            mm = new MemoryManager(mm.Process, ld, gm, null, null);
+            mm = new MemoryManager(null, ld, gm, null, null);
             rm = null;
             totalCountText.Text = "";
             oldStarCount = 0;
@@ -146,11 +147,13 @@ namespace StarDisplay
             }
             catch (Win32Exception)
             {
+                Console.WriteLine("fuck 1");
                 resetForm();
                 return;
             }
-            catch (NullReferenceException)
+            catch (NullReferenceException error)
             {
+                Console.WriteLine(error);
                 resetForm();
                 return;
             }

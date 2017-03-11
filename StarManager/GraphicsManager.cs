@@ -122,12 +122,12 @@ namespace StarDisplay
         {
             if (act.Text != "")
             {
-                int x = (act.IsSecret ? 180 : 0) + 1;
+                int x = (act.IsSecret ? 180 : 0) + 2;
                 int y = act.Line * 23 + 2;
 
                 SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
                 Pen yellowPen = new Pen(yellowBrush);
-                graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 17, 17));
+                graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 16, 8*act.Text.Length));
                 yellowPen.Dispose();
                 yellowBrush.Dispose();
             }

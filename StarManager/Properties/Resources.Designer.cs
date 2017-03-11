@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace StarDisplay.Properties {
+namespace StarManager.Properties {
     using System;
     
     

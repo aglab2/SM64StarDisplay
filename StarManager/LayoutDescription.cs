@@ -311,7 +311,7 @@ namespace StarDisplay
             secretLD[10] = new LineDescription("Overworld Stars", true, 0, 0);
             secretLD[12] = new LineDescription("Secret Stars", true, 0, 0);
 
-            return new LayoutDescription(courseLD, secretLD, new Bitmap("images/gold_star.png"), "186");
+            return new LayoutDescription(courseLD, secretLD, new Bitmap("images/gold_star.png"), "182");
         }
     }
 }
