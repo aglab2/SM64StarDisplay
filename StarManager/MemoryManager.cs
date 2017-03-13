@@ -240,8 +240,16 @@ namespace StarDisplay
                 highlightPivot = stars;
             }
 
-            int totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction()) : -1;
-            int reds = totalReds == 0 ? 0 : GetReds() + totalReds - 8;
+            int totalReds = 0;
+            try
+            {
+                totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction()) : -1;
+            }
+            catch (IOException) { }
+
+            int reds = GetReds();
+            if (totalReds != 0)
+                reds += totalReds - 8;
 
             if (totalReds == -1)
             {
