@@ -27,6 +27,7 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * Star Revenge 4.5: The Kedama Takeover Rewritten
  * Star Revenge 0.5: Unused Levels
  * Star Revenge 5: Neo Blue Realm
+ * Star Revenge 6: Luigi's Adventure
  * Star Revenge 6.5: Wrath of the Dimensional Flower
  * Star Revenge 7: Park of Time
  * Star Revenge 7.5: Kedowser's Return
