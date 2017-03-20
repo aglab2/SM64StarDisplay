@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO.Compression;
+using System.Net;
 
 namespace StarDisplay
 {
@@ -34,11 +35,14 @@ namespace StarDisplay
         static byte[] bossWigglerBehaviour = { 0x00, 0x48, 0x98 };
         static byte[] bossBlizzardBehaviour = { 0x00, 0x4D, 0xBC };
         static byte[] bossPiranhaBehaviour = { 0x00, 0x51, 0x20 };
+        static byte[] bossEyerockBehaviour = { 0x00, 0x52, 0xB4 };
 
         static byte[] bossMIPSBehaviour = { 0x00, 0x44, 0xFC };
 
         static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
         static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
+
+        Object[] boxObjects;
 
         public ROMManager(string fileName)
         {
@@ -104,6 +108,7 @@ namespace StarDisplay
             }
 
             reader = new BinaryReader(new MemoryStream(data));
+            boxObjects = ReadBoxBehaviours();
         }
 
         public void Dispose()
@@ -159,18 +164,31 @@ namespace StarDisplay
 
         public void ParseStars(LayoutDescription ld)
         {
-            LineDescription[] descriptions = ld.courseDescription;
+            int totalStars = 0;
+            totalStars += UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription);
+            totalStars += UpdateLineDescriptionsWithStars(0, ld.secretDescription);
+            ld.starAmount = totalStars.ToString();
+
+            Console.WriteLine(UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription));
+            Console.WriteLine(UpdateLineDescriptionsWithStars(0, ld.secretDescription));
+        }
+
+        private int UpdateLineDescriptionsWithStars(byte initMask, LineDescription[] descriptions)
+        {
+            int totalStars = 0;
             for (int i = 0; i < descriptions.Length; i++)
             {
                 int eeprom = descriptions[i].offset + 8;
                 int index = Array.FindIndex(ROMOffsetforEEPOffset, el => el == eeprom);
                 if (index == -1) continue;
-                
+
                 int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
                 int levelAddressEnd = ReadInt32();
 
-                generateStarMask(levelAddressStart, levelAddressEnd);
+                descriptions[i].starMask = generateStarMask(initMask, levelAddressStart, levelAddressEnd);
+                totalStars +=  MemoryManager.countStars(descriptions[i].starMask);
             }
+            return totalStars;
         }
 
         private int PrepareAddresses(LayoutDescription ld, TextHighlightAction currentTHA, out int levelAddressStart, out int levelAddressEnd)
@@ -232,15 +250,16 @@ namespace StarDisplay
             return counter;
         }
 
-        private void generateStarMask(int start, int end) //Does not work :(
+        private byte generateStarMask(byte initMask, int start, int end) //Does not work :(
         {
-            for (int offset = start; offset < end; offset ++)
+            int mask = initMask;
+            for (int offset = start; offset < end; offset++)
             {
                 reader.BaseStream.Position = offset;
                 if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
                 byte[] behaviour = ReadBehaviour(offset);
-                if (behaviour.SequenceEqual(collectStarBehaviour) || 
-                    behaviour.SequenceEqual(redCoinStarBehaviour) || 
+                if (behaviour.SequenceEqual(collectStarBehaviour) ||
+                    behaviour.SequenceEqual(redCoinStarBehaviour) ||
                     behaviour.SequenceEqual(hiddenStarBehaviour) ||
                     behaviour.SequenceEqual(bossWhompBehaviour) ||
                     behaviour.SequenceEqual(bossBobombBehaviour) ||
@@ -249,12 +268,13 @@ namespace StarDisplay
                     behaviour.SequenceEqual(bossPenguinBehaviour) ||
                     behaviour.SequenceEqual(bossBooBuddyBehaviour) ||
                     behaviour.SequenceEqual(bossWigglerBehaviour) ||
-                    behaviour.SequenceEqual(bossBlizzardBehaviour) //||
-                    /*behaviour.SequenceEqual(bossPiranhaBehaviour)*/)
+                    behaviour.SequenceEqual(bossBlizzardBehaviour) ||
+                    behaviour.SequenceEqual(bossEyerockBehaviour))
                 {
                     byte starByte = ReadBParam1(offset);
                     if (starByte <= 0x06) //troll star
-                    { 
+                    {
+                        mask |= 2 << starByte;
                         Console.WriteLine("[S] '{0:x}' Star {1} detected!", offset, starByte);
                     }
                 }
@@ -265,24 +285,64 @@ namespace StarDisplay
                     if (starByte == 1)
                     {
                         byte starByteParam = 1;
-                        Console.WriteLine("[S] '{0:x}' Star {1} detected!", offset, starByteParam);
+                        mask |= 2 << starByteParam;
+                        Console.WriteLine("[K] '{0:x}' Star {1} detected!", offset, starByteParam);
+                    }
+                    if (starByte == 2)
+                    {
+                        byte starByteParam = 2;
+                        mask |= 2 << starByteParam;
+                        Console.WriteLine("[K] '{0:x}' Star {1} detected!", offset, starByteParam);
                     }
                 }
 
                 if (behaviour.SequenceEqual(boxBehaviour))
                 {
-                    byte starByte = ReadBParam2(offset);
-
-                    if (starByte >= 0xA && starByte <= 0xE)  //not a star
+                    byte boxObjectByte = ReadBParam2(offset);
+                    Object currentObject = boxObjects[boxObjectByte];
+                    //Console.WriteLine(String.Format("{1:X}: {0:X8}", currentObject.Behaviour, boxObjectByte));
+                    if (currentObject.Behaviour == 0x130007F8)
                     {
-                        Console.WriteLine("[B] '{0:x}' Star {1} detected!", offset, starByte - 0xA + 1);
-                    }
-                    if (starByte == 0x8) //star for random shit
-                    {
-                        byte starByteParam = ReadBParam1(offset);
-                        Console.WriteLine("[8] '{0:x}' Star {1} detected!", offset, starByteParam);
+                        if (currentObject.BParam1 <= 0x6)
+                        {
+                            mask |= 2 << currentObject.BParam2;
+                            Console.WriteLine("[B] '{0:x}' Star {1} in box detected!", offset, currentObject.BParam2);
+                        }
                     }
                 }
+            }
+            return (byte) mask;
+        }
+        
+        static int boxParamDescriptorsAddress = 0x01204000;
+        static byte maxBehaviour = 0x63;
+
+        public class Object
+        {
+            public byte BParam1;
+            public byte BParam2;
+            public byte Model;
+            public int Behaviour;
+
+            public Object(byte BParam1, byte BParam2, byte Model, int Behaviour)
+            {
+                this.BParam1 = BParam1;
+                this.BParam2 = BParam2;
+                this.Model = Model;
+                this.Behaviour = Behaviour;
+            }
+        }
+
+        public Object[] ReadBoxBehaviours()
+        {
+            Object[] ret = new Object[maxBehaviour];
+            reader.BaseStream.Position = boxParamDescriptorsAddress;
+            while (true)
+            {
+                byte[] data = reader.ReadBytes(8);
+                if (data[0] == maxBehaviour) return ret;
+                Object obj = new Object(data[1], data[2], data[3], IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 4)));
+                ret[data[0]] = obj;
             }
         }
     }

@@ -288,13 +288,11 @@ namespace StarDisplay
 
                 if (behaviourActive1 == searchBehaviour)
                 {
-                    Console.Write(String.Format("{0:X8} {1:X8};", behaviourActive2, initialBehaviour));
                     count++;
                 }
 
                 address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
             } while (address != 0x33D488 && address != 0);
-            Console.WriteLine();
             return count;
         }
 

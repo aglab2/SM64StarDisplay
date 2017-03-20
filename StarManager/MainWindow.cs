@@ -150,7 +150,6 @@ namespace StarDisplay
             }
             catch (Win32Exception)
             {
-                Console.WriteLine("fuck 1");
                 resetForm();
                 return;
             }
@@ -403,6 +402,7 @@ namespace StarDisplay
                     ROMManager rm = new ROMManager(openFileDialog.FileName);
                     rm.ParseStars(ld);
                     rm.Dispose();
+                    InvalidateCache();
                 }
                 catch (IOException)
                 {
