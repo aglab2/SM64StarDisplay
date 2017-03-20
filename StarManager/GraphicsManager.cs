@@ -9,6 +9,9 @@ namespace StarDisplay
         public Image reds;
         public Image darkReds;
 
+        public Image secrets;
+        public Image darkSecrets;
+
         Bitmap goldSquare;
         Bitmap blackSquare;
 
@@ -49,8 +52,12 @@ namespace StarDisplay
                     blackSquare.SetPixel(i, j, Color.Black);
 
             Bitmap redsBitmap = new Bitmap("images/red.png");
-            this.reds = redsBitmap;
+            reds = redsBitmap;
             darkReds = ImageProcessing.Desaturate(redsBitmap);
+
+            Bitmap secretsBitmap = new Bitmap("images/secret.png");
+            secrets = secretsBitmap;
+            darkSecrets = ImageProcessing.Desaturate(secretsBitmap);
 
             collection = new PrivateFontCollection();
             collection.AddFontFile("font/CourierNew.ttf");

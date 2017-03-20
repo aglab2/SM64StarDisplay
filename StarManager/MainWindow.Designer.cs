@@ -42,6 +42,7 @@
             this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importStarMasksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadCustomFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.changeStarTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureDisplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -57,7 +58,7 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.changeStarTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.displayHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -179,12 +180,20 @@
             this.loadCustomFontToolStripMenuItem.Text = "Load Custom Font";
             this.loadCustomFontToolStripMenuItem.Click += new System.EventHandler(this.loadCustomFontToolStripMenuItem_Click);
             // 
+            // changeStarTextToolStripMenuItem
+            // 
+            this.changeStarTextToolStripMenuItem.Name = "changeStarTextToolStripMenuItem";
+            this.changeStarTextToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.changeStarTextToolStripMenuItem.Text = "Change Star Text";
+            this.changeStarTextToolStripMenuItem.Click += new System.EventHandler(this.changeStarTextToolStripMenuItem_Click);
+            // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.enableAutoDeleteToolStripMenuItem,
             this.configureDisplayToolStripMenuItem,
-            this.showRedsToolStripMenuItem});
+            this.showRedsToolStripMenuItem,
+            this.displayHighlightToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(61, 20);
             this.toolStripMenuItem1.Text = "Settings";
@@ -313,12 +322,14 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
-            // changeStarTextToolStripMenuItem
+            // displayHighlightToolStripMenuItem
             // 
-            this.changeStarTextToolStripMenuItem.Name = "changeStarTextToolStripMenuItem";
-            this.changeStarTextToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.changeStarTextToolStripMenuItem.Text = "Change Star Text";
-            this.changeStarTextToolStripMenuItem.Click += new System.EventHandler(this.changeStarTextToolStripMenuItem_Click);
+            this.displayHighlightToolStripMenuItem.Checked = true;
+            this.displayHighlightToolStripMenuItem.CheckOnClick = true;
+            this.displayHighlightToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.displayHighlightToolStripMenuItem.Name = "displayHighlightToolStripMenuItem";
+            this.displayHighlightToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.displayHighlightToolStripMenuItem.Text = "Display Highlight";
             // 
             // MainWindow
             // 
@@ -377,6 +388,7 @@
         private System.Windows.Forms.ToolStripMenuItem showRedsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadCustomFontToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem changeStarTextToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem displayHighlightToolStripMenuItem;
     }
 }
 

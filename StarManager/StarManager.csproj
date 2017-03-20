@@ -139,6 +139,9 @@
     <Content Include="images\red.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="images\secret.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="images\star.rgba16">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

@@ -73,7 +73,7 @@ namespace StarDisplay
 
             if (mm.ProcessActive())
             {
-                resetForm();
+                //resetForm();
                 return;
             }
             
@@ -129,7 +129,10 @@ namespace StarDisplay
                 int totalDiff = 0;
                 foreach (var entry in mm.GetDrawActions())
                 {
-                    if (entry is RedsDrawAction && !showRedsToolStripMenuItem.Checked) continue;
+                    if (entry is RedsSecretsDrawAction && !showRedsToolStripMenuItem.Checked) continue;
+                    //if (entry is StarHighlightAction && !displayHighlightToolStripMenuItem.Checked) continue;
+                    if (entry is LastStarHighlightAction && !displayHighlightToolStripMenuItem.Checked) continue;
+                    if (entry is LastHighlight && !displayHighlightToolStripMenuItem.Checked) continue;
                     entry.execute(gm);
                     LineDrawAction lda = entry as LineDrawAction;
                     if (lda != null) totalDiff += lda.StarDiff;

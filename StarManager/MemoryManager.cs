@@ -171,6 +171,11 @@ namespace StarDisplay
             return redsPtr.Deref<sbyte>(Process);
         }
 
+        public int GetSecrets()
+        {
+            return SearchObjects(0x800EF0B4);
+        }
+
         public Bitmap GetImage()
         {
             byte[] data = starPtr.DerefBytes(Process, 512);
@@ -240,23 +245,28 @@ namespace StarDisplay
                 highlightPivot = stars;
             }
 
-            int totalReds = 0;
+            int totalReds = 0, reds = 0;
             try
             {
-                totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction()) : -1;
+                totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction()) : 0;
+                reds = GetReds();
             }
-            catch (IOException) { }
-
-            int reds = GetReds();
-            if (totalReds != 0)
+            catch (Exception) { }
+            if (totalReds != 0) //Fix reds amount -- intended total amount is 8, so we should switch maximum to totalReds
                 reds += totalReds - 8;
+            else //If we got any reds we might not be able to read total amount properly, so we set total amount to current reds to display only them
+                totalReds = reds;
 
-            if (totalReds == -1)
+
+            //Operations are the same as with regular reds
+            int totalSecrets = 0, secrets = 0;
+            try
             {
-                totalReds = 0; reds = 0;
-            }
-            
-            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot, reds, totalReds);
+                totalSecrets = rm != null ? rm.ParseSecrets(ld, GetCurrentLineAction()) : 0;
+                secrets = totalSecrets - GetSecrets();
+            }catch(Exception) { }
+
+            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot, reds, totalReds, secrets, totalSecrets);
             oldStars = stars;
             return da;
         }
@@ -270,13 +280,21 @@ namespace StarDisplay
             {
                 DeepPointer currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
                 byte[] data = currentObject.DerefBytes(Process, 0x260);
-                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
 
                 UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
                 UInt32 behaviourActive1 = BitConverter.ToUInt32(data, 0x1CC);
-                
-                if (behaviourActive1 == searchBehaviour) count++;
-            } while (address != 0x33D488);
+                UInt32 behaviourActive2 = BitConverter.ToUInt32(data, 0x1D0);
+                UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
+
+                if (behaviourActive1 == searchBehaviour)
+                {
+                    Console.Write(String.Format("{0:X8} {1:X8};", behaviourActive2, initialBehaviour));
+                    count++;
+                }
+
+                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
+            } while (address != 0x33D488 && address != 0);
+            Console.WriteLine();
             return count;
         }
 

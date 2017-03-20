@@ -38,6 +38,7 @@ namespace StarDisplay
         static byte[] bossMIPSBehaviour = { 0x00, 0x44, 0xFC };
 
         static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
+        static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
 
         public ROMManager(string fileName)
         {
@@ -168,27 +169,48 @@ namespace StarDisplay
                 int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
                 int levelAddressEnd = ReadInt32();
 
-                Console.WriteLine("{0}({1}) is address {2:x} -> {3:x} - {4:x}", eeprom, index, reader.BaseStream.Position - 0x08, levelAddressStart, levelAddressEnd);
-
                 generateStarMask(levelAddressStart, levelAddressEnd);
             }
         }
 
-        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA)
+        private int PrepareAddresses(LayoutDescription ld, TextHighlightAction currentTHA, out int levelAddressStart, out int levelAddressEnd)
         {
-            if (currentTHA == null) return -1;
+            if (currentTHA == null)
+            {
+                levelAddressStart = 0; levelAddressEnd = 0; return -1;
+            }
             int line = currentTHA.Line;
             int course = (currentTHA.IsSecret ? ld.secretDescription[line].offset : ld.courseDescription[line].offset) + 8;
             int index = Array.FindIndex(ROMOffsetforEEPOffset, el => el == course);
 
-            if (index == -1) return -1;
-            int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
-            int levelAddressEnd = ReadInt32();
-
-            return getRedsAmount(levelAddressStart, levelAddressEnd);
+            if (index == -1)
+            {
+                levelAddressStart = 0; levelAddressEnd = 0; return -1;
+            }
+            levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
+            levelAddressEnd = ReadInt32();
+            return 0;
         }
 
-        private int getRedsAmount(int start, int end)
+        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA)
+        {
+            int levelAddressStart, levelAddressEnd;
+            int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
+            if (result != 0) return 0;
+
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour);
+        }
+
+        public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA)
+        {
+            int levelAddressStart, levelAddressEnd;
+            int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
+            if (result != 0) return 0;
+
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour);
+        }
+
+        private int getAmountOfObjects(int start, int end, byte[] searchBehaviour)
         {
             int counter = 0;
             if (start < 0) return counter;
@@ -200,10 +222,9 @@ namespace StarDisplay
                     reader.BaseStream.Position = offset;
                     if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
                     byte[] behaviour = ReadBehaviour(offset);
-                    if (behaviour.SequenceEqual(redsBehaviour))
+                    if (behaviour.SequenceEqual(searchBehaviour))
                     {
                         counter++;
-                        //Console.WriteLine("Red detected!");
                     }
                 }
             }
