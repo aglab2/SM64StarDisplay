@@ -17,7 +17,11 @@ namespace StarDisplay
                 0x14, 0x0D, 0x24, 0x08, 0x1E, 0x1F, 0x20, -1, 0x22, -1, -1, 0x17 };
 
         static int courseBaseAddress = 0x02AC094;
+
+
         static byte objectDescriptor = 0x24;
+        static byte areaStartDescriptor = 0x1F;
+        static byte areaEndDescriptor = 0x20;
 
         static byte[] collectStarBehaviour = { 0x00, 0x3E, 0x3C };
         static byte[] redCoinStarBehaviour = { 0x00, 0x3E, 0x8C };
@@ -168,6 +172,12 @@ namespace StarDisplay
             return reader.ReadByte();
         }
 
+        private byte ReadLength(int offset)
+        {
+            reader.BaseStream.Position = offset + 0x01;
+            return reader.ReadByte();
+        }
+
         public void ParseStars(LayoutDescription ld)
         {
             int totalStars = 0;
@@ -216,42 +226,62 @@ namespace StarDisplay
             return 0;
         }
 
-        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar)
+        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
         {
             int levelAddressStart, levelAddressEnd;
             int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour, currentStar);
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour, currentStar, currentArea);
         }
 
-        public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar)
+        public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
         {
             int levelAddressStart, levelAddressEnd;
             int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar);
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
         }
 
-        private int getAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar)
+        private int getAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar, int currentArea)
         {
             byte currentStarMask = (byte) (1 << currentStar);
             int counter = 0;
             if (start < 0) return counter;
 
+            int area = 0;
+
             try
             {
-                for (int offset = start; offset < end; offset++)
+                int offset = start + 0x1C;
+                while (offset < end)
                 {
                     reader.BaseStream.Position = offset;
-                    if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
-                    if ((ReadAct(offset) & currentStarMask) == 0) continue;
 
-                    byte[] behaviour = ReadBehaviour(offset);
-                    if (behaviour.SequenceEqual(searchBehaviour))
+                    byte command = reader.ReadByte();
+                    int length = reader.ReadByte();
+                    if (length == 0) return counter;
+                    offset += length;
+
+                    if (command == areaStartDescriptor)
                     {
-                        counter++;
+                        area = reader.ReadByte();
+                    }
+                    if (command == areaEndDescriptor)
+                    {
+                        area = 0;
+                    }
+                    if (command == objectDescriptor) 
+                    {
+                        if (area != currentArea) continue;
+                        if ((ReadAct(offset) & currentStarMask) == 0) continue;
+
+                        byte[] behaviour = ReadBehaviour(offset);
+                        if (behaviour.SequenceEqual(searchBehaviour))
+                        {
+                            counter++;
+                        }
                     }
                 }
             }
