@@ -51,7 +51,6 @@ namespace StarDisplay
 
         private void resetForm()
         {
-            Console.WriteLine("stuffs");
             connectButton.Enabled = true;
             layoutToolStripMenuItem.Enabled = false;
             iconsToolStripMenuItem.Enabled = false;
@@ -62,6 +61,23 @@ namespace StarDisplay
             totalCountText.Text = "";
             oldStarCount = 0;
             oldTotalCount = "";
+            try
+            {
+                connectToProcess();
+            }
+            catch (InvalidOperationException)
+            { }
+        }
+
+        private void connectToProcess()
+        {
+            Process process = Process.GetProcessesByName("project64").First();
+            mm = new MemoryManager(process, ld, gm, rm, mm.highlightPivot);
+            connectButton.Enabled = false;
+            layoutToolStripMenuItem.Enabled = true;
+            iconsToolStripMenuItem.Enabled = true;
+            timer.Start();
+            updateStars(null, null);
         }
 
         private void updateStars(object sender, EventArgs e)
@@ -73,7 +89,7 @@ namespace StarDisplay
 
             if (mm.ProcessActive())
             {
-                //resetForm();
+                resetForm();
                 return;
             }
             
@@ -170,13 +186,7 @@ namespace StarDisplay
         {
             try
             {
-                Process process = Process.GetProcessesByName("project64").First();
-                mm = new MemoryManager(process, ld, gm, rm, mm.highlightPivot);
-                connectButton.Enabled = false;
-                layoutToolStripMenuItem.Enabled = true;
-                iconsToolStripMenuItem.Enabled = true;
-                timer.Start();
-                updateStars(null, null);
+                connectToProcess();
             }
             catch (InvalidOperationException)
             {

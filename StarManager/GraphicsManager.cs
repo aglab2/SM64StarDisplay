@@ -134,7 +134,7 @@ namespace StarDisplay
 
                 SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
                 Pen yellowPen = new Pen(yellowBrush);
-                graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 16, 8*act.Text.Length));
+                graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 8 * act.Text.Length, 16));
                 yellowPen.Dispose();
                 yellowBrush.Dispose();
             }
