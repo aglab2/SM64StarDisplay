@@ -162,6 +162,12 @@ namespace StarDisplay
             return reader.ReadByte();
         }
 
+        private byte ReadAct(int offset)
+        {
+            reader.BaseStream.Position = offset + 0x02;
+            return reader.ReadByte();
+        }
+
         public void ParseStars(LayoutDescription ld)
         {
             int totalStars = 0;
@@ -210,26 +216,27 @@ namespace StarDisplay
             return 0;
         }
 
-        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA)
+        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar)
         {
             int levelAddressStart, levelAddressEnd;
             int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour);
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour, currentStar);
         }
 
-        public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA)
+        public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar)
         {
             int levelAddressStart, levelAddressEnd;
             int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour);
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar);
         }
 
-        private int getAmountOfObjects(int start, int end, byte[] searchBehaviour)
+        private int getAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar)
         {
+            byte currentStarMask = (byte) (1 << currentStar);
             int counter = 0;
             if (start < 0) return counter;
 
@@ -239,6 +246,8 @@ namespace StarDisplay
                 {
                     reader.BaseStream.Position = offset;
                     if (reader.ReadByte() != objectDescriptor) continue; //work with 3D object only
+                    if ((ReadAct(offset) & currentStarMask) == 0) continue;
+
                     byte[] behaviour = ReadBehaviour(offset);
                     if (behaviour.SequenceEqual(searchBehaviour))
                     {

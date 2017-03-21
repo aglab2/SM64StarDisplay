@@ -33,6 +33,7 @@ namespace StarDisplay
         DeepPointer redsPtr;
 
         DeepPointer segmentsTablePtr;
+        DeepPointer selectedStarPtr;
 
         private int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
         private int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
@@ -70,6 +71,7 @@ namespace StarDisplay
                     redsPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x3613FD);
 
                     segmentsTablePtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B400);
+                    selectedStarPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x1A81A3);
                 /*}
                 else if (version.Contains("2.3"))
                 {
@@ -131,6 +133,12 @@ namespace StarDisplay
         {
             if (absoluteRomPathPtr == null) return "";
             return absoluteRomPathPtr.DerefString(Process, 255);
+        }
+
+        public byte GetCurrentStar()
+        {
+            if (selectedStarPtr == null) return 0;
+            return selectedStarPtr.Deref<byte>(Process);
         }
 
         private int GetCurrentOffset()
@@ -248,7 +256,7 @@ namespace StarDisplay
             int totalReds = 0, reds = 0;
             try
             {
-                totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction()) : 0;
+                totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction(), GetCurrentStar()) : 0;
                 reds = GetReds();
             }
             catch (Exception) { }
@@ -262,7 +270,7 @@ namespace StarDisplay
             int totalSecrets = 0, secrets = 0;
             try
             {
-                totalSecrets = rm != null ? rm.ParseSecrets(ld, GetCurrentLineAction()) : 0;
+                totalSecrets = rm != null ? rm.ParseSecrets(ld, GetCurrentLineAction(), GetCurrentStar()) : 0;
                 secrets = totalSecrets - GetSecrets();
             }catch(Exception) { }
 
