@@ -111,37 +111,37 @@ namespace StarDisplay
                 }
             }
 
-            //Display stars routine
-            Graphics baseGraphics = Graphics.FromImage(baseImage);
-            baseGraphics.Clear(Color.Black);
-            baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
-            gm.graphics = Graphics.FromImage(baseImage);
-            gm.PaintHUD();
-            
-            TextHighlightAction act = mm.GetCurrentLineAction();
-            if (act != null)
-            {
-                gm.AddLineHighlight(act);
-            }
-
-            string currentROMPath = mm.GetAbsoluteROMPath();
-            if (oldPath != currentROMPath)
-            {
-                oldPath = currentROMPath;
-                try
-                {
-                    rm = new ROMManager(currentROMPath);
-                    mm.rm = rm;
-                }
-                catch (IOException)
-                {
-                    oldPath = "";
-                }
-                InvalidateCache();
-            }
-
             try
             {
+                //Display stars routine
+                Graphics baseGraphics = Graphics.FromImage(baseImage);
+                baseGraphics.Clear(Color.Black);
+                baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+                gm.graphics = Graphics.FromImage(baseImage);
+                gm.PaintHUD();
+
+                TextHighlightAction act = mm.GetCurrentLineAction();
+                if (act != null)
+                {
+                    gm.AddLineHighlight(act);
+                }
+
+                string currentROMPath = mm.GetAbsoluteROMPath();
+                if (oldPath != currentROMPath)
+                {
+                    oldPath = currentROMPath;
+                    try
+                    {
+                        rm = new ROMManager(currentROMPath);
+                        mm.rm = rm;
+                    }
+                    catch (IOException)
+                    {
+                        oldPath = "";
+                    }
+                    InvalidateCache();
+                }
+
                 int totalDiff = 0;
                 foreach (var entry in mm.GetDrawActions())
                 {
@@ -163,6 +163,9 @@ namespace StarDisplay
                 gm.DrawStarNumber(totalCountText.Text, starCount);
                 oldStarCount = starCount;
                 oldTotalCount = totalCountText.Text;
+
+                baseGraphics.Dispose();
+                starPicture.Image = baseImage;
             }
             catch (Win32Exception)
             {
@@ -175,11 +178,6 @@ namespace StarDisplay
                 resetForm();
                 return;
             }
-
-            baseGraphics.Dispose();
-            //Image img = starPicture.Image;
-            starPicture.Image = baseImage;
-            //img.Dispose();
         }
 
         private void connectButton_Click(object sender, EventArgs e)

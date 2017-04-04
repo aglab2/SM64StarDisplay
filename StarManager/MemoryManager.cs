@@ -192,6 +192,16 @@ namespace StarDisplay
             return SearchObjects(0x800EF0B4);
         }
 
+        public int GetActivePanels()
+        {
+            return SearchObjects(0x800EB770, 1) + SearchObjects(0x800EB770, 2); //1 - active, 2 - finalized
+        }
+
+        public int GetAllPanels()
+        {
+            return SearchObjects(0x800EB770);
+        }
+
         public Bitmap GetImage()
         {
             byte[] data = starPtr.DerefBytes(Process, 512);
@@ -267,7 +277,7 @@ namespace StarDisplay
                 totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction(), GetCurrentStar(), GetCurrentArea()) : 0;
                 reds = GetReds();
             }
-            catch (Exception) { }
+            catch (Exception) {  }
             if (totalReds != 0) //Fix reds amount -- intended total amount is 8, so we should switch maximum to totalReds
                 reds += totalReds - 8;
             else //If we got any reds we might not be able to read total amount properly, so we set total amount to current reds to display only them
@@ -282,7 +292,16 @@ namespace StarDisplay
                 secrets = totalSecrets - GetSecrets();
             }catch(Exception) { }
 
-            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot, reds, totalReds, secrets, totalSecrets);
+            //Operations are the same as with regular reds
+            int totalPanels = 0, activePanels = 0;
+            try
+            {
+                totalPanels = rm != null ? rm.ParseFlipswitches(ld, GetCurrentLineAction(), GetCurrentStar(), GetCurrentArea()) : 0;
+                activePanels = GetActivePanels();
+            }
+            catch (Exception) { }
+
+            DrawActions da = new DrawActions(ld, stars, oldStars, highlightPivot, reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);
             oldStars = stars;
             return da;
         }
@@ -301,6 +320,9 @@ namespace StarDisplay
                 UInt32 behaviourActive1 = BitConverter.ToUInt32(data, 0x1CC);
                 UInt32 behaviourActive2 = BitConverter.ToUInt32(data, 0x1D0);
                 UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
+                UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
+
+                //Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
 
                 if (behaviourActive1 == searchBehaviour)
                 {
@@ -309,6 +331,36 @@ namespace StarDisplay
 
                 address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
             } while (address != 0x33D488 && address != 0);
+            //Console.WriteLine();
+            return count;
+        }
+
+        public int SearchObjects(UInt32 searchBehaviour, UInt32 state)
+        {
+            int count = 0;
+
+            UInt32 address = 0x33D488;
+            do
+            {
+                DeepPointer currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
+                byte[] data = currentObject.DerefBytes(Process, 0x260);
+
+                UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
+                UInt32 behaviourActive1 = BitConverter.ToUInt32(data, 0x1CC);
+                UInt32 behaviourActive2 = BitConverter.ToUInt32(data, 0x1D0);
+                UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
+                UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
+
+                //Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
+
+                if (behaviourActive1 == searchBehaviour && scriptParameter == state)
+                {
+                    count++;
+                }
+
+                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
+            } while (address != 0x33D488 && address != 0);
+            //Console.WriteLine();
             return count;
         }
 

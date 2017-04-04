@@ -45,6 +45,7 @@ namespace StarDisplay
 
         static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
         static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
+        static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
 
         Object[] boxObjects;
 
@@ -243,9 +244,19 @@ namespace StarDisplay
 
             return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
         }
+    
+        public int ParseFlipswitches(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
+        {
+            int levelAddressStart, levelAddressEnd;
+            int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
+            if (result != 0) return 0;
+
+            return getAmountOfObjects(levelAddressStart, levelAddressEnd, flipswitchBehaviour, currentStar, currentArea);
+        }
 
         private int getAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar, int currentArea)
         {
+            if (currentArea == 0) currentArea = 1;
             byte currentStarMask = (byte) (1 << currentStar);
             int counter = 0;
             if (start < 0) return counter;
@@ -275,7 +286,12 @@ namespace StarDisplay
                     if (command == objectDescriptor) 
                     {
                         if (area != currentArea) continue;
-                        if ((ReadAct(offset) & currentStarMask) == 0) continue;
+                        int act = ReadAct(offset);
+                        if ((act & 31) != 31)
+                        {
+                            if ((ReadAct(offset) & currentStarMask) == 0)
+                                continue;
+                        }
 
                         byte[] behaviour = ReadBehaviour(offset);
                         if (behaviour.SequenceEqual(searchBehaviour))
@@ -379,7 +395,7 @@ namespace StarDisplay
             while (true)
             {
                 byte[] data = reader.ReadBytes(8);
-                if (data[0] == maxBehaviour) return ret;
+                if (data[0] >= maxBehaviour) return ret;
                 Object obj = new Object(data[1], data[2], data[3], IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 4)));
                 ret[data[0]] = obj;
             }

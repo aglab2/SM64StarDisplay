@@ -12,6 +12,10 @@ namespace StarDisplay
         public Image secrets;
         public Image darkSecrets;
 
+        public Image flipswitchOn;
+        public Image flipswitchOff;
+        public Image flipswitchDone;
+
         Bitmap goldSquare;
         Bitmap blackSquare;
 
@@ -50,6 +54,10 @@ namespace StarDisplay
             for (int i = 0; i < blackSquare.Width; i++)
                 for (int j = 0; j < blackSquare.Height; j++)
                     blackSquare.SetPixel(i, j, Color.Black);
+
+            flipswitchOn = new Bitmap("images/flipswitch_on.png");
+            flipswitchOff = new Bitmap("images/flipswitch_off.png");
+            flipswitchDone = new Bitmap("images/flipswitch_done.png");
 
             Bitmap redsBitmap = new Bitmap("images/red.png");
             reds = redsBitmap;

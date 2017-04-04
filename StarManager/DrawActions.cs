@@ -80,13 +80,17 @@ namespace StarDisplay
         public int TotalRedsCount;
         public int CurrentSecretsCount;
         public int TotalSecretsCount;
+        public int ActivePanelsCount;
+        public int TotalPanelsCount;
 
-        public RedsSecretsDrawAction(int currentRedsCount, int totalRedsCount, int currentSecretsCount, int totalSecretsCount)
+        public RedsSecretsDrawAction(int currentRedsCount, int totalRedsCount, int currentSecretsCount, int totalSecretsCount, int activePanelsCount, int totalPanelsCount)
         {
             this.CurrentRedsCount = currentRedsCount < 0 ? 0 : currentRedsCount;
             this.TotalRedsCount = totalRedsCount;
             this.CurrentSecretsCount = currentSecretsCount < 0 ? 0 : currentSecretsCount;
             this.TotalSecretsCount = totalSecretsCount;
+            this.ActivePanelsCount = activePanelsCount;
+            this.TotalPanelsCount = totalPanelsCount;
         }
 
         static int totalSize = 30;
@@ -98,16 +102,17 @@ namespace StarDisplay
 
         static int getTextSize(int elementsCount)
         {
-            if (elementsCount == 0) return 0;
+            if (elementsCount <= 2) return 100;
             return elementsCount.ToString().Length * 2 + 3; //3 = space for icon + space for /
         }
 
         int getSpaceSize()
         {
-            return TotalRedsCount != 0 && TotalSecretsCount != 0 ? 2 : 0;
+            if (TotalPanelsCount == 0 && TotalSecretsCount == 0 && TotalPanelsCount == 0) return 0;
+            return (TotalRedsCount != 0 ? 2 : 0) + (TotalSecretsCount != 0 ? 2 : 0) - 2;
         }
 
-        void drawFullReds(GraphicsManager gm)
+        int drawFullReds(GraphicsManager gm)
         {
             int totalStarLine = gm.ld.GetLength() + 2;
             for (int i = 0; i < CurrentRedsCount; i++)
@@ -118,9 +123,10 @@ namespace StarDisplay
             {
                 gm.graphics.DrawImage(gm.darkReds, 20 + i * 20, totalStarLine * 23 + 10, 20, 20);
             }
+            return TotalRedsCount * 2 + TotalRedsCount == 0 ? 0 : 2;
         }
 
-        void drawFullSecrets(GraphicsManager gm)
+        int drawFullSecrets(GraphicsManager gm)
         {
             int totalStarLine = gm.ld.GetLength() + 2;
             for (int i = 0; i < CurrentSecretsCount; i++)
@@ -131,9 +137,24 @@ namespace StarDisplay
             {
                 gm.graphics.DrawImage(gm.darkSecrets, 10 * totalSize - i * 20, totalStarLine * 23 + 10, 20, 20);
             }
+            return TotalSecretsCount * 2 + TotalSecretsCount == 0 ? 0 : 2;
         }
 
-        void drawTextReds(GraphicsManager gm)
+        int drawFullFlipswitches(GraphicsManager gm, int offset)
+        {
+            int totalStarLine = gm.ld.GetLength() + 2;
+            for (int i = 0; i < ActivePanelsCount; i++)
+            {
+                gm.graphics.DrawImage(gm.flipswitchOn, i * 20 + 10 * offset + 1, totalStarLine * 23 + 11, 18, 18);
+            }
+            for (int i = ActivePanelsCount; i < TotalPanelsCount; i++)
+            {
+                gm.graphics.DrawImage(gm.flipswitchOff, i * 20 + 10 * offset + 1, totalStarLine * 23 + 11, 18, 18);
+            }
+            return TotalPanelsCount * 2 + TotalPanelsCount == 0 ? 0 : 2;
+        }
+
+        int drawTextReds(GraphicsManager gm)
         {
             int totalStarLine = gm.ld.GetLength() + 2;
             string starLine = CurrentRedsCount.ToString() + "/" + TotalRedsCount.ToString();
@@ -150,9 +171,10 @@ namespace StarDisplay
             drawBrush.Dispose();
 
             bigFont.Dispose();
+            return starLine.Length * 2 + 4;
         }
 
-        void drawTextSecrets(GraphicsManager gm)
+        int drawTextSecrets(GraphicsManager gm)
         {
             int totalStarLine = gm.ld.GetLength() + 2;
             string starLine = CurrentSecretsCount.ToString() + "/" + TotalSecretsCount.ToString();
@@ -169,34 +191,62 @@ namespace StarDisplay
             drawBrush.Dispose();
 
             bigFont.Dispose();
+            return starLine.Length * 2 + 4;
+        }
+
+        int drawTextFlipswitches(GraphicsManager gm, int offset)
+        {
+            int totalStarLine = gm.ld.GetLength() + 2;
+            string starLine = ActivePanelsCount.ToString() + "/" + TotalPanelsCount.ToString();
+
+            SolidBrush redBrush = new SolidBrush(Color.LightGreen);
+            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+
+            Font bigFont = new Font(gm.fontFamily, (gm.drawFontSize + gm.bigFontSize) / 2);
+
+            gm.graphics.DrawImage(gm.flipswitchOff, offset * 10, totalStarLine * 23 + 10, 20, 20);
+            gm.graphics.DrawString(starLine, bigFont, redBrush, 20 + offset * 10, totalStarLine * 23 + 10);
+
+            redBrush.Dispose();
+            drawBrush.Dispose();
+
+            bigFont.Dispose();
+            return starLine.Length * 2 + 4;
         }
 
         public override void execute(GraphicsManager gm)
         {
-            //Let's get all the choices and choose the best one out there
-            int ff = getFullSize(TotalRedsCount) + getFullSize(TotalSecretsCount) + getSpaceSize();
-            if (ff <= totalSize)
+            int[] textSizes = new int[8];
+            for (int i = 0; i < 8; i++)
             {
-                drawFullReds(gm);
-                drawFullSecrets(gm);
-                return;
+                int count = 0;
+                count += (i & 1) == 0 ? getTextSize(TotalSecretsCount) : getFullSize(TotalSecretsCount);
+                count += (i & 2) == 0 ? getTextSize(TotalRedsCount) : getFullSize(TotalRedsCount);
+                count += (i & 4) == 0 ? getTextSize(TotalPanelsCount) : getFullSize(TotalPanelsCount);
+                count += getSpaceSize();
+                if (count > totalSize) count = -1;
+                textSizes[i] = count;
             }
-            int ft = getFullSize(TotalRedsCount) + getTextSize(TotalSecretsCount) + getSpaceSize();
-            if (ft <= totalSize)
-            {
-                drawFullReds(gm);
+            int maxSize = textSizes.Max();
+            Console.WriteLine(maxSize);
+            int index = Array.FindIndex(textSizes, a => a == maxSize);
+
+            int offset = 2;
+            if ((index & 2) == 0)
+                offset += drawTextReds(gm);
+            else
+                offset += drawFullReds(gm);
+
+            if (maxSize == totalSize) offset -= 1;
+            if ((index & 4) == 0)
+                drawTextFlipswitches(gm, offset);
+            else
+                drawFullFlipswitches(gm, offset);
+
+            if ((index & 1) == 0)
                 drawTextSecrets(gm);
-                return;
-            }
-            int tf = getTextSize(TotalRedsCount) + getFullSize(TotalSecretsCount) + getSpaceSize();
-            if (tf <= totalSize)
-            {
-                drawTextReds(gm);
+            else
                 drawFullSecrets(gm);
-                return;
-            }
-            drawTextReds(gm);
-            drawTextSecrets(gm);
         }
     }
 
@@ -286,8 +336,10 @@ namespace StarDisplay
         int totalReds;
         int secrets;
         int totalSecrets;
+        int activePanels;
+        int totalPanels;
 
-        public DrawActions(LayoutDescription ld, byte[] stars, byte[] oldStars, byte[] highlightPivot, int reds, int totalReds, int secrets, int totalSecrets)
+        public DrawActions(LayoutDescription ld, byte[] stars, byte[] oldStars, byte[] highlightPivot, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
         {
             this.ld = ld;
             this.stars = stars;
@@ -297,6 +349,8 @@ namespace StarDisplay
             this.totalReds = totalReds;
             this.secrets = secrets;
             this.totalSecrets = totalSecrets;
+            this.activePanels = activePanels;
+            this.totalPanels = totalPanels;
         }
 
         public IEnumerator<Action> GetEnumerator()
@@ -391,7 +445,7 @@ namespace StarDisplay
                 yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & starMask2)) - MemoryManager.countStars((byte)(oldStarByte & starMask2)), true, descr.starMask);
             }
 
-            yield return new RedsSecretsDrawAction(reds, totalReds, secrets, totalSecrets);
+            yield return new RedsSecretsDrawAction(reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);
         }
 
         IEnumerator IEnumerable.GetEnumerator()
