@@ -122,11 +122,18 @@ namespace StarDisplay
             SolidBrush drawBrush = new SolidBrush(Color.LightGray);
             if (ld.isTextOnly)
             {
-                graphics.DrawString(ld.text, drawFont, drawBrush, (isSecret ? 180: 0) + 7, lineNumber * 23 + 2);
+                RectangleF drawRect = new RectangleF((isSecret ? 180 : 0) + 7, lineNumber * 23, 170, 23);
+                StringFormat drawFormat = new StringFormat();
+                drawFormat.LineAlignment = StringAlignment.Center;
+                graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
             }
             else
             {
-                graphics.DrawString(ld.text, drawFont, drawBrush, isSecret ? 180 : 0, lineNumber * 23 + 2);
+                RectangleF drawRect = new RectangleF((isSecret ? 180 : 0), lineNumber * 23, 22, 23);
+                StringFormat drawFormat = new StringFormat();
+                drawFormat.Alignment = StringAlignment.Center;
+                drawFormat.LineAlignment = StringAlignment.Center;
+                graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
                 DrawByte(0, lineNumber, isSecret, ld.starMask);
             }
             drawBrush.Dispose();
@@ -168,7 +175,13 @@ namespace StarDisplay
             
             Font bigFont = new Font(fontFamily, bigFontSize);
 
-            graphics.DrawString(starLine, bigFont, drawBrush, 120, totalStarLine * 23 + 2);
+
+            RectangleF drawRect = new RectangleF(0, totalStarLine * 23, 340, 23);
+            StringFormat drawFormat = new StringFormat();
+            drawFormat.LineAlignment = StringAlignment.Center;
+            drawFormat.Alignment = StringAlignment.Center;
+            drawFormat.FormatFlags = StringFormatFlags.MeasureTrailingSpaces;
+            graphics.DrawString(starLine, bigFont, drawBrush, drawRect, drawFormat);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
