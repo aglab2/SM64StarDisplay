@@ -95,7 +95,14 @@ namespace StarDisplay
                 DrawLine(ld.secretDescription[line], line, true);
             }
             int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
-            graphics.DrawString(StarText, bigFont, drawBrush, 140 - 5 * StarText.Length, lastLine * 23 + 2);
+
+
+            RectangleF drawRect = new RectangleF(0, lastLine * 23 + 2, 340, 23);
+            StringFormat drawFormat = new StringFormat();
+            drawFormat.Alignment = StringAlignment.Center;
+            drawFormat.LineAlignment = StringAlignment.Center;
+            //graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
+            graphics.DrawString(StarText, bigFont, drawBrush, drawRect, drawFormat);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
@@ -124,14 +131,15 @@ namespace StarDisplay
             {
                 RectangleF drawRect = new RectangleF((isSecret ? 180 : 0) + 7, lineNumber * 23, 170, 23);
                 StringFormat drawFormat = new StringFormat();
+                drawFormat.Alignment = StringAlignment.Near;
                 drawFormat.LineAlignment = StringAlignment.Center;
                 graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
             }
             else
             {
-                RectangleF drawRect = new RectangleF((isSecret ? 180 : 0), lineNumber * 23, 22, 23);
+                RectangleF drawRect = new RectangleF((isSecret ? 180 : 0), lineNumber * 23, 170, 23);
                 StringFormat drawFormat = new StringFormat();
-                drawFormat.Alignment = StringAlignment.Center;
+                drawFormat.Alignment = StringAlignment.Near;
                 drawFormat.LineAlignment = StringAlignment.Center;
                 graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
                 DrawByte(0, lineNumber, isSecret, ld.starMask);

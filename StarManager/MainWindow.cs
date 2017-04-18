@@ -137,7 +137,11 @@ namespace StarDisplay
                     }
                     catch (IOException)
                     {
-                        oldPath = "";
+                        //oldPath = "";
+                    }
+                    catch(IndexOutOfRangeException)
+                    {
+                        //oldPath = "";
                     }
                     InvalidateCache();
                 }
@@ -414,7 +418,7 @@ namespace StarDisplay
                 }
                 catch (IOException)
                 {
-                    MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Failed to import star masks!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
             }
