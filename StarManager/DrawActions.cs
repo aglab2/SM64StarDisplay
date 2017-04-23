@@ -123,7 +123,7 @@ namespace StarDisplay
             {
                 gm.graphics.DrawImage(gm.darkReds, 20 + i * 20, totalStarLine * 23 + 10, 20, 20);
             }
-            return TotalRedsCount * 2 + TotalRedsCount == 0 ? 0 : 2;
+            return TotalRedsCount * 2 + (TotalRedsCount == 0 ? 0 : 2);
         }
 
         int drawFullSecrets(GraphicsManager gm)
@@ -137,7 +137,7 @@ namespace StarDisplay
             {
                 gm.graphics.DrawImage(gm.darkSecrets, 10 * totalSize - i * 20, totalStarLine * 23 + 10, 20, 20);
             }
-            return TotalSecretsCount * 2 + TotalSecretsCount == 0 ? 0 : 2;
+            return TotalSecretsCount * 2 + (TotalSecretsCount == 0 ? 0 : 2);
         }
 
         int drawFullFlipswitches(GraphicsManager gm, int offset)
@@ -151,7 +151,7 @@ namespace StarDisplay
             {
                 gm.graphics.DrawImage(gm.flipswitchOff, i * 20 + 10 * offset + 1, totalStarLine * 23 + 11, 18, 18);
             }
-            return TotalPanelsCount * 2 + TotalPanelsCount == 0 ? 0 : 2;
+            return TotalPanelsCount * 2 + (TotalPanelsCount == 0 ? 0 : 2);
         }
 
         int drawTextReds(GraphicsManager gm)
@@ -228,7 +228,6 @@ namespace StarDisplay
                 textSizes[i] = count;
             }
             int maxSize = textSizes.Max();
-            Console.WriteLine(maxSize);
             int index = Array.FindIndex(textSizes, a => a == maxSize);
 
             int offset = 2;
