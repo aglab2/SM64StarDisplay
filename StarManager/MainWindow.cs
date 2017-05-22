@@ -208,6 +208,7 @@ namespace StarDisplay
             mm.ld = ld;
             gm.ld = ld;
             mm.InvalidateCache();
+            mm.rm = rm;
             gm.InvalidateCache();
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
@@ -475,6 +476,29 @@ namespace StarDisplay
             ctd.ShowDialog();
             gm.StarText = ctd.text;
             InvalidateCache();
+        }
+
+        private void loadROMToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    rm = new ROMManager(openFileDialog.FileName);
+                    InvalidateCache();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to import star masks!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

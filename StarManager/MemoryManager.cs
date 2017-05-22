@@ -41,6 +41,7 @@ namespace StarDisplay
         private int[] overworldLevels = { 6, 26, 16 };
 
         public int selectedFile;
+        string version;
 
         public MemoryManager(Process process, LayoutDescription ld, GraphicsManager gm, ROMManager rm, byte[] highlightPivot)
         {
@@ -53,10 +54,10 @@ namespace StarDisplay
 
             if (process != null)
             {
-                //string version = process.MainModule.FileVersionInfo.FileVersion;
-
-                //if (version == null || version.Contains("1.6"))
-                //{
+                version = process.MainModule.FileVersionInfo.FileVersion;
+                
+                if (version == null || version.Contains("1.6"))
+                {
                     igt = new DeepPointer("Project64.exe", 0xD6A1C, 0x32D580);
                     files = new DeepPointer[4];
                     files[0] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207708);
@@ -74,27 +75,26 @@ namespace StarDisplay
 
                     segmentsTablePtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B400);
                     selectedStarPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x1A81A3);
-                /*}
-                else if (version.Contains("2.3"))
+                }
+                else //1.7 RSP expected in this case
                 {
-                    int baseOffset = 0x4B120000 - process.MainModule.BaseAddress.ToInt32();
-
-                    igt = new DeepPointer("Project64.exe", baseOffset + 0x32D580);
+                    igt = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x32D580);
                     files = new DeepPointer[4];
-                    files[0] = new DeepPointer("Project64.exe", baseOffset + 0x207708);
-                    files[1] = new DeepPointer("Project64.exe", baseOffset + 0x207778);
-                    files[2] = new DeepPointer("Project64.exe", baseOffset + 0x2077E8);
-                    files[3] = new DeepPointer("Project64.exe", baseOffset + 0x207858);
+                    files[0] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x207708);
+                    files[1] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x207778);
+                    files[2] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x2077E8);
+                    files[3] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x207858);
 
-                    romNamePtr = null; //new DeepPointer("Project64.exe", 0xAF1F8); //rip these options
+                    //rip these options, cause 2.4 does not give them out
+                    romNamePtr = null; //new DeepPointer("Project64.exe", 0xAF1F8); 
                     absoluteRomPathPtr = null; //new DeepPointer("Project64.exe", 0xAF0F0);
 
-                    levelPtr = new DeepPointer("Project64.exe", baseOffset + 0x32DDFA);
-                    starPtr = new DeepPointer("Project64.exe", baseOffset + 0x064F80 + 0x04800);
-                    redsPtr = new DeepPointer("Project64.exe", baseOffset + 0x3613FD);
+                    levelPtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x32DDFA);
+                    starPtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x064F80 + 0x04800);
+                    redsPtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x3613FD);
 
-                    segmentsTablePtr = new DeepPointer("Project64.exe", baseOffset + 0x33B400);
-                }*/
+                    segmentsTablePtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x33B400);
+                }
             }
 
             defPicture = File.ReadAllBytes("images/star.rgba16");
@@ -127,8 +127,8 @@ namespace StarDisplay
 
         public string GetROMName()
         {
-            if (romNamePtr == null) return "";
-            return romNamePtr.DerefString(Process, 32);
+            Console.WriteLine(Process.MainWindowTitle.Split('-')[0].Trim());
+            return Process.MainWindowTitle.Split('-')[0].Trim();
         }
 
         public string GetAbsoluteROMPath()
@@ -313,7 +313,15 @@ namespace StarDisplay
             UInt32 address = 0x33D488;
             do
             {
-                DeepPointer currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
+                DeepPointer currentObject;
+                if (version == null || version.Contains("1.6"))
+                {
+                    currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
+                }
+                else
+                {
+                    currentObject = new DeepPointer("RSP 1.7.dll", 0x4C054, (int)address);
+                }
                 byte[] data = currentObject.DerefBytes(Process, 0x260);
 
                 UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
@@ -342,7 +350,14 @@ namespace StarDisplay
             UInt32 address = 0x33D488;
             do
             {
-                DeepPointer currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
+                DeepPointer currentObject;
+                if (version == null || version.Contains("1.6"))
+                {
+                    currentObject = new DeepPointer("Project64.exe", 0xD6A1C, (int)address);
+                }else
+                {
+                    currentObject = new DeepPointer("RSP 1.7.dll", 0x4C054, (int)address);
+                }
                 byte[] data = currentObject.DerefBytes(Process, 0x260);
 
                 UInt32 intparam = BitConverter.ToUInt32(data, 0x180);

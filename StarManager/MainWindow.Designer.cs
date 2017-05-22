@@ -47,6 +47,7 @@
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureDisplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.showRedsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.displayHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.iconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.importIconsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.saturateIconToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -58,7 +59,7 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.displayHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadROMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -125,7 +126,8 @@
             this.saveAsToolStripMenuItem,
             this.importStarMasksToolStripMenuItem,
             this.loadCustomFontToolStripMenuItem,
-            this.changeStarTextToolStripMenuItem});
+            this.changeStarTextToolStripMenuItem,
+            this.loadROMToolStripMenuItem});
             this.layoutToolStripMenuItem.Enabled = false;
             this.layoutToolStripMenuItem.Name = "layoutToolStripMenuItem";
             this.layoutToolStripMenuItem.Size = new System.Drawing.Size(55, 20);
@@ -220,6 +222,15 @@
             this.showRedsToolStripMenuItem.Name = "showRedsToolStripMenuItem";
             this.showRedsToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.showRedsToolStripMenuItem.Text = "Show Reds";
+            // 
+            // displayHighlightToolStripMenuItem
+            // 
+            this.displayHighlightToolStripMenuItem.Checked = true;
+            this.displayHighlightToolStripMenuItem.CheckOnClick = true;
+            this.displayHighlightToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.displayHighlightToolStripMenuItem.Name = "displayHighlightToolStripMenuItem";
+            this.displayHighlightToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.displayHighlightToolStripMenuItem.Text = "Display Highlight";
             // 
             // iconsToolStripMenuItem
             // 
@@ -322,14 +333,12 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
-            // displayHighlightToolStripMenuItem
+            // loadROMToolStripMenuItem
             // 
-            this.displayHighlightToolStripMenuItem.Checked = true;
-            this.displayHighlightToolStripMenuItem.CheckOnClick = true;
-            this.displayHighlightToolStripMenuItem.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.displayHighlightToolStripMenuItem.Name = "displayHighlightToolStripMenuItem";
-            this.displayHighlightToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
-            this.displayHighlightToolStripMenuItem.Text = "Display Highlight";
+            this.loadROMToolStripMenuItem.Name = "loadROMToolStripMenuItem";
+            this.loadROMToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.loadROMToolStripMenuItem.Text = "Load ROM";
+            this.loadROMToolStripMenuItem.Click += new System.EventHandler(this.loadROMToolStripMenuItem_Click);
             // 
             // MainWindow
             // 
@@ -389,6 +398,7 @@
         private System.Windows.Forms.ToolStripMenuItem loadCustomFontToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem changeStarTextToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem displayHighlightToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem loadROMToolStripMenuItem;
     }
 }
 
