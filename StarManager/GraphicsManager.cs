@@ -21,8 +21,8 @@ namespace StarDisplay
 
         public LayoutDescription ld;
         Graphics _graphics;
-        public LastHighlight lastSHA;
 
+        public LastHighlight lastSHA;
         public bool IsFirstCall = true;
 
         public PrivateFontCollection collection;
@@ -75,7 +75,7 @@ namespace StarDisplay
         public void PaintHUD()
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
             
             Font bigFont = new Font(fontFamily, bigFontSize);
 
@@ -126,7 +126,7 @@ namespace StarDisplay
         {
             Font drawFont = new Font(fontFamily, drawFontSize);
 
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
             if (ld.isTextOnly)
             {
                 RectangleF drawRect = new RectangleF((isSecret ? 180 : 0) + 7, lineNumber * 23, 170, 23);
@@ -179,7 +179,7 @@ namespace StarDisplay
             int totalStarLine = Math.Max(courseDescriptionLength, secretDescriptionLength) + 1;
 
             SolidBrush blackBrush = new SolidBrush(Color.Black);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
             
             Font bigFont = new Font(fontFamily, bigFontSize);
 

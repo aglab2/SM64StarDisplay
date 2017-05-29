@@ -43,6 +43,7 @@
             this.importStarMasksToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.loadCustomFontToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.changeStarTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.loadROMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.configureDisplayToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -59,7 +60,6 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
-            this.loadROMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -102,6 +102,7 @@
             this.totalCountText.Name = "totalCountText";
             this.totalCountText.Size = new System.Drawing.Size(54, 20);
             this.totalCountText.TabIndex = 5;
+            this.totalCountText.Text = "182";
             // 
             // menuStrip1
             // 
@@ -188,6 +189,13 @@
             this.changeStarTextToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.changeStarTextToolStripMenuItem.Text = "Change Star Text";
             this.changeStarTextToolStripMenuItem.Click += new System.EventHandler(this.changeStarTextToolStripMenuItem_Click);
+            // 
+            // loadROMToolStripMenuItem
+            // 
+            this.loadROMToolStripMenuItem.Name = "loadROMToolStripMenuItem";
+            this.loadROMToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
+            this.loadROMToolStripMenuItem.Text = "Load ROM";
+            this.loadROMToolStripMenuItem.Click += new System.EventHandler(this.loadROMToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
@@ -332,13 +340,6 @@
             this.radioButtonD.TabIndex = 0;
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
-            // 
-            // loadROMToolStripMenuItem
-            // 
-            this.loadROMToolStripMenuItem.Name = "loadROMToolStripMenuItem";
-            this.loadROMToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
-            this.loadROMToolStripMenuItem.Text = "Load ROM";
-            this.loadROMToolStripMenuItem.Click += new System.EventHandler(this.loadROMToolStripMenuItem_Click);
             // 
             // MainWindow
             // 

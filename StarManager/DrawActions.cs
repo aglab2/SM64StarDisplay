@@ -160,7 +160,7 @@ namespace StarDisplay
             string starLine = CurrentRedsCount.ToString() + "/" + TotalRedsCount.ToString();
 
             SolidBrush redBrush = new SolidBrush(Color.IndianRed);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
 
             Font bigFont = new Font(gm.fontFamily, (gm.drawFontSize + gm.bigFontSize) / 2);
 
@@ -180,7 +180,7 @@ namespace StarDisplay
             string starLine = CurrentSecretsCount.ToString() + "/" + TotalSecretsCount.ToString();
 
             SolidBrush blueBrush = new SolidBrush(Color.LightBlue);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
 
             Font bigFont = new Font(gm.fontFamily, (gm.drawFontSize + gm.bigFontSize) / 2);
 
@@ -200,7 +200,7 @@ namespace StarDisplay
             string starLine = ActivePanelsCount.ToString() + "/" + TotalPanelsCount.ToString();
 
             SolidBrush redBrush = new SolidBrush(Color.LightGreen);
-            SolidBrush drawBrush = new SolidBrush(Color.LightGray);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
 
             Font bigFont = new Font(gm.fontFamily, (gm.drawFontSize + gm.bigFontSize) / 2);
 
@@ -296,7 +296,7 @@ namespace StarDisplay
             
             Font drawFont = new Font(gm.fontFamily, gm.drawFontSize);
 
-            gm.graphics.DrawString(Text, drawFont, drawBrush, x, y + 2);
+            gm.graphics.DrawString(Text, drawFont, drawBrush, x, y + 3);
 
             drawBrush.Dispose();
             drawFont.Dispose();

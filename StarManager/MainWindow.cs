@@ -18,17 +18,19 @@ namespace StarDisplay
         GraphicsManager gm;
         MemoryManager mm;
         ROMManager rm;
-
-        string oldPath;
+        UpdateManager um;
 
         Timer timer;
 
+        string oldPath;
         int oldStarCount;
         string oldTotalCount;
 
         int picX, picY;
 
         Image baseImage;
+
+        bool isUpdateRequested = false;
 
         public MainWindow()
         {
@@ -39,6 +41,7 @@ namespace StarDisplay
             gm = new GraphicsManager(Graphics.FromImage(randomImage), ld);
             starPicture.Image = randomImage;
             mm = new MemoryManager(null, ld, gm, null, null);
+            um = new UpdateManager();
 
             timer = new Timer();
             timer.Tick += new EventHandler(updateStars);
@@ -86,6 +89,19 @@ namespace StarDisplay
             if (radioButtonB.Checked) mm.selectedFile = 1;
             if (radioButtonC.Checked) mm.selectedFile = 2;
             if (radioButtonD.Checked) mm.selectedFile = 3;
+
+            if (um.IsCompleted())
+            {
+                if (!isUpdateRequested && !um.IsUpdated())
+                {
+                    isUpdateRequested = true;
+                    if (MessageBox.Show("Update for Star Display available! Do you want to download it now?", "Update",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
+                    {
+                        Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");
+                    }
+                }
+            }
 
             if (mm.ProcessActive())
             {

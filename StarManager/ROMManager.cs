@@ -356,7 +356,16 @@ namespace StarDisplay
                     byte boxObjectByte = ReadBParam2(offset);
                     Object currentObject = boxObjects[boxObjectByte];
                     //Console.WriteLine(String.Format("{1:X}: {0:X8}", currentObject.Behaviour, boxObjectByte));
-                    if (currentObject.Behaviour == 0x130007F8)
+                    if (boxObjectByte == 0x08)
+                    {
+                        byte starByte = ReadBParam1(offset);
+                        if (starByte <= 0x6)
+                        {
+                            mask |= 2 << starByte;
+                            Console.WriteLine("[B] '{0:x}' Star {1} in box detected 8!", offset, starByte);
+                        }
+                    }
+                    else if (currentObject.Behaviour == 0x130007F8)
                     {
                         if (currentObject.BParam1 <= 0x6)
                         {
@@ -369,7 +378,7 @@ namespace StarDisplay
             return (byte) mask;
         }
         
-        static int boxParamDescriptorsAddress = 0x01204000;
+        static int boxParamDescriptorsAddress = 0xEBBA0;
         static byte maxBehaviour = 0x63;
 
         public class Object
