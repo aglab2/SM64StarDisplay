@@ -95,7 +95,7 @@ namespace StarDisplay
                 if (!isUpdateRequested && !um.IsUpdated())
                 {
                     isUpdateRequested = true;
-                    if (MessageBox.Show("Update for Star Display available! Do you want to download it now?", "Update",
+                    if (MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now?", um.UpdateName()), "Update",
                         MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
                     {
                         Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");

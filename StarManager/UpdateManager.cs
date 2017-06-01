@@ -1,6 +1,7 @@
 ﻿using Octokit;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,11 +12,13 @@ namespace StarDisplay
     {
         GitHubClient client;
         Task<GitHubCommit> task;
+        string lastUpdate;
 
         public UpdateManager()
         {
             client = new GitHubClient(new ProductHeaderValue("star-display"));
             task = client.Repository.Commit.Get("aglab2", "SM64StarManager", "HEAD");
+            lastUpdate = File.ReadLines("updateinfo.cfg").First();
         }
 
         public bool IsCompleted()
@@ -26,7 +29,12 @@ namespace StarDisplay
         public bool IsUpdated()
         {
             var commit = task.Result;
-            return commit.Commit.Message == "Minor updates to engine, added updates checker";
+            return commit.Commit.Message == lastUpdate;
+        }
+
+        public string UpdateName()
+        {
+            return task.Result.Commit.Message;
         }
     }
 }
