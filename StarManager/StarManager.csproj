@@ -159,6 +159,9 @@
     <Content Include="images\flipswitch_on.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
+    <Content Include="images\paypal.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="images\red.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

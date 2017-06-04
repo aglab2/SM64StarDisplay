@@ -78,22 +78,28 @@ namespace StarDisplay
                 }
                 else //1.7 RSP expected in this case
                 {
-                    igt = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x32D580);
+                    int rspBase = 0x4C054;
+                    if (version.Contains("2.3"))
+                        rspBase = 0x44B5C;
+
+                    igt = new DeepPointer("RSP 1.7.dll", rspBase, 0x32D580);
                     files = new DeepPointer[4];
-                    files[0] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x207708);
-                    files[1] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x207778);
-                    files[2] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x2077E8);
-                    files[3] = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x207858);
+                    files[0] = new DeepPointer("RSP 1.7.dll", rspBase, 0x207708);
+                    files[1] = new DeepPointer("RSP 1.7.dll", rspBase, 0x207778);
+                    files[2] = new DeepPointer("RSP 1.7.dll", rspBase, 0x2077E8);
+                    files[3] = new DeepPointer("RSP 1.7.dll", rspBase, 0x207858);
 
                     //rip these options, cause 2.4 does not give them out
                     romNamePtr = null; //new DeepPointer("Project64.exe", 0xAF1F8); 
                     absoluteRomPathPtr = null; //new DeepPointer("Project64.exe", 0xAF0F0);
 
-                    levelPtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x32DDFA);
-                    starPtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x064F80 + 0x04800);
-                    redsPtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x3613FD);
+                    levelPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x32DDFA);
+                    areaPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x33B249);
+                    starPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x064F80 + 0x04800);
+                    redsPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x3613FD);
 
-                    segmentsTablePtr = new DeepPointer("RSP 1.7.dll", 0x4C054, 0x33B400);
+                    segmentsTablePtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x33B400);
+                    selectedStarPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x1A81A3);
                 }
             }
 
@@ -127,7 +133,6 @@ namespace StarDisplay
 
         public string GetROMName()
         {
-            Console.WriteLine(Process.MainWindowTitle.Split('-')[0].Trim());
             return Process.MainWindowTitle.Split('-')[0].Trim();
         }
 
@@ -252,6 +257,7 @@ namespace StarDisplay
             int length = 32;
             DeepPointer file = files[selectedFile];
             byte[] stars = file.DerefBytes(Process, length);
+            if (stars == null) return null;
 
             for (int i = 0; i < length; i += 4) //TODO: Better ending convert
             {

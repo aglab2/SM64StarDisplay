@@ -163,7 +163,9 @@ namespace StarDisplay
                 }
 
                 int totalDiff = 0;
-                foreach (var entry in mm.GetDrawActions())
+                var actions = mm.GetDrawActions();
+                if (actions == null) return;
+                foreach (var entry in actions)
                 {
                     if (entry is RedsSecretsDrawAction && !showRedsToolStripMenuItem.Checked) continue;
                     //if (entry is StarHighlightAction && !displayHighlightToolStripMenuItem.Checked) continue;
