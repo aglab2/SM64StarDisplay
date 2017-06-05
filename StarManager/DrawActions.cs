@@ -171,7 +171,7 @@ namespace StarDisplay
             drawBrush.Dispose();
 
             bigFont.Dispose();
-            return starLine.Length * 2 + 4;
+            return starLine.Length + 4;
         }
 
         int drawTextSecrets(GraphicsManager gm)
@@ -191,7 +191,7 @@ namespace StarDisplay
             drawBrush.Dispose();
 
             bigFont.Dispose();
-            return starLine.Length * 2 + 4;
+            return starLine.Length + 4;
         }
 
         int drawTextFlipswitches(GraphicsManager gm, int offset)
@@ -211,7 +211,7 @@ namespace StarDisplay
             drawBrush.Dispose();
 
             bigFont.Dispose();
-            return starLine.Length * 2 + 4;
+            return starLine.Length + 4;
         }
 
         public override void execute(GraphicsManager gm)
