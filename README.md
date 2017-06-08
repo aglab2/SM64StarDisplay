@@ -42,6 +42,9 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * SM64: Planet Stardust
  * SM64: The Galactic Journey
  * The Violet Stars
+ * King Boo's Revenge
+ * SM64 Madness!
+ * Brutal Mario 64
 
 # Creating New Layouts
 Your hack is not supported? You can easily create a layout yourself! Choose one of the current layouts as basis and edit it with _Settings > Configure Display_. Press on stars to hide/show them and press on text to edit it and switch line view! To get icons from hack you can load them with _Icons > Import Icons_.
