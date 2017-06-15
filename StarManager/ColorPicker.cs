@@ -21,6 +21,8 @@ namespace StarDisplay
         Bitmap img;
         public Bitmap newImg;
 
+        public Color pickedColor = Color.White;
+
         public ColorPicker(LayoutDescription ld)
         {
             this.ld = ld;
@@ -58,6 +60,8 @@ namespace StarDisplay
             double expectedVal = (double)picY / pictureBox.Height;
             double h, s, v;
 
+            pickedColor = ColorRGB.HSL2RGB(expectedHue, 1, expectedVal);
+
             for (int i = 0; i < img.Width; i++)
             {
                 for (int j = 0; j < img.Height; j++)
@@ -89,6 +93,8 @@ namespace StarDisplay
             
             double expectedHue = (double) e.X / pictureBox.Width;
             double expectedVal = (double) e.Y / pictureBox.Height;
+
+            pickedColor = ColorRGB.HSL2RGB(expectedHue, 1, expectedVal);
 
             double h, s, v;
 

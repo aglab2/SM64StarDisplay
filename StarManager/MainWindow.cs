@@ -23,6 +23,7 @@ namespace StarDisplay
         Timer timer;
 
         string oldPath;
+        string oldROMName;
         int oldStarCount;
         string oldTotalCount;
 
@@ -75,6 +76,7 @@ namespace StarDisplay
         private void connectToProcess()
         {
             Process process = Process.GetProcessesByName("project64").First();
+            oldPath = "";
             mm = new MemoryManager(process, ld, gm, rm, mm.highlightPivot);
             connectButton.Enabled = false;
             layoutToolStripMenuItem.Enabled = true;
@@ -142,6 +144,18 @@ namespace StarDisplay
                     gm.AddLineHighlight(act);
                 }
 
+                string currentROMName = mm.GetROMName();
+                if (currentROMName != oldROMName)
+                {
+                    oldROMName = currentROMName;
+                    try
+                    {
+                        LoadLayout("layout/" + currentROMName + ".sml");
+                    }
+                    catch (IOException)
+                    { }
+                }
+
                 string currentROMPath = mm.GetAbsoluteROMPath();
                 if (oldPath != currentROMPath)
                 {
@@ -159,8 +173,9 @@ namespace StarDisplay
                     {
                         //oldPath = "";
                     }
-                    InvalidateCache();
+                    InvalidateCacheNoResetRM();
                 }
+
 
                 int totalDiff = 0;
                 var actions = mm.GetDrawActions();
@@ -230,7 +245,22 @@ namespace StarDisplay
             gm.InvalidateCache();
             totalCountText.Text = ld.starAmount;
             oldStarCount = 0;
-            oldTotalCount = "";
+            oldPath = "";
+            //oldROMName = "";
+            timer.Stop();
+            updateStars(null, null);
+            timer.Start();
+        }
+
+        private void InvalidateCacheNoResetRM()
+        {
+            mm.ld = ld;
+            gm.ld = ld;
+            mm.InvalidateCache();
+            mm.rm = rm;
+            gm.InvalidateCache();
+            totalCountText.Text = ld.starAmount;
+            oldStarCount = 0;
             timer.Stop();
             updateStars(null, null);
             timer.Start();
@@ -513,10 +543,70 @@ namespace StarDisplay
                 }
                 catch (IOException)
                 {
-                    MessageBox.Show("Failed to import star masks!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("Failed to load rom!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
             }
+        }
+
+        private void importIconsFromROMToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    ROMManager rm = new ROMManager(openFileDialog.FileName);
+                    if (rm == null) throw new IOException();
+                    Bitmap image = rm.GetStarImage();
+                    ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, image, ld.starAmount);
+                    InvalidateCache();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to import star icons!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void replaceBackgroundToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+
+            openFileDialog.Filter = "PNG Images (*.png)|*.png";
+            openFileDialog.FilterIndex = 1;
+            openFileDialog.RestoreDirectory = true;
+
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    Image img = Image.FromFile(openFileDialog.FileName);
+                    if (img == null) throw new IOException();
+                    gm.SetBackground(img);
+                    
+                    InvalidateCache();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to import star icons!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void recolorTextToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ColorPicker cp = new ColorPicker(ld);
+            cp.ShowDialog();
+            Color c = cp.pickedColor;
+            InvalidateCache();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

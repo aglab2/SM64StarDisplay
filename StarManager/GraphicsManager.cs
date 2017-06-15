@@ -16,6 +16,8 @@ namespace StarDisplay
         public Image flipswitchOff;
         public Image flipswitchDone;
 
+        public Image background;
+
         Bitmap goldSquare;
         Bitmap blackSquare;
 
@@ -79,10 +81,14 @@ namespace StarDisplay
             
             Font bigFont = new Font(fontFamily, bigFontSize);
 
-            graphics.Clear(Color.Black);
-
             int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
             int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
+            int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
+
+            graphics.Clear(Color.Black);
+
+            if (background != null)
+                graphics.DrawImage(background, new Rectangle(0, 0, 345, 462));
 
             for (int line = 0; line < courseDescriptionLength; line++)
             {
@@ -94,7 +100,6 @@ namespace StarDisplay
                 if (ld.secretDescription[line] == null) continue;
                 DrawLine(ld.secretDescription[line], line, true);
             }
-            int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
 
 
             RectangleF drawRect = new RectangleF(0, lastLine * 23 + 2, 340, 23);
@@ -198,6 +203,21 @@ namespace StarDisplay
         public void InvalidateCache()
         {
             IsFirstCall = true;
+        }
+
+        public void SetBackground(Image image)
+        {
+            double ratioX = (double)345 / image.Width;
+            double ratioY = (double)462 / image.Height;
+            double ratio = Math.Max(ratioX, ratioY);
+
+            int newWidth = (int)(image.Width * ratio);
+            int newHeight = (int)(image.Height * ratio);
+
+            background = new Bitmap(345, 462);
+
+            using (var graphics = Graphics.FromImage(background))
+                graphics.DrawImage(image, (345 - newWidth) / 2, (462 - newHeight) / 2, newWidth, newHeight);
         }
     }
 }

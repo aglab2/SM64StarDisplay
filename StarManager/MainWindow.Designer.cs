@@ -60,6 +60,9 @@
             this.radioButtonB = new System.Windows.Forms.RadioButton();
             this.radioButtonC = new System.Windows.Forms.RadioButton();
             this.radioButtonD = new System.Windows.Forms.RadioButton();
+            this.importIconsFromROMToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.replaceBackgroundToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.recolorTextToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -244,9 +247,12 @@
             // 
             this.iconsToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.importIconsToolStripMenuItem,
+            this.importIconsFromROMToolStripMenuItem,
             this.saturateIconToolStripMenuItem,
             this.recolorIconsToolStripMenuItem,
-            this.resetHighlightToolStripMenuItem});
+            this.recolorTextToolStripMenuItem,
+            this.resetHighlightToolStripMenuItem,
+            this.replaceBackgroundToolStripMenuItem});
             this.iconsToolStripMenuItem.Enabled = false;
             this.iconsToolStripMenuItem.Name = "iconsToolStripMenuItem";
             this.iconsToolStripMenuItem.Size = new System.Drawing.Size(47, 20);
@@ -255,28 +261,28 @@
             // importIconsToolStripMenuItem
             // 
             this.importIconsToolStripMenuItem.Name = "importIconsToolStripMenuItem";
-            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.importIconsToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
             this.importIconsToolStripMenuItem.Text = "Import Icons";
             this.importIconsToolStripMenuItem.Click += new System.EventHandler(this.importIconsToolStripMenuItem_Click);
             // 
             // saturateIconToolStripMenuItem
             // 
             this.saturateIconToolStripMenuItem.Name = "saturateIconToolStripMenuItem";
-            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.saturateIconToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
             this.saturateIconToolStripMenuItem.Text = "Saturate Icon";
             this.saturateIconToolStripMenuItem.Click += new System.EventHandler(this.saturateIconToolStripMenuItem_Click);
             // 
             // recolorIconsToolStripMenuItem
             // 
             this.recolorIconsToolStripMenuItem.Name = "recolorIconsToolStripMenuItem";
-            this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.recolorIconsToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
             this.recolorIconsToolStripMenuItem.Text = "Recolor Icons";
             this.recolorIconsToolStripMenuItem.Click += new System.EventHandler(this.recolorIconsToolStripMenuItem_Click);
             // 
             // resetHighlightToolStripMenuItem
             // 
             this.resetHighlightToolStripMenuItem.Name = "resetHighlightToolStripMenuItem";
-            this.resetHighlightToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.resetHighlightToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
             this.resetHighlightToolStripMenuItem.Text = "Reset Highlight";
             this.resetHighlightToolStripMenuItem.Click += new System.EventHandler(this.resetHighlightToolStripMenuItem_Click);
             // 
@@ -341,6 +347,27 @@
             this.radioButtonD.Text = "D";
             this.radioButtonD.UseVisualStyleBackColor = true;
             // 
+            // importIconsFromROMToolStripMenuItem
+            // 
+            this.importIconsFromROMToolStripMenuItem.Name = "importIconsFromROMToolStripMenuItem";
+            this.importIconsFromROMToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.importIconsFromROMToolStripMenuItem.Text = "Import Icons from ROM";
+            this.importIconsFromROMToolStripMenuItem.Click += new System.EventHandler(this.importIconsFromROMToolStripMenuItem_Click);
+            // 
+            // replaceBackgroundToolStripMenuItem
+            // 
+            this.replaceBackgroundToolStripMenuItem.Name = "replaceBackgroundToolStripMenuItem";
+            this.replaceBackgroundToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.replaceBackgroundToolStripMenuItem.Text = "Replace background";
+            this.replaceBackgroundToolStripMenuItem.Click += new System.EventHandler(this.replaceBackgroundToolStripMenuItem_Click);
+            // 
+            // recolorTextToolStripMenuItem
+            // 
+            this.recolorTextToolStripMenuItem.Name = "recolorTextToolStripMenuItem";
+            this.recolorTextToolStripMenuItem.Size = new System.Drawing.Size(200, 22);
+            this.recolorTextToolStripMenuItem.Text = "Recolor Text";
+            this.recolorTextToolStripMenuItem.Click += new System.EventHandler(this.recolorTextToolStripMenuItem_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -400,6 +427,9 @@
         private System.Windows.Forms.ToolStripMenuItem changeStarTextToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem displayHighlightToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem loadROMToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem importIconsFromROMToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem replaceBackgroundToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem recolorTextToolStripMenuItem;
     }
 }
 

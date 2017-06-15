@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO.Compression;
 using System.Net;
+using System.Drawing;
 
 namespace StarDisplay
 {
@@ -408,6 +409,13 @@ namespace StarDisplay
                 Object obj = new Object(data[1], data[2], data[3], IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 4)));
                 ret[data[0]] = obj;
             }
+        }
+
+        public Bitmap GetStarImage()
+        {
+            reader.BaseStream.Position = 0x807956; //0x803156 + 0x4800
+            byte[] data = reader.ReadBytes(512);
+            return MemoryManager.FromRGBA16(data);
         }
     }
 }

@@ -133,7 +133,14 @@ namespace StarDisplay
 
         public string GetROMName()
         {
-            return Process.MainWindowTitle.Split('-')[0].Trim();
+            if (romNamePtr != null)
+            {
+                return romNamePtr.DerefString(Process, 32).Trim();
+            }
+            else
+            {
+                return Process.MainWindowTitle.Split('-')[0].Trim();
+            }
         }
 
         public string GetAbsoluteROMPath()
@@ -226,7 +233,7 @@ namespace StarDisplay
             return FromRGBA16(data);
         }
 
-        public Bitmap FromRGBA16(byte[] data)
+        public static Bitmap FromRGBA16(byte[] data)
         {
             Bitmap picture = new Bitmap(16, 16);
             for (int i = 0; i < 16; i++)
