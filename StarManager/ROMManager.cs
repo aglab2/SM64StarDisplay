@@ -117,6 +117,13 @@ namespace StarDisplay
             boxObjects = ReadBoxBehaviours();
         }
 
+        public ROMManager(byte[] data)
+        {
+            if (data == null) throw new IOException("Data is null");
+            reader = new BinaryReader(new MemoryStream(data));
+            boxObjects = ReadBoxBehaviours();
+        }
+
         public void Dispose()
         {
             reader.Dispose();
@@ -366,7 +373,7 @@ namespace StarDisplay
                             Console.WriteLine("[B] '{0:x}' Star {1} in box detected 8!", offset, starByte);
                         }
                     }
-                    else if (currentObject.Behaviour == 0x130007F8)
+                    else if (currentObject != null && currentObject.Behaviour == 0x130007F8)
                     {
                         if (currentObject.BParam1 <= 0x6)
                         {
@@ -378,8 +385,8 @@ namespace StarDisplay
             }
             return (byte) mask;
         }
-        
-        static int boxParamDescriptorsAddress = 0xEBBA0;
+
+        static int boxParamDescriptorsAddress = 0x01204000; //0xEBBA0;
         static byte maxBehaviour = 0x63;
 
         public class Object
@@ -416,6 +423,12 @@ namespace StarDisplay
             reader.BaseStream.Position = 0x807956; //0x803156 + 0x4800
             byte[] data = reader.ReadBytes(512);
             return MemoryManager.FromRGBA16(data);
+        }
+
+        public string GetROMName()
+        {
+            reader.BaseStream.Position = 0x20;
+            return Encoding.UTF8.GetString(reader.ReadBytes(20), 0, 20).Trim();
         }
     }
 }

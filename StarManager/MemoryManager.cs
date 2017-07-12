@@ -6,6 +6,7 @@ using System.Linq;
 using LiveSplit.ComponentUtil;
 using System.IO;
 using System.Drawing;
+using System.Windows.Forms;
 
 namespace StarDisplay
 {
@@ -13,7 +14,6 @@ namespace StarDisplay
     {
         public readonly Process Process;
         public LayoutDescription ld;
-        GraphicsManager gm;
         public ROMManager rm;
 
         int previousTime;
@@ -25,9 +25,6 @@ namespace StarDisplay
         DeepPointer igt;
         public readonly DeepPointer[] files;
 
-        DeepPointer romNamePtr;
-        DeepPointer absoluteRomPathPtr;
-
         DeepPointer levelPtr;
         DeepPointer areaPtr;
         DeepPointer starPtr;
@@ -35,6 +32,9 @@ namespace StarDisplay
 
         DeepPointer segmentsTablePtr;
         DeepPointer selectedStarPtr;
+
+        DeepPointer romPtr;
+        DeepPointer romCRCPtr;
 
         private int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
         private int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
@@ -47,7 +47,6 @@ namespace StarDisplay
         {
             this.Process = process;
             this.ld = ld;
-            this.gm = gm;
             this.rm = rm;
             this.highlightPivot = highlightPivot;
             oldStars = new byte[32];
@@ -65,9 +64,6 @@ namespace StarDisplay
                     files[2] = new DeepPointer("Project64.exe", 0xD6A1C, 0x2077E8);
                     files[3] = new DeepPointer("Project64.exe", 0xD6A1C, 0x207858);
 
-                    romNamePtr = new DeepPointer("Project64.exe", 0xAF1F8);
-                    absoluteRomPathPtr = new DeepPointer("Project64.exe", 0xAF0F0);
-
                     levelPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x32DDFA);
                     areaPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B249);
                     starPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x064F80 + 0x04800);
@@ -75,31 +71,37 @@ namespace StarDisplay
 
                     segmentsTablePtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x33B400);
                     selectedStarPtr = new DeepPointer("Project64.exe", 0xD6A1C, 0x1A81A3);
+
+                    romPtr = new DeepPointer("Project64.exe", 0xD6A2C, 0); //TODO: 64Mb?
+                    romCRCPtr = new DeepPointer("Project64.exe", 0xD6A2C, 0x10);
                 }
                 else //1.7 RSP expected in this case
                 {
-                    int rspBase = 0x4C054;
+                    int rspBaseForRAM = 0x4C054;
+                    int rspBaseForROM = 0x4C050;
                     if (version.Contains("2.3"))
-                        rspBase = 0x44B5C;
-
-                    igt = new DeepPointer("RSP 1.7.dll", rspBase, 0x32D580);
+                    {
+                        rspBaseForROM = 0x44B58;
+                        rspBaseForRAM = 0x44B5C;
+                    }
+                    
+                    igt = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x32D580);
                     files = new DeepPointer[4];
-                    files[0] = new DeepPointer("RSP 1.7.dll", rspBase, 0x207708);
-                    files[1] = new DeepPointer("RSP 1.7.dll", rspBase, 0x207778);
-                    files[2] = new DeepPointer("RSP 1.7.dll", rspBase, 0x2077E8);
-                    files[3] = new DeepPointer("RSP 1.7.dll", rspBase, 0x207858);
+                    files[0] = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x207708);
+                    files[1] = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x207778);
+                    files[2] = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x2077E8);
+                    files[3] = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x207858);
 
-                    //rip these options, cause 2.4 does not give them out
-                    romNamePtr = null; //new DeepPointer("Project64.exe", 0xAF1F8); 
-                    absoluteRomPathPtr = null; //new DeepPointer("Project64.exe", 0xAF0F0);
+                    levelPtr = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x32DDFA);
+                    areaPtr = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x33B249);
+                    starPtr = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x064F80 + 0x04800);
+                    redsPtr = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x3613FD);
 
-                    levelPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x32DDFA);
-                    areaPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x33B249);
-                    starPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x064F80 + 0x04800);
-                    redsPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x3613FD);
+                    segmentsTablePtr = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x33B400);
+                    selectedStarPtr = new DeepPointer("RSP 1.7.dll", rspBaseForRAM, 0x1A81A3);
 
-                    segmentsTablePtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x33B400);
-                    selectedStarPtr = new DeepPointer("RSP 1.7.dll", rspBase, 0x1A81A3);
+                    romPtr = new DeepPointer("RSP 1.7.dll", rspBaseForROM, 0);
+                    romCRCPtr = new DeepPointer("RSP 1.7.dll", rspBaseForROM, 0x10);
                 }
             }
 
@@ -133,20 +135,7 @@ namespace StarDisplay
 
         public string GetROMName()
         {
-            if (romNamePtr != null)
-            {
-                return romNamePtr.DerefString(Process, 32).Trim();
-            }
-            else
-            {
-                return Process.MainWindowTitle.Split('-')[0].Trim();
-            }
-        }
-
-        public string GetAbsoluteROMPath()
-        {
-            if (absoluteRomPathPtr == null) return "";
-            return absoluteRomPathPtr.DerefString(Process, 255);
+            return rm.GetROMName();
         }
 
         public byte GetCurrentStar()
@@ -233,6 +222,37 @@ namespace StarDisplay
             return FromRGBA16(data);
         }
 
+        public byte[] GetROM()
+        {
+            int romSize = 1024 * 1024 * 64;
+            byte[] rom = romPtr.DerefBytes(Process, romSize);
+            if (rom == null) return null;
+            for (int i = 0; i < romSize; i += 4)
+            {
+                Array.Reverse(rom, i, 4);
+            }
+            return rom;
+        }
+
+        public UInt16 GetRomCRC()
+        {
+            return romCRCPtr.Deref<UInt16>(Process);
+        }
+
+        public byte[] GetStars()
+        {
+            int length = 32;
+            DeepPointer file = files[selectedFile];
+
+            byte[] stars = file.DerefBytes(Process, length);
+            if (stars == null) return null;
+
+            for (int i = 0; i < length; i += 4)
+                Array.Reverse(stars, i, 4);
+
+            return stars;
+        }
+
         public static Bitmap FromRGBA16(byte[] data)
         {
             Bitmap picture = new Bitmap(16, 16);
@@ -266,23 +286,11 @@ namespace StarDisplay
             byte[] stars = file.DerefBytes(Process, length);
             if (stars == null) return null;
 
-            for (int i = 0; i < length; i += 4) //TODO: Better ending convert
-            {
-                byte[] copy = new byte[4];
-                copy[0] = stars[i + 0];
-                copy[1] = stars[i + 1];
-                copy[2] = stars[i + 2];
-                copy[3] = stars[i + 3];
-                stars[i + 0] = copy[3];
-                stars[i + 1] = copy[2];
-                stars[i + 2] = copy[1];
-                stars[i + 3] = copy[0];
-            }
+            for (int i = 0; i < length; i += 4)
+                Array.Reverse(stars, i, 4);
 
             if (highlightPivot == null)
-            {
                 highlightPivot = stars;
-            }
 
             int totalReds = 0, reds = 0;
             try
@@ -395,6 +403,35 @@ namespace StarDisplay
         public void InvalidateCache()
         {
             oldStars = new byte[32];
+        }
+
+        public void WriteToFile(int offset, int bit)
+        {
+            int length = 32;
+            DeepPointer file = files[selectedFile];
+
+            byte[] stars = file.DerefBytes(Process, length);
+            if (stars == null) return;
+
+            IntPtr addr;
+            if (!file.DerefOffsets(Process, out addr))
+            {
+                Console.WriteLine("deref fail");
+            }
+
+            for (int i = 0; i < length; i += 4)
+                Array.Reverse(stars, i, 4);
+
+            //fix stuff here!!!
+            stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit)); //???
+
+            for (int i = 0; i < length; i += 4)
+                Array.Reverse(stars, i, 4);
+
+            if (!Process.WriteBytes(addr, stars))
+            {
+                MessageBox.Show("Can't edit files!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

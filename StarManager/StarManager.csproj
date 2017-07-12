@@ -7,7 +7,7 @@
     <ProjectGuid>{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StarManager</RootNamespace>
+    <RootNamespace>StarDisplay</RootNamespace>
     <AssemblyName>StarManager</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -59,13 +59,13 @@
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Deployment" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -91,6 +91,12 @@
     </Compile>
     <Compile Include="DeepPointer.cs" />
     <Compile Include="DrawActions.cs" />
+    <Compile Include="FlagsEditForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FlagsEditForm.Designer.cs">
+      <DependentUpon>FlagsEditForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="GraphicsManager.cs" />
     <Compile Include="ImageProcessing.cs" />
     <Compile Include="LayoutDescription.cs" />
@@ -127,6 +133,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ColorPicker.resx">
       <DependentUpon>ColorPicker.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FlagsEditForm.resx">
+      <DependentUpon>FlagsEditForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>

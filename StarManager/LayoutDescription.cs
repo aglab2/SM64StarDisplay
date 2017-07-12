@@ -284,6 +284,7 @@ namespace StarDisplay
             return new LayoutDescription(courseLD, secretLD, img, stars.ToString());
         }
 
+        //TODO: Store in file
         static public LayoutDescription GenerateDefault()
         {
             LineDescription[] courseLD = new LineDescription[16];
