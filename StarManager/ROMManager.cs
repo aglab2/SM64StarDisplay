@@ -428,7 +428,7 @@ namespace StarDisplay
         public string GetROMName()
         {
             reader.BaseStream.Position = 0x20;
-            return Encoding.UTF8.GetString(reader.ReadBytes(20), 0, 20).Trim();
+            return Encoding.UTF8.GetString(reader.ReadBytes(20), 0, 20).Trim().TrimEnd('\0').Trim();
         }
     }
 }
