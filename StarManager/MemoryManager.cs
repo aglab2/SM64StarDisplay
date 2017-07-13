@@ -224,8 +224,15 @@ namespace StarDisplay
 
         public byte[] GetROM()
         {
-            int romSize = 1024 * 1024 * 64;
-            byte[] rom = romPtr.DerefBytes(Process, romSize);
+            int[] romSizesMB = new int[] { 64, 48, 32, 24, 16, 8 };
+            byte[] rom = null;
+            int romSize = 0;
+            foreach (int sizeMB in romSizesMB)
+            {
+                romSize = 1024 * 1024 * sizeMB;
+                rom = romPtr.DerefBytes(Process, romSize);
+                if (rom != null) break;
+            }
             if (rom == null) return null;
             for (int i = 0; i < romSize; i += 4)
             {
