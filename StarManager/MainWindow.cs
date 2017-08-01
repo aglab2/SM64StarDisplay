@@ -99,18 +99,21 @@ namespace StarDisplay
             if (fileCToolStripMenuItem.Checked) mm.selectedFile = 2;
             if (fileDToolStripMenuItem.Checked) mm.selectedFile = 3;
 
-            if (um.IsCompleted())
+            try
             {
-                if (!isUpdateRequested && !um.IsUpdated())
+                if (um.IsCompleted())
                 {
-                    isUpdateRequested = true;
-                    if (MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now?", um.UpdateName()), "Update",
-                        MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
+                    if (!isUpdateRequested && !um.IsUpdated())
                     {
-                        Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");
+                        isUpdateRequested = true;
+                        if (MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now?", um.UpdateName()), "Update",
+                            MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
+                        {
+                            Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");
+                        }
                     }
                 }
-            }
+            }catch(Exception) { }
 
             if (mm.ProcessActive())
             {

@@ -358,7 +358,7 @@ namespace StarDisplay
                 UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
                 UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
 
-                //Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
+                Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
 
                 if (behaviourActive1 == searchBehaviour)
                 {
@@ -367,7 +367,7 @@ namespace StarDisplay
 
                 address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
             } while (address != 0x33D488 && address != 0);
-            //Console.WriteLine();
+            Console.WriteLine();
             return count;
         }
 
