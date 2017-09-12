@@ -334,6 +334,55 @@ namespace StarDisplay
             return da;
         }
 
+        public DrawActions GetCollectablesOnlyDrawActions()
+        {
+            int length = 32;
+            DeepPointer file = files[selectedFile];
+            byte[] stars = file.DerefBytes(Process, length);
+            if (stars == null) return null;
+
+            for (int i = 0; i < length; i += 4)
+                Array.Reverse(stars, i, 4);
+
+            if (highlightPivot == null)
+                highlightPivot = stars;
+
+            int totalReds = 0, reds = 0;
+            try
+            {
+                totalReds = rm != null ? rm.ParseReds(ld, GetCurrentLineAction(), GetCurrentStar(), GetCurrentArea()) : 0;
+                reds = GetReds();
+            }
+            catch (Exception) { }
+            if (totalReds != 0) //Fix reds amount -- intended total amount is 8, so we should switch maximum to totalReds
+                reds += totalReds - 8;
+            else //If we got any reds we might not be able to read total amount properly, so we set total amount to current reds to display only them
+                totalReds = reds;
+
+
+            //Operations are the same as with regular reds
+            int totalSecrets = 0, secrets = 0;
+            try
+            {
+                totalSecrets = rm != null ? rm.ParseSecrets(ld, GetCurrentLineAction(), GetCurrentStar(), GetCurrentArea()) : 0;
+                secrets = totalSecrets - GetSecrets();
+            }
+            catch (Exception) { }
+
+            //Operations are the same as with regular reds
+            int totalPanels = 0, activePanels = 0;
+            try
+            {
+                totalPanels = rm != null ? rm.ParseFlipswitches(ld, GetCurrentLineAction(), GetCurrentStar(), GetCurrentArea()) : 0;
+                activePanels = GetActivePanels();
+            }
+            catch (Exception) { }
+
+            DrawActions da = new CollectablesOnlyDrawActions(ld, stars, oldStars, highlightPivot, reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);
+            oldStars = stars;
+            return da;
+        }
+
         public int SearchObjects(UInt32 searchBehaviour)
         {
             int count = 0;

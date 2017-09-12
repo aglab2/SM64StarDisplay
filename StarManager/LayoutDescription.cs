@@ -34,7 +34,7 @@ namespace StarDisplay
                 control |= 1;
                 byte[] txt = Encoding.UTF8.GetBytes(text.PadRight(20, '\0'));
                 ms.WriteByte(control);
-                ms.Write(txt, 0, text.Length);
+                ms.Write(txt, 0, txt.Length);
             }
             else
             {

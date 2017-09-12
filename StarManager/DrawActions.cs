@@ -324,6 +324,116 @@ namespace StarDisplay
         }
     }
 
+    public class RedsDrawAction : Action
+    {
+        public int CurrentRedsCount;
+        public int TotalRedsCount;
+        public int Line;
+        public bool IsText;
+
+        public RedsDrawAction(int currentRedsCount, int totalRedsCount, int line, bool isText)
+        {
+            this.CurrentRedsCount = currentRedsCount < 0 ? 0 : currentRedsCount;
+            this.TotalRedsCount = totalRedsCount;
+            this.Line = line;
+            this.IsText = isText;
+        }
+        
+
+        void drawFullReds(GraphicsManager gm)
+        {
+            for (int i = 0; i < CurrentRedsCount; i++)
+            {
+                gm.graphics.DrawImage(gm.reds, 20 + i * 20, Line * 23 + 10, 20, 20);
+            }
+            for (int i = CurrentRedsCount; i < TotalRedsCount; i++)
+            {
+                gm.graphics.DrawImage(gm.darkReds, 20 + i * 20, Line * 23 + 10, 20, 20);
+            }
+        }
+
+        void drawTextReds(GraphicsManager gm)
+        {
+            string starLine = CurrentRedsCount.ToString() + "/" + TotalRedsCount.ToString();
+
+            SolidBrush redBrush = new SolidBrush(Color.IndianRed);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
+
+            Font bigFont = new Font(gm.fontFamily, 12);
+
+            gm.graphics.DrawImage(gm.reds, 20, Line * 23 + 10, 20, 20);
+            gm.graphics.DrawString(starLine, bigFont, redBrush, 40, Line * 23 + 10);
+
+            redBrush.Dispose();
+            drawBrush.Dispose();
+
+            bigFont.Dispose();
+        }
+        
+        public override void execute(GraphicsManager gm)
+        {
+            if (IsText)
+                drawTextReds(gm);
+            else
+                drawFullReds(gm);
+        }
+    }
+
+
+    public class SecretsDrawAction : Action
+    {
+        public int CurrentSecretsCount;
+        public int TotalSecretsCount;
+        public int Line;
+        public bool IsText;
+
+        public SecretsDrawAction(int currentRedsCount, int totalRedsCount, int line, bool isText)
+        {
+            this.CurrentSecretsCount = currentRedsCount < 0 ? 0 : currentRedsCount;
+            this.TotalSecretsCount = totalRedsCount;
+            this.Line = line;
+            this.IsText = isText;
+        }
+
+
+        void drawFullSecrets(GraphicsManager gm)
+        {
+            for (int i = 0; i < CurrentSecretsCount; i++)
+            {
+                gm.graphics.DrawImage(gm.secrets, 200 + i * 20, Line * 23 + 10, 20, 20);
+            }
+            for (int i = CurrentSecretsCount; i < TotalSecretsCount; i++)
+            {
+                gm.graphics.DrawImage(gm.darkSecrets, 200 + i * 20, Line * 23 + 10, 20, 20);
+            }
+        }
+
+        void drawTextSecrets(GraphicsManager gm)
+        {
+            string starLine = CurrentSecretsCount.ToString() + "/" + TotalSecretsCount.ToString();
+
+            SolidBrush blueBrush = new SolidBrush(Color.LightBlue);
+            SolidBrush drawBrush = new SolidBrush(Color.White);
+
+            Font bigFont = new Font(gm.fontFamily, (gm.drawFontSize + gm.bigFontSize) / 2);
+
+            gm.graphics.DrawImage(gm.secrets, 200, Line * 23 + 10, 20, 20);
+            gm.graphics.DrawString(starLine, bigFont, blueBrush, 220, Line * 23 + 11);
+
+            blueBrush.Dispose();
+            drawBrush.Dispose();
+
+            bigFont.Dispose();
+        }
+
+        public override void execute(GraphicsManager gm)
+        {
+            if (IsText)
+                drawTextSecrets(gm);
+            else
+                drawFullSecrets(gm);
+        }
+    }
 
     public class DrawActions : IEnumerable<Action>
     {
@@ -337,6 +447,8 @@ namespace StarDisplay
         int totalSecrets;
         int activePanels;
         int totalPanels;
+
+        public DrawActions() { }
 
         public DrawActions(LayoutDescription ld, byte[] stars, byte[] oldStars, byte[] highlightPivot, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
         {
@@ -352,7 +464,7 @@ namespace StarDisplay
             this.totalPanels = totalPanels;
         }
 
-        public IEnumerator<Action> GetEnumerator()
+        virtual public IEnumerator<Action> GetEnumerator()
         {
             int index; bool isAcquired;
             index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "B1");
@@ -450,6 +562,68 @@ namespace StarDisplay
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+    }
+
+
+    public class CollectablesOnlyDrawActions : DrawActions
+    {
+        LayoutDescription ld;
+        byte[] stars;
+        byte[] oldStars;
+        byte[] highlightPivot;
+        int reds;
+        int totalReds;
+        int secrets;
+        int totalSecrets;
+        int activePanels;
+        int totalPanels;
+
+        public CollectablesOnlyDrawActions(LayoutDescription ld, byte[] stars, byte[] oldStars, byte[] highlightPivot, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
+        {
+            this.ld = ld;
+            this.stars = stars;
+            this.oldStars = oldStars;
+            this.highlightPivot = highlightPivot;
+            this.reds = reds;
+            this.totalReds = totalReds;
+            this.secrets = secrets;
+            this.totalSecrets = totalSecrets;
+            this.activePanels = activePanels;
+            this.totalPanels = totalPanels;
+        }
+
+        override public IEnumerator<Action> GetEnumerator()
+        {
+            yield return new RedsDrawAction(reds, totalReds, 0, true);
+            int line = 1;
+            while (totalReds > 0)
+            {
+                int localTotalReds = totalReds > 8 ? 8 : totalReds;
+                int localReds = reds > 8 ? 8 : reds;
+                
+                yield return new RedsDrawAction(localReds, localTotalReds, line, false);
+
+                totalReds -= 8;
+                reds -= 8;
+                line++;
+                if (reds < 0) reds = 0;
+            }
+
+            yield return new SecretsDrawAction(secrets, totalSecrets, 0, true);
+            line = 1;
+            while (totalSecrets > 0)
+            {
+                int localTotalSecrets = totalSecrets > 8 ? 8 : totalSecrets;
+                int localSecrets = secrets > 8 ? 8 : secrets;
+
+                yield return new SecretsDrawAction(localSecrets, localTotalSecrets, line, false);
+
+                totalSecrets -= 8;
+                secrets -= 8;
+                line++;
+                if (secrets < 0) secrets = 0;
+            }
         }
     }
 }

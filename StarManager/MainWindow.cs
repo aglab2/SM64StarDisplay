@@ -146,12 +146,16 @@ namespace StarDisplay
                 baseGraphics.Clear(Color.Black);
                 baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
                 gm.graphics = Graphics.FromImage(baseImage);
-                gm.PaintHUD();
-
-                TextHighlightAction act = mm.GetCurrentLineAction();
-                if (act != null)
+                if (!showCollectablesOnlyToolStripMenuItem.Checked)
                 {
-                    gm.AddLineHighlight(act);
+
+                    gm.PaintHUD();
+
+                    TextHighlightAction act = mm.GetCurrentLineAction();
+                    if (act != null)
+                    {
+                        gm.AddLineHighlight(act);
+                    }
                 }
 
                 UInt16 currentCRC = mm.GetRomCRC();
@@ -183,7 +187,7 @@ namespace StarDisplay
                 }
 
                 int totalDiff = 0;
-                var actions = mm.GetDrawActions();
+                var actions = showCollectablesOnlyToolStripMenuItem.Checked ? mm.GetCollectablesOnlyDrawActions() : mm.GetDrawActions();
                 if (actions == null) return;
                 foreach (var entry in actions)
                 {
@@ -198,7 +202,7 @@ namespace StarDisplay
 
                 int starCount = oldStarCount + totalDiff;
 
-                gm.DrawStarNumber(ld.starAmount, starCount);
+                if (!showCollectablesOnlyToolStripMenuItem.Checked) gm.DrawStarNumber(ld.starAmount, starCount);
                 oldStarCount = starCount;
 
                 baseGraphics.Dispose();
