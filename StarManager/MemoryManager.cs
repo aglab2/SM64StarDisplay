@@ -407,7 +407,7 @@ namespace StarDisplay
                 UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
                 UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
 
-                Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
+                //Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
 
                 if (behaviourActive1 == searchBehaviour)
                 {
@@ -416,7 +416,7 @@ namespace StarDisplay
 
                 address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
             } while (address != 0x33D488 && address != 0);
-            Console.WriteLine();
+            //Console.WriteLine();
             return count;
         }
 
@@ -481,6 +481,29 @@ namespace StarDisplay
             //fix stuff here!!!
             stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit)); //???
 
+            for (int i = 0; i < length; i += 4)
+                Array.Reverse(stars, i, 4);
+
+            if (!Process.WriteBytes(addr, stars))
+            {
+                MessageBox.Show("Can't edit files!", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        public void WriteToFile(byte[] data)
+        {
+            int length = 32;
+            DeepPointer file = files[selectedFile];
+
+            byte[] stars = data;
+            if (stars == null) return;
+
+            IntPtr addr;
+            if (!file.DerefOffsets(Process, out addr))
+            {
+                Console.WriteLine("deref fail");
+            }
+            
             for (int i = 0; i < length; i += 4)
                 Array.Reverse(stars, i, 4);
 

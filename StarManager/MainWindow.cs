@@ -717,6 +717,7 @@ namespace StarDisplay
         {
             FlagsEditForm fef = new FlagsEditForm(mm.GetStars());
             fef.ShowDialog();
+            mm.WriteToFile(fef.stars);
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

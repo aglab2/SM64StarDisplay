@@ -194,8 +194,8 @@ namespace StarDisplay
             totalStars += UpdateLineDescriptionsWithStars(0, ld.secretDescription);
             ld.starAmount = totalStars.ToString();
 
-            Console.WriteLine(UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription));
-            Console.WriteLine(UpdateLineDescriptionsWithStars(0, ld.secretDescription));
+            //Console.WriteLine(UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription));
+            //Console.WriteLine(UpdateLineDescriptionsWithStars(0, ld.secretDescription));
         }
 
         private int UpdateLineDescriptionsWithStars(byte initMask, LineDescription[] descriptions)
