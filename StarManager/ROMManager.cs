@@ -210,7 +210,7 @@ namespace StarDisplay
                 int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
                 int levelAddressEnd = ReadInt32();
 
-                descriptions[i].starMask = generateStarMask(initMask, levelAddressStart, levelAddressEnd);
+                descriptions[i].starMask = GenerateStarMask(initMask, levelAddressStart, levelAddressEnd);
                 totalStars +=  MemoryManager.countStars(descriptions[i].starMask);
             }
             return totalStars;
@@ -237,32 +237,29 @@ namespace StarDisplay
 
         public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
         {
-            int levelAddressStart, levelAddressEnd;
-            int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
+            int result = PrepareAddresses(ld, currentTHA, out int levelAddressStart, out int levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour, currentStar, currentArea);
         }
 
         public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
         {
-            int levelAddressStart, levelAddressEnd;
-            int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
+            int result = PrepareAddresses(ld, currentTHA, out int levelAddressStart, out int levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
         }
     
         public int ParseFlipswitches(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
         {
-            int levelAddressStart, levelAddressEnd;
-            int result = PrepareAddresses(ld, currentTHA, out levelAddressStart, out levelAddressEnd);
+            int result = PrepareAddresses(ld, currentTHA, out int levelAddressStart, out int levelAddressEnd);
             if (result != 0) return 0;
 
-            return getAmountOfObjects(levelAddressStart, levelAddressEnd, flipswitchBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, flipswitchBehaviour, currentStar, currentArea);
         }
 
-        private int getAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar, int currentArea)
+        private int GetAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar, int currentArea)
         {
             if (currentArea == 0) currentArea = 1;
             byte currentStarMask = (byte) (1 << currentStar);
@@ -313,7 +310,7 @@ namespace StarDisplay
             return counter;
         }
 
-        private byte generateStarMask(byte initMask, int start, int end) //Does not work :(
+        private byte GenerateStarMask(byte initMask, int start, int end) //Does not work :(
         {
             int mask = initMask;
             for (int offset = start; offset < end; offset++)

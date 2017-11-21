@@ -99,18 +99,18 @@ namespace StarDisplay
             if (goldStar.Width != 20 || goldStar.Height != 20)
                 Compress();
 
-            generateDarkStar();
-            generateOutline();
+            GenerateDarkStar();
+            GenerateOutline();
 
             Trim();
         }
 
-        public void generateDarkStar()
+        public void GenerateDarkStar()
         {
             darkStar = ImageProcessing.Desaturate(goldStar);
         }
 
-        public void generateOutline()
+        public void GenerateOutline()
         {
             this.redOutline = new Bitmap(goldStar.Width, goldStar.Height);
             this.greenOutline = new Bitmap(goldStar.Width, goldStar.Height);
@@ -265,8 +265,7 @@ namespace StarDisplay
 
             while (ms.BaseStream.Position != ms.BaseStream.Length)
             {
-                bool isSecret;
-                LineDescription lind = LineDescription.Deserialize(ms, out isSecret);
+                LineDescription lind = LineDescription.Deserialize(ms, out bool isSecret);
                 if (!lind.isTextOnly) stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
 
                 if (isSecret)

@@ -29,7 +29,6 @@ namespace StarDisplay
             img = ld.goldStar;
 
             int r = 0, g = 0, b = 0;
-            double h, s, v;
 
             for (int i = 0; i < img.Width; i++)
             {
@@ -45,7 +44,7 @@ namespace StarDisplay
             b /= img.Width * img.Height;
 
             Color midColor = Color.FromArgb(r, g, b);
-            ColorRGB.RGB2HSL(new ColorRGB(midColor), out h, out s, out v);
+            ColorRGB.RGB2HSL(new ColorRGB(midColor), out double h, out double s, out double v);
 
             midHue = h;
             midVal = v;
@@ -58,7 +57,6 @@ namespace StarDisplay
         { 
             double expectedHue = (double)picX / pictureBox.Width;
             double expectedVal = (double)picY / pictureBox.Height;
-            double h, s, v;
 
             pickedColor = ColorRGB.HSL2RGB(expectedHue, 1, expectedVal);
 
@@ -67,7 +65,7 @@ namespace StarDisplay
                 for (int j = 0; j < img.Height; j++)
                 {
                     Color c = img.GetPixel(i, j);
-                    ColorRGB.RGB2HSL(new ColorRGB(c), out h, out s, out v);
+                    ColorRGB.RGB2HSL(new ColorRGB(c), out double h, out double s, out double v);
                     h += expectedHue - midHue;
                     if (h < 0) h += 1;
                     if (h > 1) h -= 1;
@@ -96,14 +94,12 @@ namespace StarDisplay
 
             pickedColor = ColorRGB.HSL2RGB(expectedHue, 1, expectedVal);
 
-            double h, s, v;
-
             for (int i = 0; i < img.Width; i++)
             {
                 for (int j = 0; j < img.Height; j++)
                 {
                     Color c = img.GetPixel(i, j);
-                    ColorRGB.RGB2HSL(new ColorRGB(c), out h, out s, out v);
+                    ColorRGB.RGB2HSL(new ColorRGB(c), out double h, out double s, out double v);
                     h += expectedHue - midHue;
                     if (h < 0) h += 1;
                     if (h > 1) h -= 1;

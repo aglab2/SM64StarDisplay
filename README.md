@@ -44,6 +44,7 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * Super Banjo Kazooie 64
  * Super Banjo Tooie 64
  * Super Donkey 64
+ * Super Mario 3D: Cyclone Fighter
  * Super Mario 64 Extra
  * Super Mario 65: Rainbow Stars
  * Super Mario 74
@@ -54,7 +55,9 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * Super Mario Treasure World
  * Ztar Attack 0.5: Mario Escape from the Jail
  * Ztar Attack
- * Yoshi's Adventure
+ * Ztar Attack 2: Blast to the Past demo
+ * Yoshi's Adventure 64
+ * Yoshi's Adventure 128: Attack of Factory 
 
 # Creating New Layouts
 Your hack is not supported? You can easily create a layout yourself! Choose one of the current layouts as basis and edit it with _Settings > Configure Display_. Press on stars to hide/show them and press on text to edit it and switch line view! To get icons from hack you can load them with _Icons > Import Icons_.

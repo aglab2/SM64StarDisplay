@@ -8,6 +8,8 @@ using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.Serialization;
 using System.Drawing.Text;
+using System.Collections.Generic;
+using System.Reflection;
 
 namespace StarDisplay
 {
@@ -23,7 +25,6 @@ namespace StarDisplay
         Timer timer;
         
         UInt16 oldCRC;
-        int oldStarCount;
 
         int picX, picY;
 
@@ -32,6 +33,8 @@ namespace StarDisplay
         bool isUpdateRequested = false;
 
         ToolStripMenuItem[] fileMenuItems;
+
+        Dictionary<Type, Boolean> componentsConfiguration;
 
         public MainWindow()
         {
@@ -45,7 +48,7 @@ namespace StarDisplay
             um = new UpdateManager();
 
             timer = new Timer();
-            timer.Tick += new EventHandler(updateStars);
+            timer.Tick += new EventHandler(UpdateStars);
             timer.Interval = 1000;
 
             baseImage = new Bitmap(starPicture.Width, starPicture.Height);
@@ -59,9 +62,21 @@ namespace StarDisplay
             fileMenuItems[3] = fileDToolStripMenuItem;
 
             timer.Start();
+
+            componentsConfiguration = new Dictionary<Type, bool>();
+            IEnumerable<Type> types = Action.GetAllSubclasses();
+            foreach (Type type in types)
+            {
+                var properties = type.GetProperties();
+                var fields = type.GetFields();
+                PropertyInfo info = type.GetProperty("configureName");
+                if (info == null) continue;
+                //string configureName = (string)info.GetValue(null);
+                componentsConfiguration[type] = true;
+            }
         }
 
-        private void resetForm()
+        private void ResetForm()
         {
             connectToolStripMenuItem.Enabled = true;
             layoutToolStripMenuItem.Enabled = false;
@@ -70,10 +85,9 @@ namespace StarDisplay
             gm = new GraphicsManager(gm.graphics, ld);
             mm = new MemoryManager(null, ld, gm, null, null);
             rm = null;
-            oldStarCount = 0;
             try
             {
-                connectToProcess();
+                ConnectToProcess();
             }
             catch (InvalidOperationException)
             {
@@ -81,7 +95,7 @@ namespace StarDisplay
             }
         }
 
-        private void connectToProcess()
+        private void ConnectToProcess()
         {
             Process process = Process.GetProcessesByName("project64").First();
             mm = new MemoryManager(process, ld, gm, rm, mm.highlightPivot);
@@ -89,10 +103,10 @@ namespace StarDisplay
             layoutToolStripMenuItem.Enabled = true;
             iconsToolStripMenuItem.Enabled = true;
             timer.Start();
-            updateStars(null, null); //calls resetForm automatically!
+            UpdateStars(null, null); //calls resetForm automatically!
         }
 
-        private void updateStars(object sender, EventArgs e)
+        private void UpdateStars(object sender, EventArgs e)
         {
             if (fileAToolStripMenuItem.Checked) mm.selectedFile = 0;
             if (fileBToolStripMenuItem.Checked) mm.selectedFile = 1;
@@ -117,7 +131,7 @@ namespace StarDisplay
 
             if (mm.ProcessActive())
             {
-                resetForm();
+                ResetForm();
                 return;
             }
             
@@ -129,7 +143,7 @@ namespace StarDisplay
                 }
                 catch (Win32Exception)
                 {
-                    resetForm();
+                    ResetForm();
                     return;
                 }
                 catch (IOException)
@@ -148,9 +162,6 @@ namespace StarDisplay
                 gm.graphics = Graphics.FromImage(baseImage);
                 if (!showCollectablesOnlyToolStripMenuItem.Checked)
                 {
-
-                    gm.PaintHUD();
-
                     TextHighlightAction act = mm.GetCurrentLineAction();
                     if (act != null)
                     {
@@ -185,38 +196,29 @@ namespace StarDisplay
 
                     InvalidateCacheNoResetRM();
                 }
-
-                int totalDiff = 0;
+                
                 var actions = showCollectablesOnlyToolStripMenuItem.Checked ? mm.GetCollectablesOnlyDrawActions() : mm.GetDrawActions();
                 if (actions == null) return;
+
+                int lineOffset = 0;
                 foreach (var entry in actions)
                 {
-                    if (entry is RedsSecretsDrawAction && !showRedsToolStripMenuItem.Checked) continue;
-                    //if (entry is StarHighlightAction && !displayHighlightToolStripMenuItem.Checked) continue;
-                    if (entry is LastStarHighlightAction && !displayHighlightToolStripMenuItem.Checked) continue;
-                    if (entry is LastHighlight && !displayHighlightToolStripMenuItem.Checked) continue;
-                    entry.execute(gm);
-                    LineDrawAction lda = entry as LineDrawAction;
-                    if (lda != null) totalDiff += lda.StarDiff;
+                    if (componentsConfiguration.ContainsKey(entry.GetType()) && !componentsConfiguration[entry.GetType()]) continue;
+                    lineOffset += entry.Execute(gm, lineOffset);
                 }
-
-                int starCount = oldStarCount + totalDiff;
-
-                if (!showCollectablesOnlyToolStripMenuItem.Checked) gm.DrawStarNumber(ld.starAmount, starCount);
-                oldStarCount = starCount;
 
                 baseGraphics.Dispose();
                 starPicture.Image = baseImage;
             }
             catch (Win32Exception)
             {
-                resetForm();
+                ResetForm();
                 return;
             }
             catch (NullReferenceException error)
             {
                 Console.WriteLine(error);
-                resetForm();
+                ResetForm();
                 return;
             }
         }
@@ -225,7 +227,7 @@ namespace StarDisplay
         {
             try
             {
-                connectToProcess();
+                ConnectToProcess();
             }
             catch (InvalidOperationException)
             {
@@ -247,9 +249,8 @@ namespace StarDisplay
             mm.InvalidateCache();
             mm.rm = rm;
             gm.InvalidateCache();
-            oldStarCount = 0;
             timer.Stop();
-            updateStars(null, null);
+            UpdateStars(null, null);
             timer.Start();
         }
 
@@ -260,7 +261,6 @@ namespace StarDisplay
             mm.InvalidateCache();
             mm.rm = rm;
             gm.InvalidateCache();
-            oldStarCount = 0;
         }
 
         private void EditDisplay()
@@ -343,13 +343,24 @@ namespace StarDisplay
                 if (star == 0 || curld.isTextOnly)
                 {
                     //caps editing, keys editing, maybe other stuff?
+                    if (curld.starMask != 0 && !curld.isTextOnly)
+                    {
+                        for (int i = 1; i < 8; i++)
+                        {
+                            if ((curld.starMask & (byte)(1 << i)) != 0)
+                            {
+                                mm.WriteToFile(curld.offset, i - 1);
+                            }
+                        }
+                        InvalidateCache();
+                    }
                 }
                 else
                 {
                     if ((curld.starMask & (byte)(1 << star)) != 0)
                     {
                         mm.WriteToFile(curld.offset, star - 1);
-                        //InvalidateCache();
+                        InvalidateCache();
                     }
                 }
                 return;
@@ -360,10 +371,10 @@ namespace StarDisplay
         private void starPicture_Click(object sender, EventArgs e)
         {
             MouseEventArgs me = (MouseEventArgs)e;
-
+            
             if (me.Button == MouseButtons.Left)
             {
-                if (configureDisplayToolStripMenuItem.Checked)
+                if (configureLayoutToolStripMenuItem.Checked)
                     EditDisplay();
 
                 if (editFileToolStripMenuItem.Checked)
@@ -387,8 +398,8 @@ namespace StarDisplay
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
             ld = (LayoutDescription)formatter.Deserialize(stream);
-            if (ld.darkStar == null) ld.generateDarkStar();
-            if (ld.redOutline == null) ld.generateOutline();
+            if (ld.darkStar == null) ld.GenerateDarkStar();
+            if (ld.redOutline == null) ld.GenerateOutline();
             ld.Trim();
             stream.Close();
         }
@@ -398,13 +409,7 @@ namespace StarDisplay
             ld = LayoutDescription.GenerateDefault();
             ld.Trim();
         }
-
-        private void LoadDefaultLayout()
-        {
-            LoadDefaultLayoutNoInvalidate();
-            InvalidateCache();
-        }
-
+        
         private void SaveLayout(string name)
         {
             ld.Trim();
@@ -455,12 +460,13 @@ namespace StarDisplay
 
         private void loadFromToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            openFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = false;
-            openFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*",
+                FilterIndex = 1,
+                RestoreDirectory = false,
+                InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -481,12 +487,13 @@ namespace StarDisplay
 
         private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-
-            saveFileDialog.Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*";
-            saveFileDialog.FilterIndex = 1;
-            saveFileDialog.RestoreDirectory = false;
-            saveFileDialog.InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout";
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*",
+                FilterIndex = 1,
+                RestoreDirectory = false,
+                InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
+            };
 
             if (saveFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -512,23 +519,14 @@ namespace StarDisplay
             ad.ShowDialog();
         }
 
-        private void compressToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            ld.Trim();
-        }
-
-        private void drawImageFromRAMToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            gm.graphics.DrawImage(mm.GetImage(), 0, 0);
-        }
-
         private void importStarMasksToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "ROM Files (*.z64)|*.z64",
+                FilterIndex = 1,
+                RestoreDirectory = true
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -552,7 +550,7 @@ namespace StarDisplay
             ColorPicker cp = new ColorPicker(ld);
             cp.ShowDialog();
             ld.goldStar = cp.newImg;
-            ld.generateDarkStar();
+            ld.GenerateDarkStar();
             InvalidateCache();
         }
 
@@ -560,15 +558,17 @@ namespace StarDisplay
         {
             mm.resetHighlightPivot();
             gm.IsFirstCall = true;
+            InvalidateCache();
         }
 
         private void loadCustomFontToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            openFileDialog.Filter = "Font file (*.ttf)|*.ttf";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Font file (*.ttf)|*.ttf",
+                FilterIndex = 1,
+                RestoreDirectory = true
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -590,6 +590,8 @@ namespace StarDisplay
                     return;
                 }
             }
+
+            InvalidateCache();
         }
 
         private void changeStarTextToolStripMenuItem_Click(object sender, EventArgs e)
@@ -602,11 +604,12 @@ namespace StarDisplay
 
         private void loadROMToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "ROM Files (*.z64)|*.z64",
+                FilterIndex = 1,
+                RestoreDirectory = true
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -625,11 +628,12 @@ namespace StarDisplay
 
         private void importIconsFromROMToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            openFileDialog.Filter = "ROM Files (*.z64)|*.z64";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "ROM Files (*.z64)|*.z64",
+                FilterIndex = 1,
+                RestoreDirectory = true
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -651,11 +655,12 @@ namespace StarDisplay
 
         private void replaceBackgroundToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog();
-
-            openFileDialog.Filter = "PNG Images (*.png)|*.png";
-            openFileDialog.FilterIndex = 1;
-            openFileDialog.RestoreDirectory = true;
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "PNG Images (*.png)|*.png",
+                FilterIndex = 1,
+                RestoreDirectory = true
+            };
 
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
@@ -673,6 +678,8 @@ namespace StarDisplay
                     return;
                 }
             }
+
+            InvalidateCache();
         }
 
         private void recolorTextToolStripMenuItem_Click(object sender, EventArgs e)
@@ -693,6 +700,7 @@ namespace StarDisplay
                     item.Checked = false;
                 }
             }
+            InvalidateCache();
         }
 
         private void starsInHackToolStripMenuItem_Click(object sender, EventArgs e)
@@ -710,7 +718,7 @@ namespace StarDisplay
 
         private void editFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            configureDisplayToolStripMenuItem.Checked = false;
+            configureLayoutToolStripMenuItem.Checked = false;
         }
 
         private void editFlagsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -718,6 +726,25 @@ namespace StarDisplay
             FlagsEditForm fef = new FlagsEditForm(mm.GetStars());
             fef.ShowDialog();
             mm.WriteToFile(fef.stars);
+            InvalidateCache();
+        }
+
+        private void editComponentsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ActionMaskForm amf = new ActionMaskForm(componentsConfiguration);
+            amf.ShowDialog();
+            InvalidateCache();
+        }
+
+        private void showCollectablesMInimizedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            gm.areCollectablesMinimized = showCollectablesMinimizedToolStripMenuItem.Checked;
+            InvalidateCache();
+        }
+
+        private void showCollectablesOnlyToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            InvalidateCache();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

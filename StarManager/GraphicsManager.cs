@@ -36,9 +36,11 @@ namespace StarDisplay
 
         public string StarText = "Savestateless Stars";
 
+        public bool areCollectablesMinimized;
+
         public Graphics graphics
         {
-            internal get { return _graphics; }
+            get { return _graphics; }
             set { /*_graphics.Dispose();*/ _graphics = value; }
         }
 
@@ -72,9 +74,11 @@ namespace StarDisplay
             collection = new PrivateFontCollection();
             collection.AddFontFile("font/CourierNew.ttf");
             fontFamily = new FontFamily("Courier New", collection);
+
+            areCollectablesMinimized = false;
         }
 
-        public void PaintHUD()
+        public void PaintHUD(int lineOffset)
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
@@ -85,29 +89,26 @@ namespace StarDisplay
             int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
             int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
 
-            graphics.Clear(Color.Black);
-
             if (background != null)
                 graphics.DrawImage(background, new Rectangle(0, 0, 345, 462));
 
             for (int line = 0; line < courseDescriptionLength; line++)
             {
                 if (ld.courseDescription[line] == null) continue;
-                DrawLine(ld.courseDescription[line], line, false);
+                DrawLine(ld.courseDescription[line], lineOffset + line, false);
             }
             for (int line = 0; line < secretDescriptionLength; line++)
             {
                 if (ld.secretDescription[line] == null) continue;
-                DrawLine(ld.secretDescription[line], line, true);
+                DrawLine(ld.secretDescription[line], lineOffset + line, true);
             }
-
-
-            RectangleF drawRect = new RectangleF(0, lastLine * 23 + 2, 340, 23);
-            StringFormat drawFormat = new StringFormat();
-            drawFormat.Alignment = StringAlignment.Center;
-            drawFormat.LineAlignment = StringAlignment.Center;
-            //graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
-            graphics.DrawString(StarText, bigFont, drawBrush, drawRect, drawFormat);
+            
+            RectangleF drawRect = new RectangleF(0, (lineOffset + lastLine) * 23 + 2, 340, 23);
+            StringFormat drawFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
 
             blackBrush.Dispose();
             drawBrush.Dispose();
@@ -135,17 +136,21 @@ namespace StarDisplay
             if (ld.isTextOnly)
             {
                 RectangleF drawRect = new RectangleF((isSecret ? 180 : 0) + 7, lineNumber * 23, 170, 23);
-                StringFormat drawFormat = new StringFormat();
-                drawFormat.Alignment = StringAlignment.Near;
-                drawFormat.LineAlignment = StringAlignment.Center;
+                StringFormat drawFormat = new StringFormat
+                {
+                    Alignment = StringAlignment.Near,
+                    LineAlignment = StringAlignment.Center
+                };
                 graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
             }
             else
             {
                 RectangleF drawRect = new RectangleF((isSecret ? 180 : 0), lineNumber * 23, 170, 23);
-                StringFormat drawFormat = new StringFormat();
-                drawFormat.Alignment = StringAlignment.Near;
-                drawFormat.LineAlignment = StringAlignment.Center;
+                StringFormat drawFormat = new StringFormat
+                {
+                    Alignment = StringAlignment.Near,
+                    LineAlignment = StringAlignment.Center
+                };
                 graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
                 DrawByte(0, lineNumber, isSecret, ld.starMask);
             }
@@ -173,31 +178,6 @@ namespace StarDisplay
 
                 graphics.DrawImage(goldSquare, x + 8, y + 8);
             }
-        }
-
-        public void DrawStarNumber(string totalCount, int starCount)
-        {
-            string starLine = starCount.ToString().PadLeft(3) + "/" + totalCount.PadRight(3);
-
-            int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
-            int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
-            int totalStarLine = Math.Max(courseDescriptionLength, secretDescriptionLength) + 1;
-
-            SolidBrush blackBrush = new SolidBrush(Color.Black);
-            SolidBrush drawBrush = new SolidBrush(Color.White);
-            
-            Font bigFont = new Font(fontFamily, bigFontSize);
-
-
-            RectangleF drawRect = new RectangleF(0, totalStarLine * 23, 340, 23);
-            StringFormat drawFormat = new StringFormat();
-            drawFormat.LineAlignment = StringAlignment.Center;
-            drawFormat.Alignment = StringAlignment.Center;
-            drawFormat.FormatFlags = StringFormatFlags.MeasureTrailingSpaces;
-            graphics.DrawString(starLine, bigFont, drawBrush, drawRect, drawFormat);
-
-            blackBrush.Dispose();
-            drawBrush.Dispose();
         }
 
         public void InvalidateCache()
