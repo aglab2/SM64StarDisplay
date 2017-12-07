@@ -10,6 +10,7 @@ using System.Runtime.Serialization;
 using System.Drawing.Text;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 
 namespace StarDisplay
 {
@@ -22,7 +23,7 @@ namespace StarDisplay
         ROMManager rm;
         UpdateManager um;
 
-        Timer timer;
+        System.Windows.Forms.Timer timer;
         
         UInt16 oldCRC;
 
@@ -36,6 +37,12 @@ namespace StarDisplay
 
         Dictionary<Type, Boolean> componentsConfiguration;
 
+        bool isEmulatorStarted = false;
+        bool isHackLoaded = false;
+        bool isOffsetsFound = false;
+
+        Thread magicThread;
+        
         public MainWindow()
         {
             InitializeComponent();
@@ -47,7 +54,7 @@ namespace StarDisplay
             mm = new MemoryManager(null, ld, gm, null, null);
             um = new UpdateManager();
 
-            timer = new Timer();
+            timer = new System.Windows.Forms.Timer();
             timer.Tick += new EventHandler(UpdateStars);
             timer.Interval = 1000;
 
@@ -75,6 +82,30 @@ namespace StarDisplay
                 componentsConfiguration[type] = true;
             }
         }
+        
+        private void doMagicThread()
+        {
+            try
+            {
+                while (mm != null && !mm.isMagicDone())
+                    mm.doMagic();
+            }
+            catch (Exception)
+            { }
+        }
+        
+        private void DrawIntro()
+        {
+            //Steps to achieve success here!
+            Graphics baseGraphics = Graphics.FromImage(baseImage);
+            baseGraphics.Clear(Color.Black);
+            baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
+            gm.graphics = Graphics.FromImage(baseImage);
+
+            gm.DrawIntro(isEmulatorStarted, isHackLoaded, isOffsetsFound);
+            baseGraphics.Dispose();
+            starPicture.Image = baseImage;
+        }
 
         private void ResetForm()
         {
@@ -89,7 +120,7 @@ namespace StarDisplay
             {
                 ConnectToProcess();
             }
-            catch (InvalidOperationException)
+            catch (Exception)
             {
                 timer.Start();
             }
@@ -103,15 +134,15 @@ namespace StarDisplay
             layoutToolStripMenuItem.Enabled = true;
             iconsToolStripMenuItem.Enabled = true;
             timer.Start();
-            UpdateStars(null, null); //calls resetForm automatically!
+            //UpdateStars(null, null); //calls resetForm automatically!
         }
 
+        //TODO: Make this on separate thread :]
         private void UpdateStars(object sender, EventArgs e)
         {
-            if (fileAToolStripMenuItem.Checked) mm.selectedFile = 0;
-            if (fileBToolStripMenuItem.Checked) mm.selectedFile = 1;
-            if (fileCToolStripMenuItem.Checked) mm.selectedFile = 2;
-            if (fileDToolStripMenuItem.Checked) mm.selectedFile = 3;
+            isEmulatorStarted = false;
+            isHackLoaded = false;
+            isOffsetsFound = false;
 
             try
             {
@@ -127,13 +158,38 @@ namespace StarDisplay
                         }
                     }
                 }
-            }catch(Exception) { }
+            }
+            catch (Exception) { }
 
             if (mm.ProcessActive())
             {
+                DrawIntro();
                 ResetForm();
                 return;
             }
+
+            isEmulatorStarted = true;
+
+            // Well, that's just a minor magic but it works
+            if (mm.GetTitle().Contains("-"))
+                isHackLoaded = true;
+
+            if (!mm.isMagicDone())
+            {
+                if (magicThread == null || !magicThread.IsAlive)
+                {
+                    magicThread = new Thread(doMagicThread);
+                    magicThread.Start();
+                }
+
+                DrawIntro();
+                return;
+            }
+
+            if (fileAToolStripMenuItem.Checked) mm.selectedFile = 0;
+            if (fileBToolStripMenuItem.Checked) mm.selectedFile = 1;
+            if (fileCToolStripMenuItem.Checked) mm.selectedFile = 2;
+            if (fileDToolStripMenuItem.Checked) mm.selectedFile = 3;
             
             if (enableAutoDeleteToolStripMenuItem.Checked)
             {
@@ -144,6 +200,7 @@ namespace StarDisplay
                 catch (Win32Exception)
                 {
                     ResetForm();
+                    DrawIntro();
                     return;
                 }
                 catch (IOException)
@@ -196,6 +253,8 @@ namespace StarDisplay
 
                     InvalidateCacheNoResetRM();
                 }
+
+                isOffsetsFound = true;
                 
                 var actions = showCollectablesOnlyToolStripMenuItem.Checked ? mm.GetCollectablesOnlyDrawActions() : mm.GetDrawActions();
                 if (actions == null) return;
@@ -213,12 +272,14 @@ namespace StarDisplay
             catch (Win32Exception)
             {
                 ResetForm();
+                DrawIntro();
                 return;
             }
             catch (NullReferenceException error)
             {
                 Console.WriteLine(error);
                 ResetForm();
+                DrawIntro();
                 return;
             }
         }
