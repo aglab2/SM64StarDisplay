@@ -87,7 +87,7 @@ namespace StarDisplay
         public Bitmap greenOutline;
 
         public string starAmount;
-
+        
         public LayoutDescription(LineDescription[] courseDescription, LineDescription[] secretDescription, Bitmap star, string starAmount)
         {
             this.courseDescription = courseDescription;
@@ -103,6 +103,11 @@ namespace StarDisplay
             GenerateOutline();
 
             Trim();
+        }
+
+        public bool isValid()
+        {
+            return courseDescription == null || secretDescription == null;
         }
 
         public void GenerateDarkStar()
@@ -281,6 +286,27 @@ namespace StarDisplay
             }
 
             return new LayoutDescription(courseLD, secretLD, img, stars.ToString());
+        }
+
+        public void RecountStars()
+        {
+            int stars = 0;
+            
+            for (int i = 0; i < courseDescription.Length; i++)
+            {
+                LineDescription lind = courseDescription[i];
+                if (lind == null || lind.isTextOnly) continue;
+                stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
+            }
+
+            for (int i = 0; i < secretDescription.Length; i++)
+            {
+                LineDescription lind = secretDescription[i];
+                if (lind == null || lind.isTextOnly) continue;
+                stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
+            }
+
+            starAmount = stars.ToString();
         }
 
         //TODO: Store in file

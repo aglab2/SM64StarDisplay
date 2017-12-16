@@ -13,41 +13,24 @@ namespace StarDisplay
 {
     public partial class ActionMaskForm : Form
     {
-        public Dictionary<Type, Boolean> configs;
+        public SettingsManager sm;
 
-        public ActionMaskForm(Dictionary<Type, Boolean> configs)
+        public ActionMaskForm(IEnumerable<Type> actions, SettingsManager sm)
         {
             InitializeComponent();
 
-            this.configs = configs;
+            this.sm = sm;
 
-            int height = 10;
+            int height = 5;
 
-            foreach (var component in configs.Keys)
+            foreach (var component in actions)
             {
-                PropertyInfo info = component.GetProperty("configureName");
-                string componentDescription = (string)info.GetValue(null);
-
-                CheckBox cb = new CheckBox
-                {
-                    Name = component.FullName,
-                    Text = componentDescription,
-                    Location = new Point(10, height),
-                    Checked = configs[component],
-                    AutoSize = true
-                };
-
-                cb.CheckedChanged += checkBox_CheckedChanged;
-
-                height += 20;
-                this.Controls.Add(cb);
+                MethodInfo mi = component.GetMethod("DrawConfigs");
+                object addedHeight = mi.Invoke(null, new object[] { height, this });
+                height += (int)addedHeight + 5;
             }
-        }
 
-        private void checkBox_CheckedChanged(object sender, EventArgs e)
-        {
-            CheckBox cb = sender as CheckBox;
-            configs[Type.GetType(cb.Name)] = cb.Checked;
+            this.Height = height + (this.Height - this.ClientRectangle.Height);
         }
     }
 }

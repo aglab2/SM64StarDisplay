@@ -4,50 +4,52 @@ using System.Drawing.Text;
 
 namespace StarDisplay
 {
-    public class GraphicsManager
+    public class GraphicsManager : CachedManager
     {
-        public Image reds;
-        public Image darkReds;
+        public readonly Image reds;
+        public readonly Image darkReds;
 
-        public Image secrets;
-        public Image darkSecrets;
+        public readonly Image secrets;
+        public readonly Image darkSecrets;
 
-        public Image flipswitchOn;
-        public Image flipswitchOff;
-        public Image flipswitchDone;
+        public readonly Image flipswitchOn;
+        public readonly Image flipswitchOff;
+        public readonly Image flipswitchDone;
 
-        public Image background;
+        private Image background;
 
         Bitmap goldSquare;
         Bitmap blackSquare;
 
-        public LayoutDescription ld;
-        Graphics _graphics;
+        private LayoutDescription ld;
 
-        public LastHighlight lastSHA;
+        public Graphics graphics;
+
+        private LastHighlight lastSHA;
         public bool IsFirstCall = true;
 
-        public PrivateFontCollection collection;
-        public FontFamily fontFamily;
-        public string fontName;
+        private PrivateFontCollection collection;
+        private FontFamily fontFamily;
+        private string fontName;
 
-        public int drawFontSize = 10;
-        public int bigFontSize = 15;
+        private float drawFontSize = 10;
+        private float medFontSize = 12;
+        private float bigFontSize = 15;
 
-        public string StarText = "Savestateless Stars";
-
-        public bool areCollectablesMinimized;
-
-        public Graphics graphics
-        {
-            get { return _graphics; }
-            set { /*_graphics.Dispose();*/ _graphics = value; }
-        }
-
+        public LayoutDescription Ld { get => ld; set { if (ld != value) isInvalidated = true; ld = value; } }
+        public LastHighlight LastSHA { get => lastSHA; set { if (lastSHA != value) isInvalidated = true; lastSHA = value; } }
+        public PrivateFontCollection Collection { get => collection; set { if (collection != value) isInvalidated = true; collection = value; } }
+        public FontFamily FontFamily { get => fontFamily; set { if (fontFamily != value) isInvalidated = true; fontFamily = value; } }
+        public string FontName { get => fontName; set { if (fontName != value) isInvalidated = true; fontName = value; } }
+        public float DrawFontSize { get => drawFontSize; set { if (drawFontSize != value) isInvalidated = true; drawFontSize = value; } }
+        public float MedFontSize { get => medFontSize; set { if (medFontSize != value) isInvalidated = true; medFontSize = value; } }
+        public float BigFontSize { get => bigFontSize; set { if (bigFontSize != value) isInvalidated = true; bigFontSize = value; } }
+        public Image Background { get => background; set { if (background != value) isInvalidated = true; background = value; } }
+        
         public GraphicsManager(Graphics graphics, LayoutDescription ld)
         {
-            this.ld = ld;
-            _graphics = graphics;
+            this.Ld = ld;
+            this.graphics = graphics;
 
             goldSquare = new Bitmap(4, 4);
             for (int i = 0; i < goldSquare.Width; i++)
@@ -71,36 +73,34 @@ namespace StarDisplay
             secrets = secretsBitmap;
             darkSecrets = ImageProcessing.Desaturate(secretsBitmap);
 
-            collection = new PrivateFontCollection();
-            collection.AddFontFile("font/CourierNew.ttf");
-            fontFamily = new FontFamily("Courier New", collection);
+            Collection = new PrivateFontCollection();
+            Collection.AddFontFile("font/CourierNew.ttf");
+            FontFamily = new FontFamily("Courier New", Collection);
 
-            areCollectablesMinimized = false;
+            TestFont();
         }
 
         public void PaintHUD(int lineOffset)
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-            
-            Font bigFont = new Font(fontFamily, bigFontSize);
 
-            int courseDescriptionLength = Array.FindLastIndex(ld.courseDescription, item => item != null) + 1;
-            int secretDescriptionLength = Array.FindLastIndex(ld.secretDescription, item => item != null) + 1;
+            int courseDescriptionLength = Array.FindLastIndex(Ld.courseDescription, item => item != null) + 1;
+            int secretDescriptionLength = Array.FindLastIndex(Ld.secretDescription, item => item != null) + 1;
             int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
 
-            if (background != null)
-                graphics.DrawImage(background, new Rectangle(0, 0, 345, 462));
+            if (Background != null)
+                graphics.DrawImage(Background, new Rectangle(0, 0, 345, 462));
 
             for (int line = 0; line < courseDescriptionLength; line++)
             {
-                if (ld.courseDescription[line] == null) continue;
-                DrawLine(ld.courseDescription[line], lineOffset + line, false);
+                if (Ld.courseDescription[line] == null) continue;
+                DrawLine(Ld.courseDescription[line], lineOffset + line, false);
             }
             for (int line = 0; line < secretDescriptionLength; line++)
             {
-                if (ld.secretDescription[line] == null) continue;
-                DrawLine(ld.secretDescription[line], lineOffset + line, true);
+                if (Ld.secretDescription[line] == null) continue;
+                DrawLine(Ld.secretDescription[line], lineOffset + line, true);
             }
             
             RectangleF drawRect = new RectangleF(0, (lineOffset + lastLine) * 23 + 2, 340, 23);
@@ -112,7 +112,6 @@ namespace StarDisplay
 
             blackBrush.Dispose();
             drawBrush.Dispose();
-            bigFont.Dispose();
         }
 
         public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask)
@@ -123,14 +122,14 @@ namespace StarDisplay
                 int x = (isSecret ? 180 : 0) + i * 20;
                 int y = lineNumber * 23;
                 bool isAcquired = (stars & (1 << (i - 1))) != 0;
-                Image img = isAcquired ? ld.goldStar : ld.darkStar;
+                Image img = isAcquired ? Ld.goldStar : Ld.darkStar;
                 graphics.DrawImage(img, x, y, 20, 20);
             }
         }
 
         public void DrawLine(LineDescription ld, int lineNumber, bool isSecret)
         {
-            Font drawFont = new Font(fontFamily, drawFontSize);
+            Font drawFont = new Font(FontFamily, DrawFontSize);
 
             SolidBrush drawBrush = new SolidBrush(Color.White);
             if (ld.isTextOnly)
@@ -180,8 +179,9 @@ namespace StarDisplay
             }
         }
 
-        public void InvalidateCache()
+        public override void InvalidateCache()
         {
+            base.InvalidateCache();
             IsFirstCall = true;
         }
 
@@ -194,15 +194,15 @@ namespace StarDisplay
             int newWidth = (int)(image.Width * ratio);
             int newHeight = (int)(image.Height * ratio);
 
-            background = new Bitmap(345, 462);
+            Background = new Bitmap(345, 462);
 
-            using (var graphics = Graphics.FromImage(background))
+            using (var graphics = Graphics.FromImage(Background))
                 graphics.DrawImage(image, (345 - newWidth) / 2, (462 - newHeight) / 2, newWidth, newHeight);
         }
 
         public void DrawIntro(bool isEmulatorLoaded, bool isHackLoaded, bool isOffsetsInitialized)
         {
-            Font drawFont = new Font(fontFamily, bigFontSize);
+            Font drawFont = new Font(FontFamily, BigFontSize);
             SolidBrush whiteBrush = new SolidBrush(Color.White);
             SolidBrush greenBrush = new SolidBrush(Color.Green);
 
@@ -222,6 +222,81 @@ namespace StarDisplay
             graphics.DrawString("3) Let Star Display init", drawFont, isOffsetsInitialized ? greenBrush : whiteBrush, new RectangleF(20, 210, 340, 50), drawFormat);
             graphics.DrawString("4) Enjoy!", drawFont, success ? greenBrush : whiteBrush, new RectangleF(20, 280, 340, 50), drawFormat);
 
+        }
+
+        public void TestFont()
+        {
+            // Setup draw font: 20 symbols in max 170 width
+            float l = 0, r = 40, m = -1;
+            String measureString = new string('W', 20);
+
+            // 10 iterations is enough
+            for (int iter = 0; iter < 10; iter++)
+            {
+                m = (l + r) / 2;
+
+                Font drawFont = new Font(FontFamily, m);
+
+                // Measure string.
+                SizeF stringSize = new SizeF();
+                stringSize = graphics.MeasureString(measureString, drawFont);
+
+                float width = stringSize.Width; //should take 170
+                if (width < 170)
+                    l = m;
+                else
+                    r = m;
+            }
+            drawFontSize = m;
+            Console.WriteLine("Draw: {0}", m);
+
+            // Setup med font: 1 symbols in max 20 height
+            l = 0; r = 40; m = -1;
+            measureString = "W";
+
+            // 10 iterations is enough
+            for (int iter = 0; iter < 10; iter++)
+            {
+                m = (l + r) / 2;
+
+                Font drawFont = new Font(FontFamily, m);
+                
+                // Measure string.
+                SizeF stringSize = new SizeF();
+                stringSize = graphics.MeasureString(measureString, drawFont);
+
+                float height = stringSize.Height; //should take 170
+                if (height < 20)
+                    l = m;
+                else
+                    r = m;
+            }
+            medFontSize = m;
+            Console.WriteLine("Med: {0}", m);
+
+            // Setup med font: 1 symbols in max 20 height
+            l = 0; r = 40; m = -1;
+            measureString = new string('W', 27);
+
+            // 10 iterations is enough
+            for (int iter = 0; iter < 10; iter++)
+            {
+                m = (l + r) / 2;
+
+                Font drawFont = new Font(FontFamily, m);
+
+                // Measure string.
+                SizeF stringSize = new SizeF();
+                stringSize = graphics.MeasureString(measureString, drawFont);
+
+                float width = stringSize.Width; //should take 170
+                if (width < 340)
+                    l = m;
+                else
+                    r = m;
+            }
+            bigFontSize = m;
+            Console.WriteLine("Big: {0}", m);
         }
     }
 }

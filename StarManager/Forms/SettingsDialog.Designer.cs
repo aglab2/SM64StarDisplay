@@ -28,36 +28,19 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.textOnlyCheckbox = new System.Windows.Forms.CheckBox();
-            this.stringTextBox = new System.Windows.Forms.TextBox();
             this.button1 = new System.Windows.Forms.Button();
             this.offsetComboBox = new System.Windows.Forms.ComboBox();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.checkBox2 = new System.Windows.Forms.CheckBox();
             this.checkBox3 = new System.Windows.Forms.CheckBox();
             this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.checkBox5 = new System.Windows.Forms.CheckBox();
             this.checkBox6 = new System.Windows.Forms.CheckBox();
             this.checkBox7 = new System.Windows.Forms.CheckBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.stringTextBox = new System.Windows.Forms.TextBox();
+            this.textOnlyCheckbox = new System.Windows.Forms.CheckBox();
             this.SuspendLayout();
-            // 
-            // textOnlyCheckbox
-            // 
-            this.textOnlyCheckbox.AutoSize = true;
-            this.textOnlyCheckbox.Location = new System.Drawing.Point(12, 12);
-            this.textOnlyCheckbox.Name = "textOnlyCheckbox";
-            this.textOnlyCheckbox.Size = new System.Drawing.Size(71, 17);
-            this.textOnlyCheckbox.TabIndex = 0;
-            this.textOnlyCheckbox.Text = "Text Only";
-            this.textOnlyCheckbox.UseVisualStyleBackColor = true;
-            // 
-            // stringTextBox
-            // 
-            this.stringTextBox.Location = new System.Drawing.Point(89, 10);
-            this.stringTextBox.Name = "stringTextBox";
-            this.stringTextBox.Size = new System.Drawing.Size(100, 20);
-            this.stringTextBox.TabIndex = 0;
             // 
             // button1
             // 
@@ -103,15 +86,6 @@
             this.offsetComboBox.Name = "offsetComboBox";
             this.offsetComboBox.Size = new System.Drawing.Size(121, 21);
             this.offsetComboBox.TabIndex = 3;
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(46, 39);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(15, 14);
-            this.checkBox1.TabIndex = 4;
-            this.checkBox1.UseVisualStyleBackColor = true;
             // 
             // checkBox2
             // 
@@ -167,6 +141,15 @@
             this.checkBox7.TabIndex = 10;
             this.checkBox7.UseVisualStyleBackColor = true;
             // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(46, 39);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(15, 14);
+            this.checkBox1.TabIndex = 4;
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
             // label1
             // 
             this.label1.AutoSize = true;
@@ -175,6 +158,23 @@
             this.label1.Size = new System.Drawing.Size(31, 13);
             this.label1.TabIndex = 11;
             this.label1.Text = "Stars";
+            // 
+            // stringTextBox
+            // 
+            this.stringTextBox.Location = new System.Drawing.Point(89, 10);
+            this.stringTextBox.Name = "stringTextBox";
+            this.stringTextBox.Size = new System.Drawing.Size(100, 20);
+            this.stringTextBox.TabIndex = 0;
+            // 
+            // textOnlyCheckbox
+            // 
+            this.textOnlyCheckbox.AutoSize = true;
+            this.textOnlyCheckbox.Location = new System.Drawing.Point(12, 12);
+            this.textOnlyCheckbox.Name = "textOnlyCheckbox";
+            this.textOnlyCheckbox.Size = new System.Drawing.Size(71, 17);
+            this.textOnlyCheckbox.TabIndex = 0;
+            this.textOnlyCheckbox.Text = "Text Only";
+            this.textOnlyCheckbox.UseVisualStyleBackColor = true;
             // 
             // Settings
             // 
@@ -206,18 +206,17 @@
         }
 
         #endregion
-
-        private System.Windows.Forms.CheckBox textOnlyCheckbox;
-        private System.Windows.Forms.TextBox stringTextBox;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.ComboBox offsetComboBox;
-        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.CheckBox checkBox2;
         private System.Windows.Forms.CheckBox checkBox3;
         private System.Windows.Forms.CheckBox checkBox4;
         private System.Windows.Forms.CheckBox checkBox5;
         private System.Windows.Forms.CheckBox checkBox6;
         private System.Windows.Forms.CheckBox checkBox7;
+        private System.Windows.Forms.CheckBox checkBox1;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox stringTextBox;
+        private System.Windows.Forms.CheckBox textOnlyCheckbox;
     }
 }

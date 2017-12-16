@@ -10,12 +10,12 @@ using System.Drawing;
 
 namespace StarDisplay
 {
-    public class ROMManager : IDisposable
+    public class ROMManager : CachedManager, IDisposable
     {
         BinaryReader reader;
-        static int[] ROMOffsetforEEPOffset = { 0x10, 0x0F, 0x08, 0x11, 0x13, 0x0C, 0x15, 0x16,
-                0x0E, 0x18, 0x19, 0x1A, 0x08, 0x1B, 0x21, 0x1C, 0x23, 0x1D, 0x12,
-                0x14, 0x0D, 0x24, 0x08, 0x1E, 0x1F, 0x20, -1, 0x22, -1, -1, 0x17 };
+        public static int[] ROMOffsetforEEPOffset = { 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
+                0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16,
+                0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x21, 0x22, 0x24 };
 
         static int courseBaseAddress = 0x02AC094;
 
@@ -49,6 +49,11 @@ namespace StarDisplay
         static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
 
         Object[] boxObjects;
+
+        public static int getROMOffsetFromEEPOffset(int eepOffset)
+        {
+            return Array.FindIndex(ROMOffsetforEEPOffset, el => el == eepOffset);
+        }
 
         public ROMManager(string fileName)
         {
@@ -155,8 +160,6 @@ namespace StarDisplay
             return reader.ReadByte();
         }
 
-
-
         private byte[] ReadBehaviour(int offset)
         {
             reader.BaseStream.Position = offset + 0x15;
@@ -192,10 +195,7 @@ namespace StarDisplay
             int totalStars = 0;
             totalStars += UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription);
             totalStars += UpdateLineDescriptionsWithStars(0, ld.secretDescription);
-            ld.starAmount = totalStars.ToString();
-
-            //Console.WriteLine(UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription));
-            //Console.WriteLine(UpdateLineDescriptionsWithStars(0, ld.secretDescription));
+            ld.RecountStars();
         }
 
         private int UpdateLineDescriptionsWithStars(byte initMask, LineDescription[] descriptions)
@@ -204,7 +204,7 @@ namespace StarDisplay
             for (int i = 0; i < descriptions.Length; i++)
             {
                 int eeprom = descriptions[i].offset + 8;
-                int index = Array.FindIndex(ROMOffsetforEEPOffset, el => el == eeprom);
+                int index = getROMOffsetFromEEPOffset(eeprom);
                 if (index == -1) continue;
 
                 int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
@@ -216,47 +216,42 @@ namespace StarDisplay
             return totalStars;
         }
 
-        private int PrepareAddresses(LayoutDescription ld, TextHighlightAction currentTHA, out int levelAddressStart, out int levelAddressEnd)
+        private int PrepareAddresses(int level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset)
         {
-            if (currentTHA == null)
-            {
-                levelAddressStart = 0; levelAddressEnd = 0; return -1;
-            }
-            int line = currentTHA.Line;
-            int course = (currentTHA.IsSecret ? ld.secretDescription[line].offset : ld.courseDescription[line].offset) + 8;
-            int index = Array.FindIndex(ROMOffsetforEEPOffset, el => el == course);
+            int index = getROMOffsetFromEEPOffset(level);
 
             if (index == -1)
             {
-                levelAddressStart = 0; levelAddressEnd = 0; return -1;
+                levelAddressStart = 0; levelAddressEnd = 0; levelOffset = 0; return - 1;
             }
             levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
-            levelAddressEnd = ReadInt32();
+            levelAddressEnd = ReadInt32(courseBaseAddress + index * 0x14 + 0x08);
+            levelOffset = ReadInt32(courseBaseAddress + index * 0x14 + 0x0C) & 0x0000FFFF;
             return 0;
         }
 
-        public int ParseReds(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
+        public int ParseReds(int level, int currentStar, int currentArea)
         {
-            int result = PrepareAddresses(ld, currentTHA, out int levelAddressStart, out int levelAddressEnd);
+            int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, redsBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart + levelOffset, levelAddressEnd, redsBehaviour, currentStar, currentArea);
         }
 
-        public int ParseSecrets(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
+        public int ParseSecrets(int level, int currentStar, int currentArea)
         {
-            int result = PrepareAddresses(ld, currentTHA, out int levelAddressStart, out int levelAddressEnd);
+            int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart + levelOffset, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
         }
     
-        public int ParseFlipswitches(LayoutDescription ld, TextHighlightAction currentTHA, int currentStar, int currentArea)
+        public int ParseFlipswitches(int level, int currentStar, int currentArea)
         {
-            int result = PrepareAddresses(ld, currentTHA, out int levelAddressStart, out int levelAddressEnd);
+            int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, flipswitchBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart + levelOffset, levelAddressEnd, flipswitchBehaviour, currentStar, currentArea);
         }
 
         private int GetAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar, int currentArea)
@@ -270,7 +265,7 @@ namespace StarDisplay
 
             try
             {
-                int offset = start + 0x1C;
+                int offset = start;
                 while (offset < end)
                 {
                     reader.BaseStream.Position = offset;
@@ -310,6 +305,7 @@ namespace StarDisplay
             return counter;
         }
 
+        //TODO: This does not work too well
         private byte GenerateStarMask(byte initMask, int start, int end) //Does not work :(
         {
             int mask = initMask;
