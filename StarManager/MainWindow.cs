@@ -102,13 +102,13 @@ namespace StarDisplay
         
         private void doMagicThread()
         {
-            try
-            {
-                while (mm != null && !mm.isMagicDone())
+            while (mm != null && !mm.isMagicDone())
+                try
+                {
+                    isOffsetsFound = true;
                     mm.doMagic();
-            }
-            catch (Exception)
-            { }
+                }
+                catch (Exception) { }
         }
         
         private void DrawIntro()
@@ -197,6 +197,8 @@ namespace StarDisplay
                 timer.Change(period, Timeout.Infinite);
                 return;
             }
+            
+            isOffsetsFound = true;
 
             try
             {
@@ -285,9 +287,7 @@ namespace StarDisplay
 
                     InvalidateCacheNoResetRM();
                 }
-
-                isOffsetsFound = true;
-
+                
                 var actions = sm.GetConfig(collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
                 if (actions == null) return;
 
