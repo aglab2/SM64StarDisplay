@@ -105,7 +105,6 @@ namespace StarDisplay
             while (mm != null && !mm.isMagicDone())
                 try
                 {
-                    isOffsetsFound = true;
                     mm.doMagic();
                 }
                 catch (Exception) { }
@@ -113,6 +112,8 @@ namespace StarDisplay
         
         private void DrawIntro()
         {
+            menuStrip.Enabled = false;
+
             //Steps to achieve success here!
             Graphics baseGraphics = Graphics.FromImage(baseImage);
             baseGraphics.Clear(Color.Black);
@@ -161,10 +162,15 @@ namespace StarDisplay
                         isUpdateRequested = true;
                         this.Invoke((MethodInvoker)delegate
                         {
-                            if (MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now?", um.UpdateName()), "Update",
-                            MessageBoxButtons.YesNo, MessageBoxIcon.Asterisk) == DialogResult.Yes)
+                            DialogResult result = MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now? Press cancel to skip update", um.UpdateName()), "Update",
+                            MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
+                            if (result == DialogResult.Yes)
                             {
                                 Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");
+                            }
+                            if (result == DialogResult.Cancel)
+                            {
+                                um.WritebackUpdate();
                             }
                         });
                     }
@@ -172,87 +178,78 @@ namespace StarDisplay
             }
             catch (Exception) { }
 
-            if (mm.ProcessActive())
-            {
-                this.Invoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
-                timer.Change(period, Timeout.Infinite);
-                return;
-            }
-
-            isEmulatorStarted = true;
-
-            // Well, that's just a minor magic but it works
-            if (mm.GetTitle().Contains("-"))
-                isHackLoaded = true;
-
-            if (!mm.isMagicDone())
-            {
-                if (magicThread == null || !magicThread.IsAlive)
-                {
-                    magicThread = new Thread(doMagicThread);
-                    magicThread.Start();
-                }
-
-                this.Invoke((MethodInvoker)delegate { DrawIntro(); });
-                timer.Change(period, Timeout.Infinite);
-                return;
-            }
-            
-            isOffsetsFound = true;
-
             try
             {
-                mm.PerformRead();
-            }
-            catch (Exception)
-            {
-                this.Invoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
-                timer.Change(period, Timeout.Infinite);
-                return;
-            }
 
-            bool mmIsInvalidated = mm.CheckInvalidated();
-            bool gmIsInvalidated = gm.CheckInvalidated();
-
-            if (mmIsInvalidated)
-                Console.WriteLine("MM Invalidated!");
-            if (gmIsInvalidated)
-                Console.WriteLine("GM Invalidated!");
-
-            // We do not draw anything!
-            if (!mmIsInvalidated && !gmIsInvalidated)
-            {
-                timer.Change(period, Timeout.Infinite);
-                return;
-            }
-
-            if (enableAutoDeleteToolStripMenuItem.Checked)
-            {
-                try
+                if (mm.ProcessActive())
                 {
-                    mm.DeleteStars();
-                }
-                catch (Win32Exception)
-                {
-                    this.Invoke((MethodInvoker)delegate { ResetForm();  DrawIntro(); });
-                    timer.Change(period, Timeout.Infinite);
+                    this.Invoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
                     return;
                 }
-                catch (IOException)
-                {
-                    MessageBox.Show("Can not modify savefiles. Trying launching with elevated rights!", "Write Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    enableAutoDeleteToolStripMenuItem.Checked = false;
-                }
-            }
+                
+                isEmulatorStarted = true;
 
-            try
-            {
+                // Well, that's just a minor magic but it works
+                if (mm.GetTitle().Contains("-"))
+                    isHackLoaded = true;
+
+                if (!mm.isMagicDone())
+                {
+                    if (magicThread == null || !magicThread.IsAlive)
+                    {
+                        magicThread = new Thread(doMagicThread);
+                        magicThread.Start();
+                    }
+
+                    this.Invoke((MethodInvoker)delegate { DrawIntro(); });
+                    return;
+                }
+
+                isOffsetsFound = true;
+
+                try
+                {
+                    mm.PerformRead();
+                }
+                catch (Exception)
+                {
+                    this.Invoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
+                    return;
+                }
+
+                bool mmIsInvalidated = mm.CheckInvalidated();
+                bool gmIsInvalidated = gm.CheckInvalidated();
+
+                if (mmIsInvalidated)
+                    Console.WriteLine("MM Invalidated!");
+                if (gmIsInvalidated)
+                    Console.WriteLine("GM Invalidated!");
+
+                // We do not draw anything!
+                if (!mmIsInvalidated && !gmIsInvalidated)
+                {
+                    return;
+                }
+
+                if (enableAutoDeleteToolStripMenuItem.Checked)
+                {
+                    try
+                    {
+                        mm.DeleteStars();
+                    }
+                    catch (IOException)
+                    {
+                        MessageBox.Show("Can not modify savefiles. Trying launching with elevated rights!", "Write Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        enableAutoDeleteToolStripMenuItem.Checked = false;
+                    }
+                }
+
                 //Display stars routine
                 Graphics baseGraphics = Graphics.FromImage(baseImage);
                 baseGraphics.Clear(Color.Black);
                 baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
                 gm.graphics = Graphics.FromImage(baseImage);
-                
+
                 if (!sm.GetConfig(collectablesOnlyConfigureName, false))
                 {
                     TextHighlightAction act = mm.GetCurrentLineAction(ld);
@@ -277,17 +274,17 @@ namespace StarDisplay
                         {
                             LoadDefaultLayoutNoInvalidate();
                         }
-                        
+
                         gm.IsFirstCall = true;
                     }
                     catch (IndexOutOfRangeException) //can be generated by box reader
                     { }
-                    catch (IOException)
+                    catch (Exception)
                     { oldCRC = 0; }
 
                     InvalidateCacheNoResetRM();
                 }
-                
+
                 var actions = sm.GetConfig(collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
                 if (actions == null) return;
 
@@ -298,7 +295,7 @@ namespace StarDisplay
                 }
 
                 baseGraphics.Dispose();
-                this.Invoke((MethodInvoker)delegate { starPicture.Image = baseImage; });
+                this.Invoke((MethodInvoker)delegate { menuStrip.Enabled = true; starPicture.Image = baseImage; });
             }
             catch (Win32Exception)
             {
@@ -568,6 +565,10 @@ namespace StarDisplay
                     loadFromToolStripMenuItem_Click(sender, e);
                 }
             }
+            catch (NullReferenceException)
+            {
+
+            }
         }
 
         private void saturateIconToolStripMenuItem_Click(object sender, EventArgs e)
@@ -810,13 +811,17 @@ namespace StarDisplay
             int counter = 0;
             foreach (ToolStripMenuItem item in fileMenuItems)
             {
-                counter++;
-                if (item != sender)
+                if (item == sender)
                 {
                     if (mm != null)
                         mm.SelectedFile = counter;
+                    item.Checked = true;
+                }
+                else
+                {
                     item.Checked = false;
                 }
+                counter++;
             }
             InvalidateCache();
         }

@@ -23,7 +23,7 @@ namespace StarDisplay
 
         public bool IsCompleted()
         {
-            return task.IsCompleted;
+            return task.IsCompleted && !task.IsFaulted;
         }
 
         public bool IsUpdated()
@@ -35,6 +35,11 @@ namespace StarDisplay
         public string UpdateName()
         {
             return task.Result.Commit.Message;
+        }
+
+        public void WritebackUpdate()
+        {
+            File.WriteAllText("updateinfo.cfg", task.Result.Commit.Message);
         }
     }
 }

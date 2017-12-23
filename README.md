@@ -3,11 +3,13 @@ This is program to display acquired stars in casual playthrough! App reads game 
 Caps automatically. The level you are at is highlighted with yellow rectangle. 
 
 # How to use?
-Start Project64 1.6 and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarManager/blob/master/StarDisplay.zip?raw=true), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and press _Connect_ button. If your hack has layout support press _Layout > Load_ to  load a layout written for this hack.
+Start Project64 1.6 (or any other version you like) and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarManager/blob/master/StarDisplay.zip?raw=true), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and wait for it to load. If your hack has layout support, it should load automatically. Else make your own layout, give it a try!
 
 # Layout Support
  * Brutal Mario 64
  * Blue Star Adventure
+ * Boonster's Peril
+ * Kaizo Mario 64
  * King Boo's Revenge
  * Luigi and the Forest Ruins Rebooted
  * Luigi and The Violet Stars
@@ -24,6 +26,7 @@ Start Project64 1.6 and load ROM with hack. Download [Star Display](https://gith
  * SM64: The Green Stars
  * SM64: Twisted Adventures
  * SM64 Madness!
+ * SM64 Sapphire
  * Star Revenge 1
  * Star Revenge Redone
  * Star Revenge Redone v2.0
