@@ -1,4 +1,4 @@
-# Star Display
+# Star Display -- online sync edition
 This is program to display acquired stars in casual playthrough! App reads game memory and depending on it displays Stars, Keys and 
 Caps automatically. The level you are at is highlighted with yellow rectangle. 
 
