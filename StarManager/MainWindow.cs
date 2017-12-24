@@ -260,7 +260,7 @@ namespace StarDisplay
                 }
 
                 UInt16 currentCRC = mm.GetRomCRC();
-                if (currentCRC != oldCRC)
+                if (currentCRC != oldCRC || rm == null)
                 {
                     oldCRC = currentCRC;
                     try
@@ -564,10 +564,6 @@ namespace StarDisplay
                 {
                     loadFromToolStripMenuItem_Click(sender, e);
                 }
-            }
-            catch (NullReferenceException)
-            {
-
             }
         }
 
