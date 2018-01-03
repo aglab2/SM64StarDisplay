@@ -1066,6 +1066,11 @@ namespace StarDisplay
                 gm.Width = Width;
                 gm.InvalidateCache();
             }
+		}
+	
+        private void syncToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SyncManager sm = new SyncManager("TODO", "TODO");
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

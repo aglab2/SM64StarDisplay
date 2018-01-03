@@ -102,6 +102,10 @@
     <Compile Include="Managers\MagicManager.cs" />
     <Compile Include="Managers\Manager.cs" />
     <Compile Include="Managers\SettingsManager.cs" />
+    <Compile Include="Managers\SyncManager.cs" />
+    <Compile Include="Server\CookieAwareWebClient.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="ViewHelper\Color.cs" />
     <Compile Include="Forms\ColorPicker.cs">
       <SubType>Form</SubType>
