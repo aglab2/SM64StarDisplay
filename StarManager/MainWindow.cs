@@ -16,8 +16,6 @@ namespace StarDisplay
 {
     public partial class MainWindow : Form
     {
-        static string collectablesOnlyConfigureName = "MainWindow_areCollectablesOnly";
-
         LayoutDescription ld;
 
         GraphicsManager gm;
@@ -250,7 +248,7 @@ namespace StarDisplay
                 baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
                 gm.graphics = Graphics.FromImage(baseImage);
 
-                if (!sm.GetConfig(collectablesOnlyConfigureName, false))
+                if (!sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false))
                 {
                     TextHighlightAction act = mm.GetCurrentLineAction(ld);
                     if (act != null)
@@ -285,7 +283,7 @@ namespace StarDisplay
                     InvalidateCacheNoResetRM();
                 }
 
-                var actions = sm.GetConfig(collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
+                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
                 if (actions == null) return;
 
                 int lineOffset = 0;

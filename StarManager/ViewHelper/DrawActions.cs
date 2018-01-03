@@ -700,6 +700,38 @@ namespace StarDisplay
         }
     }
 
+    public class MainWindowsSettingsAction : Action
+    {
+        static string collectablesOnlyConfigureReadableName = "Show only collectables";
+        public static string collectablesOnlyConfigureName = "MainWindow_areCollectablesOnly";
+
+        public static int DrawConfigs(int height, ActionMaskForm amf)
+        {
+            CheckBox cb = new CheckBox
+            {
+                Name = collectablesOnlyConfigureName,
+                Text = collectablesOnlyConfigureReadableName,
+                Location = new Point(10, height),
+                Checked = amf.sm.GetConfig(collectablesOnlyConfigureName, true),
+                AutoSize = true
+            };
+
+            cb.CheckedChanged += (sender, e) => {
+                CheckBox cb_local = sender as CheckBox;
+                amf.sm.SetConfig(cb_local.Name, cb_local.Checked);
+            };
+
+            amf.Controls.Add(cb);
+
+            return cb.Height;
+        }
+
+        public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class DrawActions : IEnumerable<Action>
     {
         LayoutDescription ld;
