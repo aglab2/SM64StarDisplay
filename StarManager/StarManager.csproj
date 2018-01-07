@@ -39,6 +39,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
+    <LangVersion>default</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -54,8 +55,15 @@
     <ApplicationIcon>TKStar.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
+<<<<<<< a685eb94c4ffcc4ad6bdd397b47480a5faa2b364
     <Reference Include="Octokit, Version=0.29.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Octokit.0.29.0\lib\net45\Octokit.dll</HintPath>
+=======
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL" />
+    <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.24.0\lib\net45\Octokit.dll</HintPath>
+      <Private>True</Private>
+>>>>>>> final
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -89,6 +97,12 @@
     </Compile>
     <Compile Include="Forms\ChangeTextDialog.Designer.cs">
       <DependentUpon>ChangeTextDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\SyncLoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\SyncLoginForm.Designer.cs">
+      <DependentUpon>SyncLoginForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\WarpDialog.cs">
       <SubType>Form</SubType>
@@ -166,6 +180,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FlagsEditForm.resx">
       <DependentUpon>FlagsEditForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\SyncLoginForm.resx">
+      <DependentUpon>SyncLoginForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\WarpDialog.resx">
       <DependentUpon>WarpDialog.cs</DependentUpon>

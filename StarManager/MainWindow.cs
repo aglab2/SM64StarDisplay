@@ -24,6 +24,7 @@ namespace StarDisplay
         UpdateManager um;
         DownloadManager dm;
         SettingsManager sm;
+        SyncLoginForm slf;
 
         System.Threading.Timer timer;
         
@@ -260,13 +261,33 @@ namespace StarDisplay
                 bool mmIsInvalidated = mm.CheckInvalidated();
                 bool gmIsInvalidated = gm.CheckInvalidated();
                 bool dmIsInvalidated = dm == null ? false : dm.CheckInvalidated();
+                bool smIsInvalidated = false;
+                if (slf != null && slf.sm != null)
+                    smIsInvalidated = slf.sm.CheckInvalidated();
 
                 if (mmIsInvalidated)
+                {
+                    if (slf != null && slf.sm != null)
+                        slf.sm.SendData(mm.Stars);
+
                     Console.WriteLine("MM Invalidated!");
+                }
+
                 if (gmIsInvalidated)
                     Console.WriteLine("GM Invalidated!");
                 if (dmIsInvalidated)
                     Console.WriteLine("DM Invalidated!");
+
+                if (smIsInvalidated)
+                {
+                    Console.WriteLine("SM Invalidated!");
+
+                    byte[] stars = (byte[]) slf.sm.Data.Clone();
+                    //for (int i = 0; i < 32; i += 4)
+                    //    Array.Reverse(stars, i, 4);
+
+                    mm.WriteToFile(stars);
+                }
 
                 // We do not draw anything!
                 if (!mmIsInvalidated && !gmIsInvalidated && !dmIsInvalidated)
@@ -367,8 +388,14 @@ namespace StarDisplay
             {
                 this.SafeInvoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
             }
+<<<<<<< a685eb94c4ffcc4ad6bdd397b47480a5faa2b364
             // Not really important exception, just a placeholder basically
             catch (ObjectDisposedException) { }
+=======
+            catch (ObjectDisposedException)
+            {
+            }
+>>>>>>> final
             finally
             {
                 timer.Change(period, Timeout.Infinite);
@@ -1070,7 +1097,8 @@ namespace StarDisplay
 	
         private void syncToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            SyncManager sm = new SyncManager("TODO", "TODO");
+            slf = new SyncLoginForm(mm.Stars);
+            slf.Show();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

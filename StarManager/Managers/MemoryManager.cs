@@ -44,6 +44,12 @@ namespace StarDisplay
         IntPtr igtigtPtr; //short
         IntPtr levelSpawnPtr; //byte
 
+        IntPtr starsCountPtr; //short
+
+        int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
+        int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
+        int[] overworldLevels = { 6, 26, 16 };
+
         private int selectedFile;
 
         public int SelectedFile { get => selectedFile; set { if (selectedFile != value) isInvalidated = true; selectedFile = value; } }
@@ -150,6 +156,8 @@ namespace StarDisplay
             spawnStatusPtr = new IntPtr(mm.ramPtrBase + 0x33B24B);
             igtigtPtr = new IntPtr(mm.ramPtrBase + 0x33B26A);
             levelSpawnPtr = new IntPtr(mm.ramPtrBase + 0x33B24A);
+
+            starsCountPtr = new IntPtr(mm.ramPtrBase + 0x33B218);
         }
 
         public void PerformRead()
@@ -500,11 +508,24 @@ namespace StarDisplay
         {
             byte[] stars = data;
             if (stars == null) return;
+<<<<<<< a685eb94c4ffcc4ad6bdd397b47480a5faa2b364
             
             for (int i = 0; i < FileLength; i += 4)
+=======
+
+            int starCounter = countStars((byte)(data[0] << 1));
+            // Fix star counter
+            for (int i = 0xB - 7; i < 0x24 - 7; i++)
+            {
+                starCounter += countStars((byte)(data[i]));
+            }
+
+            for (int i = 0; i < length; i += 4)
+>>>>>>> final
                 Array.Reverse(stars, i, 4);
 
             Process.WriteBytes(filePtr, stars);
+            Process.WriteBytes(starsCountPtr, new byte[] { (byte) starCounter });
         }
 
         public string GetTitle()
