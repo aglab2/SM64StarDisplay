@@ -303,6 +303,8 @@ namespace StarDisplay
             {
                 this.Invoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
             }
+            // Not really important exception, just a placeholder basically
+            catch (ObjectDisposedException) { }
             finally
             {
                 timer.Change(period, Timeout.Infinite);
