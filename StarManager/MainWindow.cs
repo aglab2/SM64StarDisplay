@@ -97,6 +97,15 @@ namespace StarDisplay
                 componentsClasses.Add(type);
             }
         }
+
+        ~MainWindow()
+        {
+            magicThread.Abort();
+            timer.Change(Timeout.Infinite, Timeout.Infinite);
+            WaitHandle handle = new AutoResetEvent(false);
+            timer.Dispose(handle);
+            handle.WaitOne();
+        }
         
         private void doMagicThread()
         {
