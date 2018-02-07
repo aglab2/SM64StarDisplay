@@ -106,7 +106,7 @@ namespace StarDisplay
             timer.Dispose(handle);
             handle.WaitOne();
         }
-        
+
         private void doMagicThread()
         {
             while (mm != null && !mm.isMagicDone())
@@ -153,7 +153,32 @@ namespace StarDisplay
             layoutToolStripMenuItem.Enabled = true;
             iconsToolStripMenuItem.Enabled = true;
         }
-        
+
+        // Call from other thread for safe UI invoke
+        private void SafeInvoke(MethodInvoker updater, bool forceSynchronous = false)
+        {
+            if (InvokeRequired)
+            {
+                if (forceSynchronous)
+                {
+                    Invoke((MethodInvoker)delegate { SafeInvoke(updater, forceSynchronous); });
+                }
+                else
+                {
+                    BeginInvoke((MethodInvoker)delegate { SafeInvoke(updater, forceSynchronous); });
+                }
+            }
+            else
+            {
+                if (IsDisposed)
+                {
+                    throw new ObjectDisposedException("Control is already disposed.");
+                }
+
+                updater();
+            }
+        }
+
         private void UpdateStars(object sender)
         {
             isEmulatorStarted = false;
@@ -167,7 +192,7 @@ namespace StarDisplay
                     if (!isUpdateRequested && !um.IsUpdated())
                     {
                         isUpdateRequested = true;
-                        this.Invoke((MethodInvoker)delegate
+                        this.SafeInvoke((MethodInvoker)delegate
                         {
                             DialogResult result = MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now? Press cancel to skip update", um.UpdateName()), "Update",
                             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
@@ -190,7 +215,7 @@ namespace StarDisplay
 
                 if (mm.ProcessActive())
                 {
-                    this.Invoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
+                    this.SafeInvoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
                     return;
                 }
                 
@@ -208,19 +233,24 @@ namespace StarDisplay
                         magicThread.Start();
                     }
 
-                    this.Invoke((MethodInvoker)delegate { DrawIntro(); });
+                    this.SafeInvoke((MethodInvoker)delegate { DrawIntro(); });
                     return;
                 }
-
+                
                 isOffsetsFound = true;
+
 
                 try
                 {
+                    // Just do nothing
+                    if (!mm.isReadyToRead())
+                        return;
+
                     mm.PerformRead();
                 }
                 catch (Exception)
                 {
-                    this.Invoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
+                    this.SafeInvoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
                     return;
                 }
 
@@ -302,15 +332,15 @@ namespace StarDisplay
                 }
 
                 baseGraphics.Dispose();
-                this.Invoke((MethodInvoker)delegate { menuStrip.Enabled = true; starPicture.Image = baseImage; });
+                this.SafeInvoke((MethodInvoker)delegate { menuStrip.Enabled = true; starPicture.Image = baseImage; });
             }
             catch (Win32Exception)
             {
-                this.Invoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
+                this.SafeInvoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
             }
             catch (NullReferenceException)
             {
-                this.Invoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
+                this.SafeInvoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
             }
             // Not really important exception, just a placeholder basically
             catch (ObjectDisposedException) { }
@@ -932,6 +962,14 @@ namespace StarDisplay
             wd = new WarpDialog(mm.GetCurrentLevel());
             wd.ShowDialog();
             mm.WriteWarp(wd.warp, wd.level, wd.area);
+        }
+
+        private void killPJ64ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (mm != null)
+            {
+                mm.KillProcess();
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

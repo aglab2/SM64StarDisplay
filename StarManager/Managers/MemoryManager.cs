@@ -70,6 +70,16 @@ namespace StarDisplay
             return Process == null || Process.HasExited;
         }
 
+        public bool isReadyToRead()
+        {
+            // We can read mem now, let's read Igt and check if it is big enough
+            int igt = Process.ReadValue<int>(igtPtr);
+            if (igt < 30)
+                isInvalidated = true;
+
+            return (igt > 30);
+        }
+
         public bool isMagicDone()
         {
             return mm != null && mm.isValid();
@@ -514,6 +524,11 @@ namespace StarDisplay
             Process.WriteBytes(menuModifierPtr, new byte[] { 0x04, 0x00 });
             Process.WriteBytes(spawnStatusPtr, new byte[] { 0x02 });
             Process.WriteBytes(igtigtPtr, new byte[] { 0x00, 0x00 });
+        }
+
+        public void KillProcess()
+        {
+            Process.Kill();
         }
     }
 }

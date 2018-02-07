@@ -24,6 +24,7 @@ namespace StarDisplay
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
             Application.Run(new MainWindow());
+            Environment.Exit(Environment.ExitCode);
         }
 
         // Handle the UI exceptions by showing a dialog box, and asking the user whether
