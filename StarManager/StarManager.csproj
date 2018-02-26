@@ -97,6 +97,7 @@
     <Compile Include="Forms\WarpDialog.Designer.cs">
       <DependentUpon>WarpDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="LevelInfo.cs" />
     <Compile Include="Managers\CacheManager.cs" />
     <Compile Include="Managers\MagicManager.cs" />
     <Compile Include="Managers\Manager.cs" />
@@ -145,6 +146,7 @@
     </Compile>
     <Compile Include="Managers\UpdateManager.cs" />
     <Compile Include="Process\WinAPI.cs" />
+    <Compile Include="ViewHelper\LayoutDescriptionEx.cs" />
     <Content Include="TKStar.ico" />
     <EmbeddedResource Include="Forms\AboutDialog.resx">
       <DependentUpon>AboutDialog.cs</DependentUpon>

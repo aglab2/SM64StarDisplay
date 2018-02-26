@@ -21,7 +21,7 @@ namespace StarDisplay
         Bitmap goldSquare;
         Bitmap blackSquare;
 
-        private LayoutDescription ld;
+        private LayoutDescriptionEx ld;
 
         public Graphics graphics;
 
@@ -36,7 +36,9 @@ namespace StarDisplay
         private float medFontSize = 12;
         private float bigFontSize = 15;
 
-        public LayoutDescription Ld { get => ld; set { if (ld != value) isInvalidated = true; ld = value; } }
+        private float width = 360;
+
+        public LayoutDescriptionEx Ld { get => ld; set { if (ld != value) isInvalidated = true; ld = value; } }
         public LastHighlight LastSHA { get => lastSHA; set { if (lastSHA != value) isInvalidated = true; lastSHA = value; } }
         public PrivateFontCollection Collection { get => collection; set { if (collection != value) isInvalidated = true; collection = value; } }
         public FontFamily FontFamily { get => fontFamily; set { if (fontFamily != value) isInvalidated = true; fontFamily = value; } }
@@ -45,8 +47,13 @@ namespace StarDisplay
         public float MedFontSize { get => medFontSize; set { if (medFontSize != value) isInvalidated = true; medFontSize = value; } }
         public float BigFontSize { get => bigFontSize; set { if (bigFontSize != value) isInvalidated = true; bigFontSize = value; } }
         public Image Background { get => background; set { if (background != value) isInvalidated = true; background = value; } }
-        
-        public GraphicsManager(Graphics graphics, LayoutDescription ld)
+        public float Width { get => width; set { if (width != value) { isInvalidated = true; TestFont(); }; width = value; } }
+        public float SHeight { get { return Width / 360 * 23; } } //23
+        public float SWidth { get { return Width / 360 * 20; } } //20
+        public float SOffset { get { return Width / 360 * 2; } } //2
+        public float HalfWidth { get { return (Width - SWidth) / 2; } } //170
+
+        public GraphicsManager(Graphics graphics, LayoutDescriptionEx ld)
         {
             this.Ld = ld;
             this.graphics = graphics;
@@ -84,26 +91,26 @@ namespace StarDisplay
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-
-            int courseDescriptionLength = Array.FindLastIndex(Ld.courseDescription, item => item != null) + 1;
-            int secretDescriptionLength = Array.FindLastIndex(Ld.secretDescription, item => item != null) + 1;
+            
+            int courseDescriptionLength = Ld.courseDescription.Count;
+            int secretDescriptionLength = Ld.secretDescription.Count;
             int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
 
             if (Background != null)
-                graphics.DrawImage(Background, new Rectangle(0, 0, 345, 462));
+                graphics.DrawImage(Background, new RectangleF(0, 0, Width, Width * 2));
 
             for (int line = 0; line < courseDescriptionLength; line++)
             {
                 if (Ld.courseDescription[line] == null) continue;
-                DrawLine(Ld.courseDescription[line], lineOffset + line, false);
+                Ld.courseDescription[line].DrawBase(this, lineOffset + line, false);
             }
             for (int line = 0; line < secretDescriptionLength; line++)
             {
                 if (Ld.secretDescription[line] == null) continue;
-                DrawLine(Ld.secretDescription[line], lineOffset + line, true);
+                Ld.secretDescription[line].DrawBase(this, lineOffset + line, true);
             }
             
-            RectangleF drawRect = new RectangleF(0, (lineOffset + lastLine) * 23 + 2, 340, 23);
+            RectangleF drawRect = new RectangleF(0, (lineOffset + lastLine) * SHeight + 2, Width, SHeight);
             StringFormat drawFormat = new StringFormat
             {
                 Alignment = StringAlignment.Center,
@@ -116,66 +123,36 @@ namespace StarDisplay
 
         public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask)
         {
-            for (int i = 1; i <= 7; i++)
+            for (int i = 0; i < 7; i++)
             {
                 if ((mask & (1 << i)) == 0) continue;
-                int x = (isSecret ? 180 : 0) + i * 20;
-                int y = lineNumber * 23;
-                bool isAcquired = (stars & (1 << (i - 1))) != 0;
+                float x = (isSecret ? Width / 2 : 0) + (i + 1) * SWidth;
+                float y = lineNumber * SHeight;
+                bool isAcquired = (stars & (1 << i)) != 0;
                 Image img = isAcquired ? Ld.goldStar : Ld.darkStar;
-                graphics.DrawImage(img, x, y, 20, 20);
+                graphics.DrawImage(img, x, y, SWidth, SWidth);
             }
-        }
-
-        public void DrawLine(LineDescription ld, int lineNumber, bool isSecret)
-        {
-            Font drawFont = new Font(FontFamily, DrawFontSize);
-
-            SolidBrush drawBrush = new SolidBrush(Color.White);
-            if (ld.isTextOnly)
-            {
-                RectangleF drawRect = new RectangleF((isSecret ? 180 : 0) + 7, lineNumber * 23, 170, 23);
-                StringFormat drawFormat = new StringFormat
-                {
-                    Alignment = StringAlignment.Near,
-                    LineAlignment = StringAlignment.Center
-                };
-                graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
-            }
-            else
-            {
-                RectangleF drawRect = new RectangleF((isSecret ? 180 : 0), lineNumber * 23, 170, 23);
-                StringFormat drawFormat = new StringFormat
-                {
-                    Alignment = StringAlignment.Near,
-                    LineAlignment = StringAlignment.Center
-                };
-                graphics.DrawString(ld.text, drawFont, drawBrush, drawRect, drawFormat);
-                DrawByte(0, lineNumber, isSecret, ld.starMask);
-            }
-            drawBrush.Dispose();
-            drawFont.Dispose();
         }
 
         public void AddLineHighlight(TextHighlightAction act)
         {
             if (act.Text != "")
             {
-                int x = (act.IsSecret ? 180 : 0) + 2;
-                int y = act.Line * 23 + 2;
+                float x = (act.IsSecret ? (Width / 2) : 0) + SOffset;
+                float y = act.Line * SHeight + SOffset;
 
                 SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
                 Pen yellowPen = new Pen(yellowBrush);
-                graphics.DrawRectangle(yellowPen, new Rectangle(x, y, 8 * act.Text.Length, 16));
+                graphics.DrawRectangle(yellowPen, x, y, (SWidth / 2) * act.Text.Length - 2 * SOffset, SWidth - 2 * SOffset);
                 yellowPen.Dispose();
                 yellowBrush.Dispose();
             }
             else
             {
-                int x = (act.IsSecret ? 180 : 0);
-                int y = act.Line * 23;
-
-                graphics.DrawImage(goldSquare, x + 8, y + 8);
+                float x = (act.IsSecret ? (Width / 2) : 0) + SWidth / 20 * 8;
+                float y = act.Line * SHeight + SHeight / 20 * 8;
+                
+                graphics.DrawImage(goldSquare, x, y, SWidth / 5, SWidth / 5);
             }
         }
 
@@ -187,17 +164,17 @@ namespace StarDisplay
 
         public void SetBackground(Image image)
         {
-            double ratioX = (double)345 / image.Width;
-            double ratioY = (double)462 / image.Height;
+            double ratioX = (double)Width / image.Width;
+            double ratioY = (double)Width * 2 / image.Height;
             double ratio = Math.Max(ratioX, ratioY);
 
             int newWidth = (int)(image.Width * ratio);
             int newHeight = (int)(image.Height * ratio);
-
-            Background = new Bitmap(345, 462);
+            
+            Background = new Bitmap((int)Width, (int)Width * 2);
 
             using (var graphics = Graphics.FromImage(Background))
-                graphics.DrawImage(image, (345 - newWidth) / 2, (462 - newHeight) / 2, newWidth, newHeight);
+                graphics.DrawImage(image, (Width - newWidth) / 2, (Width * 2 - newHeight) / 2, newWidth, newHeight);
         }
 
         public void DrawIntro(bool isEmulatorLoaded, bool isHackLoaded, bool isOffsetsInitialized)
@@ -206,26 +183,29 @@ namespace StarDisplay
             SolidBrush whiteBrush = new SolidBrush(Color.White);
             SolidBrush greenBrush = new SolidBrush(Color.Green);
 
-            RectangleF drawRect = new RectangleF(0, 0, 340, 50);
+            RectangleF drawRect = new RectangleF(0, 0, Width, SHeight * (float)2.5);
             StringFormat drawFormat = new StringFormat
             {
                 Alignment = StringAlignment.Center,
                 LineAlignment = StringAlignment.Center
             };
-            graphics.DrawString("Welcome to Star Display!", drawFont, whiteBrush, new RectangleF(0, 0, 340, 50), drawFormat);
+            graphics.DrawString("Welcome to Star Display!", drawFont, whiteBrush, new RectangleF(0, 0, Width, SHeight * (float)2.5), drawFormat);
 
             bool success = isEmulatorLoaded && isHackLoaded && isOffsetsInitialized;
 
             drawFormat.Alignment = StringAlignment.Near;
-            graphics.DrawString("1) Run Emulator", drawFont, isEmulatorLoaded ? greenBrush : whiteBrush, new RectangleF(20, 70, 340, 50), drawFormat);
-            graphics.DrawString("2) Load your hack", drawFont, isHackLoaded ? greenBrush : whiteBrush, new RectangleF(20, 140, 340, 50), drawFormat);
-            graphics.DrawString("3) Let Star Display init", drawFont, isOffsetsInitialized ? greenBrush : whiteBrush, new RectangleF(20, 210, 340, 50), drawFormat);
-            graphics.DrawString("4) Enjoy!", drawFont, success ? greenBrush : whiteBrush, new RectangleF(20, 280, 340, 50), drawFormat);
+            graphics.DrawString("1) Run Emulator", drawFont, isEmulatorLoaded ? greenBrush : whiteBrush, new RectangleF(SWidth, SHeight * 3, Width - SWidth, SHeight * 2), drawFormat);
+            graphics.DrawString("2) Load your hack", drawFont, isHackLoaded ? greenBrush : whiteBrush, new RectangleF(SWidth, SHeight * 6, Width - SWidth, SHeight * 2), drawFormat);
+            graphics.DrawString("3) Let Star Display init", drawFont, isOffsetsInitialized ? greenBrush : whiteBrush, new RectangleF(SWidth, SHeight * 9, Width - SWidth, SHeight * 2), drawFormat);
+            graphics.DrawString("4) Enjoy!", drawFont, success ? greenBrush : whiteBrush, new RectangleF(SWidth, SHeight * 12, Width - SWidth, SHeight * 2), drawFormat);
 
         }
 
         public void TestFont()
         {
+            Image randomImage = new Bitmap(300, 50);
+            Graphics g = Graphics.FromImage(randomImage);
+
             // Setup draw font: 20 symbols in max 170 width
             float l = 0, r = 40, m = -1;
             String measureString = new string('W', 20);
@@ -239,10 +219,10 @@ namespace StarDisplay
 
                 // Measure string.
                 SizeF stringSize = new SizeF();
-                stringSize = graphics.MeasureString(measureString, drawFont);
+                stringSize = g.MeasureString(measureString, drawFont);
 
                 float width = stringSize.Width; //should take 170
-                if (width < 170)
+                if (width < HalfWidth)
                     l = m;
                 else
                     r = m;
@@ -263,10 +243,10 @@ namespace StarDisplay
                 
                 // Measure string.
                 SizeF stringSize = new SizeF();
-                stringSize = graphics.MeasureString(measureString, drawFont);
+                stringSize = g.MeasureString(measureString, drawFont);
 
-                float height = stringSize.Height; //should take 170
-                if (height < 20)
+                float height = stringSize.Height; //should take HalfWidth
+                if (height < SWidth)
                     l = m;
                 else
                     r = m;
@@ -287,16 +267,19 @@ namespace StarDisplay
 
                 // Measure string.
                 SizeF stringSize = new SizeF();
-                stringSize = graphics.MeasureString(measureString, drawFont);
+                stringSize = g.MeasureString(measureString, drawFont);
 
                 float width = stringSize.Width; //should take 170
-                if (width < 340)
+                if (width < HalfWidth * 2)
                     l = m;
                 else
                     r = m;
             }
             bigFontSize = m;
             Console.WriteLine("Big: {0}", m);
+
+            g.Dispose();
+            randomImage.Dispose();
         }
     }
 }

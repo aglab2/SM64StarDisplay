@@ -13,7 +13,7 @@ namespace StarDisplay
 {
     public partial class ColorPicker : Form
     {
-        LayoutDescription ld;
+        LayoutDescriptionEx ld;
         int picX, picY;
         double midHue;
         double midVal;
@@ -23,7 +23,7 @@ namespace StarDisplay
 
         public Color pickedColor = Color.White;
 
-        public ColorPicker(LayoutDescription ld)
+        public ColorPicker(LayoutDescriptionEx ld)
         {
             this.ld = ld;
             img = ld.goldStar;

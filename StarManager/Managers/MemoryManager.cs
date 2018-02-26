@@ -12,6 +12,8 @@ namespace StarDisplay
 {
     public class MemoryManager : CachedManager
     {
+        private const int FileLength = 0x70;
+
         Process Process;
         MagicManager mm;
 
@@ -42,10 +44,6 @@ namespace StarDisplay
         IntPtr igtigtPtr; //short
         IntPtr levelSpawnPtr; //byte
 
-        int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
-        int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
-        int[] overworldLevels = { 6, 26, 16 };
-
         private int selectedFile;
 
         public int SelectedFile { get => selectedFile; set { if (selectedFile != value) isInvalidated = true; selectedFile = value; } }
@@ -62,7 +60,7 @@ namespace StarDisplay
         public MemoryManager(Process process)
         {
             this.Process = process;
-            oldStars = new byte[32];
+            oldStars = new byte[FileLength];
         }
 
         public bool ProcessActive()
@@ -131,10 +129,10 @@ namespace StarDisplay
 
             igtPtr = new IntPtr(mm.ramPtrBase + 0x32D580);
             filesPtr = new IntPtr[4];
-            filesPtr[0] = new IntPtr(mm.ramPtrBase + 0x207708);
-            filesPtr[1] = new IntPtr(mm.ramPtrBase + 0x207778);
-            filesPtr[2] = new IntPtr(mm.ramPtrBase + 0x2077E8);
-            filesPtr[3] = new IntPtr(mm.ramPtrBase + 0x207858);
+            filesPtr[0] = new IntPtr(mm.ramPtrBase + 0x207700);
+            filesPtr[1] = new IntPtr(mm.ramPtrBase + 0x207770);
+            filesPtr[2] = new IntPtr(mm.ramPtrBase + 0x2077E0);
+            filesPtr[3] = new IntPtr(mm.ramPtrBase + 0x207850);
 
             levelPtr = new IntPtr(mm.ramPtrBase + 0x32DDFA);
             areaPtr = new IntPtr(mm.ramPtrBase + 0x33B249);
@@ -157,11 +155,10 @@ namespace StarDisplay
         public void PerformRead()
         {
             Igt = Process.ReadValue<int>(igtPtr);
-
-            int length = 32;
+            
             filePtr = filesPtr[SelectedFile];
-            byte[] stars = Process.ReadBytes(filePtr, 32);
-            for (int i = 0; i < length; i += 4)
+            byte[] stars = Process.ReadBytes(filePtr, FileLength);
+            for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
             Stars = stars;
 
@@ -182,7 +179,7 @@ namespace StarDisplay
             if (Igt > 200 || Igt < 60) return;
 
             previousTime = Igt;
-            byte[] data = Enumerable.Repeat((byte)0x00, 0x70).ToArray();
+            byte[] data = Enumerable.Repeat((byte)0x00, FileLength).ToArray();
             IntPtr file = filesPtr[SelectedFile];
             if (!Process.WriteBytes(file, data))
             {
@@ -207,24 +204,30 @@ namespace StarDisplay
 
         private int GetCurrentOffset()
         {
-            if (Level == 0) return -1;
-            int courseLevel = Array.FindIndex(courseLevels, lvl => lvl == Level);
-            if (courseLevel != -1) return courseLevel + 3;
-            int secretLevel = Array.FindIndex(secretLevels, lvl => lvl == Level);
-            if (secretLevel != -1) return secretLevel + 18;
-            int owLevel = Array.FindIndex(overworldLevels, lvl => lvl == Level);
-            if (owLevel != -1) return 0;
-            return -2;
+            LevelOffsetsDescription lod = LevelInfo.FindByLevel(Level);
+            if (lod == null)
+                return -1;
+
+            return lod.EEPOffset;
         }
 
-        public TextHighlightAction GetCurrentLineAction(LayoutDescription ld)
+        public TextHighlightAction GetCurrentLineAction(LayoutDescriptionEx ld)
         {
             int offset = GetCurrentOffset();
 
-            int courseIndex = Array.FindIndex(ld.courseDescription, lind => lind != null && !lind.isTextOnly && lind.offset == offset);
-            if (courseIndex != -1) return new TextHighlightAction(courseIndex, false, ld.courseDescription[courseIndex].text);
-            int secretIndex = Array.FindIndex(ld.secretDescription, lind => lind != null && !lind.isTextOnly && lind.offset == offset);
-            if (secretIndex != -1) return new TextHighlightAction(secretIndex, true, ld.secretDescription[secretIndex].text);
+            int courseIndex = ld.courseDescription.FindIndex(lind => (lind is StarsLineDescription sld) ? sld.offset == offset : false);
+            if (courseIndex != -1)
+            {
+                StarsLineDescription sld = (StarsLineDescription)ld.courseDescription[courseIndex];
+                return new TextHighlightAction(courseIndex, false, sld.text);
+            }
+
+            int secretIndex = ld.secretDescription.FindIndex(lind => (lind is StarsLineDescription sld) ? sld.offset == offset : false);
+            if (secretIndex != -1)
+            {
+                StarsLineDescription sld = (StarsLineDescription)ld.secretDescription[secretIndex];
+                return new TextHighlightAction(secretIndex, true, sld.text);
+            }
 
             return null;
         }
@@ -326,7 +329,7 @@ namespace StarDisplay
             return picture;
         }
 
-        public DrawActions GetDrawActions(LayoutDescription ld, ROMManager rm)
+        public DrawActions GetDrawActions(LayoutDescriptionEx ld, ROMManager rm)
         {
             int totalReds = 0, reds = 0;
             try
@@ -364,14 +367,13 @@ namespace StarDisplay
             return da;
         }
 
-        public DrawActions GetCollectablesOnlyDrawActions(LayoutDescription ld, ROMManager rm)
+        public DrawActions GetCollectablesOnlyDrawActions(LayoutDescriptionEx ld, ROMManager rm)
         {
-            int length = 32;
             IntPtr file = filesPtr[SelectedFile];
-            byte[] stars = Process.ReadBytes(file, length);
+            byte[] stars = Process.ReadBytes(file, FileLength);
             if (stars == null) return null;
 
-            for (int i = 0; i < length; i += 4)
+            for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
 
             int totalReds = 0, reds = 0;
@@ -468,26 +470,24 @@ namespace StarDisplay
 
         public override void InvalidateCache()
         {
-            oldStars = new byte[32];
+            oldStars = new byte[FileLength];
             base.InvalidateCache();
         }
 
         public void WriteToFile(int offset, int bit)
         {
-            int length = 32;
-
-            byte[] stars = new byte[32];
+            byte[] stars = new byte[FileLength];
             Stars.CopyTo(stars, 0);
 
             //fix stuff here!!!
             stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit)); //???
 
-            for (int i = 0; i < length; i += 4)
+            for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
 
             Process.WriteBytes(filePtr, stars);
 
-            for (int i = 0; i < length; i += 4)
+            for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
 
             stars.CopyTo(Stars, 0);
@@ -498,12 +498,10 @@ namespace StarDisplay
 
         public void WriteToFile(byte[] data)
         {
-            int length = 32;
-
             byte[] stars = data;
             if (stars == null) return;
             
-            for (int i = 0; i < length; i += 4)
+            for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
 
             Process.WriteBytes(filePtr, stars);
