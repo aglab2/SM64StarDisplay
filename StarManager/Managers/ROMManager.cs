@@ -13,13 +13,9 @@ namespace StarDisplay
     public class ROMManager : CachedManager, IDisposable
     {
         BinaryReader reader;
-        public static int[] ROMOffsetforEEPOffset = { 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B,
-                0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16,
-                0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F, 0x21, 0x22, 0x24 };
 
         static int courseBaseAddress = 0x02AC094;
-
-
+        
         static byte objectDescriptor = 0x24;
         static byte areaStartDescriptor = 0x1F;
         static byte areaEndDescriptor = 0x20;
@@ -49,11 +45,6 @@ namespace StarDisplay
         static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
 
         Object[] boxObjects;
-
-        public static int getROMOffsetFromEEPOffset(int eepOffset)
-        {
-            return Array.FindIndex(ROMOffsetforEEPOffset, el => el == eepOffset);
-        }
 
         public ROMManager(string fileName)
         {
@@ -190,7 +181,7 @@ namespace StarDisplay
             return reader.ReadByte();
         }
 
-        public void ParseStars(LayoutDescription ld)
+        public void ParseStars(LayoutDescriptionEx ld)
         {
             int totalStars = 0;
             totalStars += UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription);
@@ -198,35 +189,44 @@ namespace StarDisplay
             ld.RecountStars();
         }
 
-        private int UpdateLineDescriptionsWithStars(byte initMask, LineDescription[] descriptions)
+        private int UpdateLineDescriptionsWithStars(byte initMask, List<LineDescriptionEx> descriptions)
         {
             int totalStars = 0;
-            for (int i = 0; i < descriptions.Length; i++)
+            for (int i = 0; i < descriptions.Count; i++)
             {
-                int eeprom = descriptions[i].offset + 8;
-                int index = getROMOffsetFromEEPOffset(eeprom);
-                if (index == -1) continue;
+                if (descriptions[i] is StarsLineDescription sld)
+                {
+                    int eeprom = sld.offset;
 
-                int levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
-                int levelAddressEnd = ReadInt32();
+                    LevelOffsetsDescription levelOffsets = LevelInfo.FindByEEPOffset(eeprom);
+                    if (levelOffsets == null)
+                        continue;
 
-                descriptions[i].starMask = GenerateStarMask(initMask, levelAddressStart, levelAddressEnd);
-                totalStars +=  MemoryManager.countStars(descriptions[i].starMask);
+                    int romOffset = levelOffsets.ROMOffset;
+
+                    int levelAddressStart = ReadInt32(courseBaseAddress + romOffset * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
+                    int levelAddressEnd = ReadInt32();
+
+                    sld.starMask = GenerateStarMask(initMask, levelAddressStart, levelAddressEnd);
+                    totalStars += MemoryManager.countStars(sld.starMask, 7);
+                }
             }
             return totalStars;
         }
 
         private int PrepareAddresses(int level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset)
         {
-            int index = getROMOffsetFromEEPOffset(level);
-
-            if (index == -1)
+            LevelOffsetsDescription levelOffsets = LevelInfo.FindByLevel(level);
+            if (levelOffsets == null)
             {
-                levelAddressStart = 0; levelAddressEnd = 0; levelOffset = 0; return - 1;
+                levelAddressStart = 0; levelAddressEnd = 0; levelOffset = 0; return -1;
             }
-            levelAddressStart = ReadInt32(courseBaseAddress + index * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
-            levelAddressEnd = ReadInt32(courseBaseAddress + index * 0x14 + 0x08);
-            levelOffset = ReadInt32(courseBaseAddress + index * 0x14 + 0x0C) & 0x0000FFFF;
+
+            int romOffset = levelOffsets.ROMOffset;
+            
+            levelAddressStart = ReadInt32(courseBaseAddress + romOffset * 0x14 + 0x04); //base offset + offset for descriptor + address in descriptor
+            levelAddressEnd = ReadInt32(courseBaseAddress + romOffset * 0x14 + 0x08);
+            levelOffset = ReadInt32(courseBaseAddress + romOffset * 0x14 + 0x0C) & 0x0000FFFF;
             return 0;
         }
 
@@ -330,7 +330,7 @@ namespace StarDisplay
                     byte starByte = ReadBParam1(offset);
                     if (starByte <= 0x06) //troll star
                     {
-                        mask |= 2 << starByte;
+                        mask |= 1 << starByte;
                         Console.WriteLine("[S] '{0:x}' Star {1} detected!", offset, starByte);
                     }
                 }
@@ -341,13 +341,13 @@ namespace StarDisplay
                     if (starByte == 1)
                     {
                         byte starByteParam = 1;
-                        mask |= 2 << starByteParam;
+                        mask |= 1 << starByteParam;
                         Console.WriteLine("[K] '{0:x}' Star {1} detected!", offset, starByteParam);
                     }
                     if (starByte == 2)
                     {
                         byte starByteParam = 2;
-                        mask |= 2 << starByteParam;
+                        mask |= 1 << starByteParam;
                         Console.WriteLine("[K] '{0:x}' Star {1} detected!", offset, starByteParam);
                     }
                 }
@@ -362,7 +362,7 @@ namespace StarDisplay
                         byte starByte = ReadBParam1(offset);
                         if (starByte <= 0x6)
                         {
-                            mask |= 2 << starByte;
+                            mask |= 1 << starByte;
                             Console.WriteLine("[B] '{0:x}' Star {1} in box detected 8!", offset, starByte);
                         }
                     }
@@ -370,7 +370,7 @@ namespace StarDisplay
                     {
                         if (currentObject.BParam1 <= 0x6)
                         {
-                            mask |= 2 << currentObject.BParam2;
+                            mask |= 1 << currentObject.BParam2;
                             Console.WriteLine("[B] '{0:x}' Star {1} in box detected!", offset, currentObject.BParam2);
                         }
                     }

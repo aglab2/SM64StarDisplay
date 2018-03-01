@@ -16,7 +16,7 @@ namespace StarDisplay
 {
     public partial class MainWindow : Form
     {
-        LayoutDescription ld;
+        LayoutDescriptionEx ld;
 
         GraphicsManager gm;
         MemoryManager mm;
@@ -50,7 +50,7 @@ namespace StarDisplay
         {
             InitializeComponent();
 
-            ld = LayoutDescription.GenerateDefault();
+            ld = LayoutDescriptionEx.GenerateDefault();
 
             // We need big enough picture to perform tests
             Image randomImage = new Bitmap(300, 50);
@@ -74,9 +74,7 @@ namespace StarDisplay
             }
 
             timer = new System.Threading.Timer(UpdateStars, null, period, Timeout.Infinite);
-
-            baseImage = new Bitmap(starPicture.Width, starPicture.Height);
-
+            
             oldCRC = 0;
 
             fileMenuItems = new ToolStripMenuItem[4];
@@ -96,6 +94,9 @@ namespace StarDisplay
 
                 componentsClasses.Add(type);
             }
+
+            starPicture.Width = this.Width;
+            starPicture.Height = this.Height;
         }
 
         ~MainWindow()
@@ -122,6 +123,7 @@ namespace StarDisplay
             menuStrip.Enabled = false;
 
             //Steps to achieve success here!
+            baseImage = new Bitmap(starPicture.Width, starPicture.Height);
             Graphics baseGraphics = Graphics.FromImage(baseImage);
             baseGraphics.Clear(Color.Black);
             baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
@@ -261,12 +263,14 @@ namespace StarDisplay
                     Console.WriteLine("MM Invalidated!");
                 if (gmIsInvalidated)
                     Console.WriteLine("GM Invalidated!");
-
+                
                 // We do not draw anything!
                 if (!mmIsInvalidated && !gmIsInvalidated)
                 {
                     return;
                 }
+
+                gm.TestFont();
 
                 if (enableAutoDeleteToolStripMenuItem.Checked)
                 {
@@ -282,6 +286,8 @@ namespace StarDisplay
                 }
 
                 //Display stars routine
+                baseImage = new Bitmap(starPicture.Width, starPicture.Width * 4);
+
                 Graphics baseGraphics = Graphics.FromImage(baseImage);
                 baseGraphics.Clear(Color.Black);
                 baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
@@ -330,9 +336,14 @@ namespace StarDisplay
                 {
                     lineOffset += entry.Execute(gm, lineOffset, sm);
                 }
-
+                
                 baseGraphics.Dispose();
-                this.SafeInvoke((MethodInvoker)delegate { menuStrip.Enabled = true; starPicture.Image = baseImage; });
+                this.SafeInvoke(delegate {
+                    menuStrip.Enabled = true;
+                    starPicture.Image = baseImage;
+                    starPicture.Height = (int) (lineOffset * gm.SHeight) + 10;
+                    this.Height = (int)(lineOffset * gm.SHeight) + 48;
+                });
             }
             catch (Win32Exception)
             {
@@ -365,7 +376,7 @@ namespace StarDisplay
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Bitmap image = mm.GetImage();
-            ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, image, ld.starAmount);
+            ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
             InvalidateCache();
         }
 
@@ -387,20 +398,20 @@ namespace StarDisplay
         private void EditDisplay()
         {
             int X = picX; int Y = picY;
-            int line = Y / 23;
-            bool isSecret = (X / 180) == 1;
-            int star = (X - (isSecret ? 180 : 0)) / 20;
-            if (star == 8) return;
+            int line = (int) Math.Floor(Y / gm.SHeight);
+            bool isSecret = ((int) Math.Floor(X / (gm.Width / 2))) == 1;
+            int star = (int) Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
+            if (star > ld.starsShown) return;
 
             try
             {
-                LineDescription curld;
+                LineDescriptionEx curld;
                 if (isSecret)
                 {
                     curld = ld.secretDescription[line];
                     if (curld == null)
                     {
-                        ld.secretDescription[line] = new LineDescription("", true, 0, 0);
+                        ld.secretDescription[line] = new TextOnlyLineDescription("");
                         curld = ld.secretDescription[line];
                     }
                 }
@@ -409,20 +420,27 @@ namespace StarDisplay
                     curld = ld.courseDescription[line];
                     if (curld == null)
                     {
-                        ld.courseDescription[line] = new LineDescription("", true, 0, 0);
+                        ld.courseDescription[line] = new TextOnlyLineDescription("");
                         curld = ld.courseDescription[line];
                     }
                 }
 
-                if (star == 0 || curld.isTextOnly)
+                if (star == 0 || curld is TextOnlyLineDescription)
                 {
-                    Settings settings = new Settings(curld);
+                    Settings settings = new Settings(curld, ld.starsShown);
                     settings.ShowDialog();
-                    ld.Trim();
+                    ld.starsShown = settings.starsShown;
+                    if (isSecret)
+                        ld.secretDescription[line] = settings.lind;
+                    else
+                        ld.courseDescription[line] = settings.lind;
+
+                    ld.PrepareForEdit();
+                    gm.TestFont();
                 }
-                else
+                if (star > 0 && curld is StarsLineDescription sld)
                 {
-                    curld.starMask = (byte)(curld.starMask ^ (1 << star));
+                    sld.starMask = (byte)(sld.starMask ^ (1 << (star - 1)));
                 }
 
                 ld.RecountStars();
@@ -437,13 +455,14 @@ namespace StarDisplay
         private void EditWarps()
         {
             int X = picX; int Y = picY;
-            int line = Y / 23;
-            bool isSecret = (X / 180) == 1;
+            int line = (int)Math.Floor(Y / gm.SHeight);
+            bool isSecret = ((int)Math.Floor(X / (gm.Width / 2))) == 1;
+            int star = (int)Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
             if (line > ld.GetLength()) return;
 
             try
             {
-                LineDescription curld = null;
+                LineDescriptionEx curld = null;
                 do
                 {
 
@@ -453,9 +472,11 @@ namespace StarDisplay
                         return;
 
                     line++;
-                } while (curld == null || curld.isTextOnly);
-
-                mm.WriteWarp(wd.warp, WarpDialog.offsetToLevels[curld.offset - 4], wd.area);
+                } while (curld == null || (curld is TextOnlyLineDescription));
+                
+                
+                if (curld is StarsLineDescription sld)
+                    mm.WriteWarp(wd.warp, (byte) LevelInfo.FindByEEPOffset(sld.offset).Level, wd.area);
 
                 return;
             }
@@ -465,20 +486,20 @@ namespace StarDisplay
         private void EditFile()
         {
             int X = picX; int Y = picY;
-            int line = Y / 23;
-            bool isSecret = (X / 180) == 1;
-            int star = (X - (isSecret ? 180 : 0)) / 20;
+            int line = (int)Math.Floor(Y / gm.SHeight);
+            bool isSecret = ((int)Math.Floor(X / (gm.Width / 2))) == 1;
+            int star = (int)Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
             if (star == 8) return;
 
             try
             {
-                LineDescription curld;
+                LineDescriptionEx curld;
                 if (isSecret)
                 {
                     curld = ld.secretDescription[line];
                     if (curld == null)
                     {
-                        ld.secretDescription[line] = new LineDescription("", true, 0, 0);
+                        ld.secretDescription[line] = new TextOnlyLineDescription("");
                         curld = ld.secretDescription[line];
                     }
                 }
@@ -487,32 +508,35 @@ namespace StarDisplay
                     curld = ld.courseDescription[line];
                     if (curld == null)
                     {
-                        ld.courseDescription[line] = new LineDescription("", true, 0, 0);
+                        ld.courseDescription[line] = new TextOnlyLineDescription("");
                         curld = ld.courseDescription[line];
                     }
                 }
 
-                if (star == 0 || curld.isTextOnly)
+                if (curld is StarsLineDescription sld)
                 {
-                    //caps editing, keys editing, maybe other stuff?
-                    if (curld.starMask != 0 && !curld.isTextOnly)
+                    if (star == 0)
                     {
-                        for (int i = 1; i < 8; i++)
+                        //caps editing, keys editing, maybe other stuff?
+                        if (sld.starMask != 0)
                         {
-                            if ((curld.starMask & (byte)(1 << i)) != 0)
+                            for (int i = 0; i < ld.starsShown; i++)
                             {
-                                mm.WriteToFile(curld.offset, i - 1);
+                                if ((sld.starMask & (byte)(1 << i)) != 0)
+                                {
+                                    mm.WriteToFile(sld.offset, i);
+                                }
                             }
+                            InvalidateCache();
                         }
-                        InvalidateCache();
                     }
-                }
-                else
-                {
-                    if ((curld.starMask & (byte)(1 << star)) != 0)
+                    else
                     {
-                        mm.WriteToFile(curld.offset, star - 1);
-                        InvalidateCache();
+                        if ((sld.starMask & (byte)(1 << (star - 1))) != 0)
+                        {
+                            mm.WriteToFile(sld.offset, star - 1);
+                            InvalidateCache();
+                        }
                     }
                 }
                 return;
@@ -551,22 +575,29 @@ namespace StarDisplay
         private void LoadLayoutNoInvalidate(string name)
         {
             IFormatter formatter = new BinaryFormatter();
-            Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
-            ld = (LayoutDescription)formatter.Deserialize(stream);
 
-            //if (!ld.isValid())
-            //    throw new ArgumentException("Bad file provided!");
+            string ext = Path.GetExtension(name);
+
+            Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
+            object layout = formatter.Deserialize(stream);
+            string layoutClassName = layout.GetType().Name;
+
+            if (layoutClassName == "LayoutDescription")
+                ld = new LayoutDescriptionEx((LayoutDescription) layout);
+            else if (layoutClassName == "LayoutDescriptionEx")
+                ld = (LayoutDescriptionEx) layout;
+            else
+                MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             ld.RecountStars();
             if (ld.darkStar == null) ld.GenerateDarkStar();
             if (ld.redOutline == null) ld.GenerateOutline();
             ld.Trim();
-            stream.Close();
         }
 
         private void LoadDefaultLayoutNoInvalidate()
         {
-            ld = LayoutDescription.GenerateDefault();
+            ld = LayoutDescriptionEx.GenerateDefault();
             ld.Trim();
         }
         
@@ -578,26 +609,48 @@ namespace StarDisplay
             formatter.Serialize(stream, ld);
             stream.Close();
         }
-
+        
         public void LoadExternal(string name)
         {
-            byte[] data = File.ReadAllBytes(name);
-            ld = LayoutDescription.DeserializeExternal(data, mm.GetImage());
-            InvalidateCache();
+            throw new NotImplementedException();
+            //byte[] data = File.ReadAllBytes(name);
+            //ld = LayoutDescriptionEx.DeserializeExternal(data, mm.GetImage());
+            //InvalidateCache();
         }
 
         public void SaveExternal(string name)
         {
-            byte[] data = ld.SerializeExternal();
-            File.WriteAllBytes(name, data);
+            throw new NotImplementedException();
+            //byte[] data = ld.SerializeExternal();
+            //File.WriteAllBytes(name, data);
+        }
+
+        private Exception LoadLayoutExc(string path)
+        {
+            Exception ret = null;
+
+            try
+            {
+                LoadLayout(path);
+            }
+            catch (Exception e)
+            {
+                ret = e;
+            }
+
+            return ret;
         }
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
             {
-                LoadLayout("layout/" + rm.GetROMName() + ".sml");
-            }catch (IOException){
+                do
+                {
+                    LoadLayout("layout/" + rm.GetROMName() + ".sml");
+                } while (false);
+            }
+            catch (IOException){
                 var result = MessageBox.Show("Cannot find layout for this hack. Do you want to load layout from file?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);
                 if (result == DialogResult.Yes)
                 {
@@ -614,7 +667,7 @@ namespace StarDisplay
 
         private void loadDefaultToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            ld = LayoutDescription.GenerateDefault();
+            ld = LayoutDescriptionEx.GenerateDefault();
             InvalidateCache();
         }
 
@@ -622,7 +675,7 @@ namespace StarDisplay
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*",
+                Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*",
                 FilterIndex = 1,
                 RestoreDirectory = false,
                 InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
@@ -649,7 +702,7 @@ namespace StarDisplay
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog
             {
-                Filter = "Star Manager Layout (*.sml)|*.sml|Unified Layout (*.smlx)|*.smlx|All files (*.*)|*.*",
+                Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*",
                 FilterIndex = 1,
                 RestoreDirectory = false,
                 InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
@@ -793,7 +846,7 @@ namespace StarDisplay
                     ROMManager rm = new ROMManager(openFileDialog.FileName);
                     if (rm == null) throw new IOException();
                     Bitmap image = rm.GetStarImage();
-                    ld = new LayoutDescription(ld.courseDescription, ld.secretDescription, image, ld.starAmount);
+                    ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
                     InvalidateCache();
                 }
                 catch (IOException)
@@ -873,6 +926,16 @@ namespace StarDisplay
         {
             editFileToolStripMenuItem.Checked = false;
             warpToLevelToolStripMenuItem.Checked = false;
+
+            if (configureLayoutToolStripMenuItem.Checked)
+            {
+                ld.PrepareForEdit();
+            }
+            else
+            {
+                ld.Trim();
+            }
+            gm.InvalidateCache();
         }
 
         private void editFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -970,6 +1033,13 @@ namespace StarDisplay
             {
                 mm.KillProcess();
             }
+        }
+
+        private void MainWindow_Resize(object sender, EventArgs e)
+        {
+            starPicture.Width = this.Width;
+            gm.Width = Width;
+            gm.InvalidateCache();
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

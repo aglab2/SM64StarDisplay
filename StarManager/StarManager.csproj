@@ -54,9 +54,8 @@
     <ApplicationIcon>TKStar.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Octokit, Version=0.24.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Octokit.0.24.0\lib\net45\Octokit.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Octokit, Version=0.29.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.29.0\lib\net45\Octokit.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -97,6 +96,7 @@
     <Compile Include="Forms\WarpDialog.Designer.cs">
       <DependentUpon>WarpDialog.cs</DependentUpon>
     </Compile>
+    <Compile Include="LevelInfo.cs" />
     <Compile Include="Managers\CacheManager.cs" />
     <Compile Include="Managers\MagicManager.cs" />
     <Compile Include="Managers\Manager.cs" />
@@ -145,6 +145,7 @@
     </Compile>
     <Compile Include="Managers\UpdateManager.cs" />
     <Compile Include="Process\WinAPI.cs" />
+    <Compile Include="ViewHelper\LayoutDescriptionEx.cs" />
     <Content Include="TKStar.ico" />
     <EmbeddedResource Include="Forms\AboutDialog.resx">
       <DependentUpon>AboutDialog.cs</DependentUpon>

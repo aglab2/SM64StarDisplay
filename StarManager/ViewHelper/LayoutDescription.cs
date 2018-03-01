@@ -271,7 +271,7 @@ namespace StarDisplay
             while (ms.BaseStream.Position != ms.BaseStream.Length)
             {
                 LineDescription lind = LineDescription.Deserialize(ms, out bool isSecret);
-                if (!lind.isTextOnly) stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
+                if (!lind.isTextOnly) stars += MemoryManager.countStars((byte)(lind.starMask >> 1), 7);
 
                 if (isSecret)
                 {
@@ -296,14 +296,14 @@ namespace StarDisplay
             {
                 LineDescription lind = courseDescription[i];
                 if (lind == null || lind.isTextOnly) continue;
-                stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
+                stars += MemoryManager.countStars((byte)(lind.starMask >> 1), 7);
             }
 
             for (int i = 0; i < secretDescription.Length; i++)
             {
                 LineDescription lind = secretDescription[i];
                 if (lind == null || lind.isTextOnly) continue;
-                stars += MemoryManager.countStars((byte)(lind.starMask >> 1));
+                stars += MemoryManager.countStars((byte)(lind.starMask >> 1), 7);
             }
 
             starAmount = stars.ToString();

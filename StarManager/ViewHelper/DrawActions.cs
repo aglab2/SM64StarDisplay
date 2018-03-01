@@ -46,14 +46,14 @@ namespace StarDisplay
         
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
-            for (int i = 1; i <= 7; i++)
+            for (int i = 0; i < gm.Ld.starsShown; i++)
             {
                 if ((StarMask & (1 << i)) == 0) continue;
-                int x = (IsSecret ? 180 : 0) + i * 20;
-                int y = (lineOffset + Line) * 23;
-                bool isAcquired = (StarByte & (1 << (i - 1))) != 0;
+                float x = (IsSecret ? gm.Width / 2 : 0) + (i + 1) * gm.SWidth;
+                float y = (lineOffset + Line) * gm.SHeight + gm.SOffset;
+                bool isAcquired = (StarByte & (1 << i)) != 0;
                 Image img = isAcquired ? gm.Ld.goldStar : gm.Ld.darkStar;
-                gm.graphics.DrawImage(img, x, y, 20, 20);
+                gm.graphics.DrawImage(img, x, y, gm.SWidth, gm.SWidth);
             }
             return 0; //Line Actions should not increase global offset
         }
@@ -146,11 +146,11 @@ namespace StarDisplay
             //int totalStarLine = gm.ld.GetLength() + 2;
             for (int i = 0; i < CurrentRedsCount; i++)
             {
-                gm.graphics.DrawImage(gm.reds, 20 + i * 20, totalStarLine * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.reds, gm.SWidth + i * gm.SWidth, totalStarLine * gm.SHeight + gm.SHeight / 2, gm.SWidth, gm.SWidth);
             }
             for (int i = CurrentRedsCount; i < TotalRedsCount; i++)
             {
-                gm.graphics.DrawImage(gm.darkReds, 20 + i * 20, totalStarLine * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.darkReds, gm.SWidth + i * gm.SWidth, totalStarLine * gm.SHeight + gm.SHeight / 2, gm.SWidth, gm.SWidth);
             }
             return TotalRedsCount * 2 + (TotalRedsCount == 0 ? 0 : 2);
         }
@@ -160,11 +160,11 @@ namespace StarDisplay
             //int totalStarLine = gm.ld.GetLength() + 2;
             for (int i = 0; i < CurrentSecretsCount; i++)
             {
-                gm.graphics.DrawImage(gm.secrets, 10 * totalSize - i * 20, totalStarLine * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.secrets, (gm.SWidth / 2) * totalSize - i * gm.SWidth, totalStarLine * gm.SHeight + gm.SHeight / 2, gm.SWidth, gm.SWidth);
             }
             for (int i = CurrentSecretsCount; i < TotalSecretsCount; i++)
             {
-                gm.graphics.DrawImage(gm.darkSecrets, 10 * totalSize - i * 20, totalStarLine * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.darkSecrets, (gm.SWidth / 2) * totalSize - i * gm.SWidth, totalStarLine * gm.SHeight + gm.SHeight / 2, gm.SWidth, gm.SWidth);
             }
             return TotalSecretsCount * 2 + (TotalSecretsCount == 0 ? 0 : 2);
         }
@@ -174,11 +174,11 @@ namespace StarDisplay
             //int totalStarLine = gm.ld.GetLength() + 2;
             for (int i = 0; i < ActivePanelsCount; i++)
             {
-                gm.graphics.DrawImage(gm.flipswitchOn, i * 20 + 10 * offset + 1, totalStarLine * 23 + 11, 18, 18);
+                gm.graphics.DrawImage(gm.flipswitchOn, i * gm.SWidth + (gm.SWidth / 2) * offset + 1, totalStarLine * gm.SHeight + gm.SHeight / 2 + 1, gm.SWidth - 2, gm.SWidth - 2);
             }
             for (int i = ActivePanelsCount; i < TotalPanelsCount; i++)
             {
-                gm.graphics.DrawImage(gm.flipswitchOff, i * 20 + 10 * offset + 1, totalStarLine * 23 + 11, 18, 18);
+                gm.graphics.DrawImage(gm.flipswitchOff, i * gm.SWidth + (gm.SWidth / 2) * offset + 1, totalStarLine * gm.SHeight + gm.SHeight / 2 + 1, gm.SWidth - 2, gm.SWidth - 2);
             }
             return TotalPanelsCount * 2 + (TotalPanelsCount == 0 ? 0 : 2);
         }
@@ -193,8 +193,8 @@ namespace StarDisplay
 
             Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
 
-            gm.graphics.DrawImage(gm.reds, 20, totalStarLine * 23 + 10, 20, 20);
-            gm.graphics.DrawString(starLine, bigFont, redBrush, 40, totalStarLine * 23 + 10);
+            gm.graphics.DrawImage(gm.reds, gm.SWidth, totalStarLine * gm.SHeight + gm.SHeight / 2, gm.SWidth, gm.SWidth);
+            gm.graphics.DrawString(starLine, bigFont, redBrush, gm.SWidth * 2, totalStarLine * gm.SHeight + gm.SHeight / 2);
 
             redBrush.Dispose();
             drawBrush.Dispose();
@@ -213,8 +213,8 @@ namespace StarDisplay
 
             Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
 
-            gm.graphics.DrawString(starLine, bigFont, blueBrush, 20 + 10 * totalSize - starLine.Length * 10, totalStarLine * 23 + 10);
-            gm.graphics.DrawImage(gm.secrets, 10 * totalSize - starLine.Length * 10, totalStarLine * 23 + 10, 20, 20);
+            gm.graphics.DrawString(starLine, bigFont, blueBrush, gm.SWidth + (gm.SWidth / 2) * totalSize - starLine.Length * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2));
+            gm.graphics.DrawImage(gm.secrets, (gm.SWidth / 2) * totalSize - starLine.Length * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2), gm.SWidth, gm.SWidth);
             
             blueBrush.Dispose();
             drawBrush.Dispose();
@@ -233,8 +233,8 @@ namespace StarDisplay
 
             Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
 
-            gm.graphics.DrawImage(gm.flipswitchOff, offset * 10, totalStarLine * 23 + 10, 20, 20);
-            gm.graphics.DrawString(starLine, bigFont, redBrush, 20 + offset * 10, totalStarLine * 23 + 10);
+            gm.graphics.DrawImage(gm.flipswitchOff, offset * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2), gm.SWidth, gm.SWidth);
+            gm.graphics.DrawString(starLine, bigFont, redBrush, gm.SWidth + offset * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2));
 
             redBrush.Dispose();
             drawBrush.Dispose();
@@ -333,15 +333,15 @@ namespace StarDisplay
                 return 0;
             }
             if (gm.LastSHA == null) return 0;
-            for (int i = 1; i <= 7; i++)
+            for (int i = 0; i < gm.Ld.starsShown; i++)
             {
                 if ((gm.LastSHA.StarMask & (1 << i)) == 0) continue;
-                int x = (gm.LastSHA.IsSecret ? 180 : 0) + i * 20;
-                int y = (lineOffset + gm.LastSHA.Line) * 23;
-                bool isAcquired = (gm.LastSHA.HighlightByte & (1 << (i - 1))) != 0;
+                float x = (gm.LastSHA.IsSecret ? (gm.Width/2) : 0) + (i + 1) * gm.SWidth;
+                float y = (lineOffset + gm.LastSHA.Line) * gm.SHeight;
+                bool isAcquired = (gm.LastSHA.HighlightByte & (1 << i)) != 0;
                 if (isAcquired)
                 {
-                    gm.graphics.DrawImage(gm.Ld.redOutline, x, y, 20, 20);
+                    gm.graphics.DrawImage(gm.Ld.redOutline, x, y, gm.SWidth, gm.SWidth);
                 }
             }
             return 0;
@@ -389,14 +389,16 @@ namespace StarDisplay
             if (!isShown)
                 return 0;
 
-            int x = IsSecret ? 180 : 0;
-            int y = (lineOffset + Line) * 23;
-
             SolidBrush drawBrush = new SolidBrush(Color.LightGreen);
-            
             Font drawFont = new Font(gm.FontFamily, gm.DrawFontSize);
 
-            gm.graphics.DrawString(Text, drawFont, drawBrush, x, y + 3);
+            RectangleF drawRect = new RectangleF((IsSecret ? (gm.Width / 2) : 0), Line * gm.SHeight, gm.HalfWidth, gm.SHeight);
+            StringFormat drawFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Near,
+                LineAlignment = StringAlignment.Center
+            };
+            gm.graphics.DrawString(Text, drawFont, drawBrush, drawRect, drawFormat);
 
             drawBrush.Dispose();
             drawFont.Dispose();
@@ -447,11 +449,11 @@ namespace StarDisplay
         {
             for (int i = 0; i < CurrentRedsCount; i++)
             {
-                gm.graphics.DrawImage(gm.reds, 20 + i * 20, (lineOffset + Line) * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.reds, gm.SWidth + i * gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
             }
             for (int i = CurrentRedsCount; i < TotalRedsCount; i++)
             {
-                gm.graphics.DrawImage(gm.darkReds, 20 + i * 20, (lineOffset + Line) * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.darkReds, gm.SWidth + i * gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
             }
         }
 
@@ -462,10 +464,10 @@ namespace StarDisplay
             SolidBrush redBrush = new SolidBrush(Color.IndianRed);
             SolidBrush drawBrush = new SolidBrush(Color.White);
 
-            Font bigFont = new Font(gm.FontFamily, 12);
+            Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
 
-            gm.graphics.DrawImage(gm.reds, 20, (lineOffset + Line) * 23 + 10, 20, 20);
-            gm.graphics.DrawString(starLine, bigFont, redBrush, 40, (lineOffset + Line) * 23 + 10);
+            gm.graphics.DrawImage(gm.reds, gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
+            gm.graphics.DrawString(starLine, bigFont, redBrush, gm.SWidth * 2, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2);
 
             redBrush.Dispose();
             drawBrush.Dispose();
@@ -503,11 +505,11 @@ namespace StarDisplay
         {
             for (int i = 0; i < CurrentSecretsCount; i++)
             {
-                gm.graphics.DrawImage(gm.secrets, 200 + i * 20, (lineOffset + Line) * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.secrets, gm.Width / 2 + gm.SWidth + i * gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
             }
             for (int i = CurrentSecretsCount; i < TotalSecretsCount; i++)
             {
-                gm.graphics.DrawImage(gm.darkSecrets, 200 + i * 20, (lineOffset + Line) * 23 + 10, 20, 20);
+                gm.graphics.DrawImage(gm.darkSecrets, gm.Width / 2 + gm.SWidth + i * gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
             }
         }
 
@@ -520,8 +522,8 @@ namespace StarDisplay
 
             Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
 
-            gm.graphics.DrawImage(gm.secrets, 200, (lineOffset + Line) * 23 + 10, 20, 20);
-            gm.graphics.DrawString(starLine, bigFont, blueBrush, 220, (lineOffset + Line) * 23 + 11);
+            gm.graphics.DrawImage(gm.secrets, gm.Width / 2 + gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
+            gm.graphics.DrawString(starLine, bigFont, blueBrush, gm.Width / 2 + gm.SWidth * 2, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2);
 
             blueBrush.Dispose();
             drawBrush.Dispose();
@@ -535,7 +537,7 @@ namespace StarDisplay
                 DrawTextSecrets(gm, lineOffset);
             else
                 DrawFullSecrets(gm, lineOffset);
-            return 0;
+            return 3;
         }
     }
 
@@ -597,7 +599,7 @@ namespace StarDisplay
 
             Font bigFont = new Font(gm.FontFamily, gm.BigFontSize);
 
-            RectangleF drawRect = new RectangleF(0, lineOffset * 23, 340, 23);
+            RectangleF drawRect = new RectangleF(0, lineOffset * gm.SHeight, gm.Width, gm.SHeight);
             StringFormat drawFormat = new StringFormat
             {
                 LineAlignment = StringAlignment.Center,
@@ -672,7 +674,7 @@ namespace StarDisplay
 
             Font bigFont = new Font(gm.FontFamily, gm.BigFontSize);
 
-            RectangleF drawRect = new RectangleF(0, lineOffset * 23, 340, 23);
+            RectangleF drawRect = new RectangleF(0, lineOffset * gm.SHeight, gm.Width, gm.SHeight);
             StringFormat drawFormat = new StringFormat
             {
                 LineAlignment = StringAlignment.Center,
@@ -734,7 +736,7 @@ namespace StarDisplay
 
     public class DrawActions : IEnumerable<Action>
     {
-        LayoutDescription ld;
+        LayoutDescriptionEx ld;
         byte[] stars;
         byte[] oldStars;
         int reds;
@@ -746,7 +748,7 @@ namespace StarDisplay
 
         public DrawActions() { }
 
-        public DrawActions(LayoutDescription ld, byte[] stars, byte[] oldStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
+        public DrawActions(LayoutDescriptionEx ld, byte[] stars, byte[] oldStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
         {
             this.ld = ld;
             this.stars = stars;
@@ -762,93 +764,78 @@ namespace StarDisplay
         virtual public IEnumerator<Action> GetEnumerator()
         {
             yield return new StarLayoutInitAction();
-            int index; bool isAcquired;
-            index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "B1");
-            isAcquired = ((stars[3] & (1 << 4)) != 0) || ((stars[3] & (1 << 6)) != 0);
-            if (index != -1 && isAcquired)
-                yield return new TextHighlightAction(index, true, "B1");
-            index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "B2");
-            isAcquired = ((stars[3] & (1 << 5)) != 0) || ((stars[3] & (1 << 7)) != 0);
-            if (index != -1 && isAcquired)
-                yield return new TextHighlightAction(index, true, "B2");
-            index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "WC");
-            isAcquired = ((stars[3] & (1 << 1)) != 0);
-            if (index != -1 && isAcquired)
-                yield return new TextHighlightAction(index, true, "WC");
-            index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "MC");
-            isAcquired = ((stars[3] & (1 << 2)) != 0);
-            if (index != -1 && isAcquired)
-                yield return new TextHighlightAction(index, true, "MC");
-            index = Array.FindIndex(ld.secretDescription, lind => lind != null && lind.text == "VC");
-            isAcquired = ((stars[3] & (1 << 3)) != 0);
-            if (index != -1 && isAcquired)
-                yield return new TextHighlightAction(index, true, "VC");
 
-            for (int line = 0; line < ld.courseDescription.Length; line++)
+            for (int line = 0; line < ld.courseDescription.Count; line++)
             {
                 var descr = ld.courseDescription[line];
-                if (descr == null || descr.isTextOnly) continue;
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
 
-                byte oldStarByte = oldStars[descr.offset];
-                byte newStarByte = stars[descr.offset];
-                //byte highlightByte = highlightPivot[descr.offset];
-                byte starMask2 = (byte)(descr.starMask >> 1);
+                byte oldStarByte = oldStars[sld.offset];
+                byte newStarByte = stars[sld.offset];
                 
-                //byte diffByteFromPivot = (byte)(((highlightByte) ^ (newStarByte)) & newStarByte);
-                //yield return new StarHighlightAction(line, newStarByte, false, descr.starMask);
                 if (oldStarByte != newStarByte)
                 {
                     byte diffbyteFromOld = (byte)(((oldStarByte) ^ (newStarByte)) & newStarByte);
-                    yield return new LastHighlight(line, diffbyteFromOld, false, descr.starMask);
+                    yield return new LastHighlight(line, diffbyteFromOld, false, sld.starMask);
+                }
+
+                if ((stars[sld.highlightOffset] & sld.highlightStarMask) != 0)
+                {
+                    yield return new TextHighlightAction(line, false, sld.text);
                 }
             }
 
-            for (int line = 0; line < ld.secretDescription.Length; line++)
+            for (int line = 0; line < ld.secretDescription.Count; line++)
             {
                 var descr = ld.secretDescription[line];
-                if (descr == null || descr.isTextOnly) continue;
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
 
-                byte oldStarByte = oldStars[descr.offset];
-                byte newStarByte = stars[descr.offset];
-                byte starMask2 = (byte)(descr.starMask >> 1);
+                byte oldStarByte = oldStars[sld.offset];
+                byte newStarByte = stars[sld.offset];
 
-                //yield return new StarHighlightAction(line, newStarByte, true, descr.starMask);
                 if (oldStarByte != newStarByte)
                 {
                     byte diffbyteFromOld = (byte)(((oldStarByte) ^ (newStarByte)) & newStarByte);
-                    yield return new LastHighlight(line, diffbyteFromOld, true, descr.starMask);
+                    yield return new LastHighlight(line, diffbyteFromOld, true, sld.starMask);
+                }
+
+                if ((stars[sld.highlightOffset] & sld.highlightStarMask) != 0)
+                {
+                    yield return new TextHighlightAction(line, true, sld.text);
                 }
             }
 
             yield return new LastStarHighlightAction();
 
             int starCount = 0;
-            for (int line = 0; line < ld.courseDescription.Length; line++)
+            for (int line = 0; line < ld.courseDescription.Count; line++)
             {
                 var descr = ld.courseDescription[line];
-                if (descr == null || descr.isTextOnly) continue;
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
                 
-                byte oldStarByte = oldStars[descr.offset];
-                byte newStarByte = stars[descr.offset];
-                byte starMask2 = (byte)(descr.starMask >> 1);
+                byte oldStarByte = oldStars[sld.offset];
+                byte newStarByte = stars[sld.offset];
 
-                starCount += MemoryManager.countStars((byte)(newStarByte & starMask2));
+                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & starMask2)) - MemoryManager.countStars((byte)(oldStarByte & starMask2)), false, descr.starMask);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask);
             }
 
-            for (int line = 0; line < ld.secretDescription.Length; line++)
+            for (int line = 0; line < ld.secretDescription.Count; line++)
             {
                 var descr = ld.secretDescription[line];
-                if (descr == null || descr.isTextOnly) continue;
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
                 
-                byte oldStarByte = oldStars[descr.offset];
-                byte newStarByte = stars[descr.offset];
-                byte starMask2 = (byte)(descr.starMask >> 1);
+                byte oldStarByte = oldStars[sld.offset];
+                byte newStarByte = stars[sld.offset];
 
-                starCount += MemoryManager.countStars((byte)(newStarByte & starMask2));
+                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & starMask2)) - MemoryManager.countStars((byte)(oldStarByte & starMask2)), true, descr.starMask);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask);
             }
 
             yield return new StarLayoutFiniAction(ld.GetLength());
@@ -865,7 +852,7 @@ namespace StarDisplay
 
     public class CollectablesOnlyDrawActions : DrawActions
     {
-        LayoutDescription ld;
+        LayoutDescriptionEx ld;
         byte[] stars;
         byte[] oldStars;
         int reds;
@@ -875,7 +862,7 @@ namespace StarDisplay
         int activePanels;
         int totalPanels;
 
-        public CollectablesOnlyDrawActions(LayoutDescription ld, byte[] stars, byte[] oldStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
+        public CollectablesOnlyDrawActions(LayoutDescriptionEx ld, byte[] stars, byte[] oldStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
         {
             this.ld = ld;
             this.stars = stars;

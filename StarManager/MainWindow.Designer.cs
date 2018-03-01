@@ -66,8 +66,8 @@
             this.toolStripMenuItem12 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem9 = new System.Windows.Forms.ToolStripMenuItem();
             this.resetHighlightToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem26 = new System.Windows.Forms.ToolStripMenuItem();
             this.killPJ64ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem26 = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).BeginInit();
             this.menuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -78,7 +78,7 @@
             this.starPicture.ContextMenuStrip = this.menuStrip;
             this.starPicture.Location = new System.Drawing.Point(0, 0);
             this.starPicture.Name = "starPicture";
-            this.starPicture.Size = new System.Drawing.Size(345, 462);
+            this.starPicture.Size = new System.Drawing.Size(345, 460);
             this.starPicture.TabIndex = 2;
             this.starPicture.TabStop = false;
             this.starPicture.Click += new System.EventHandler(this.starPicture_Click);
@@ -94,7 +94,7 @@
             this.advancedToolStripMenuItem,
             this.toolStripMenuItem26});
             this.menuStrip.Name = "menuStrip";
-            this.menuStrip.Size = new System.Drawing.Size(153, 158);
+            this.menuStrip.Size = new System.Drawing.Size(134, 136);
             // 
             // layoutToolStripMenuItem
             // 
@@ -106,7 +106,7 @@
             this.toolStripMenuItem8,
             this.configureLayoutToolStripMenuItem});
             this.layoutToolStripMenuItem.Name = "layoutToolStripMenuItem";
-            this.layoutToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.layoutToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
             this.layoutToolStripMenuItem.Text = "Layout";
             // 
             // toolStripMenuItem4
@@ -162,7 +162,7 @@
             this.loadCustomFontToolStripMenuItem,
             this.replaceBackgroundToolStripMenuItem});
             this.viewToolStripMenuItem.Name = "viewToolStripMenuItem";
-            this.viewToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.viewToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
             this.viewToolStripMenuItem.Text = "Settings";
             // 
             // loadToolStripMenuItem
@@ -216,7 +216,7 @@
             this.enableAutoDeleteToolStripMenuItem,
             this.pickFileToolStripMenuItem});
             this.toolStripMenuItem13.Name = "toolStripMenuItem13";
-            this.toolStripMenuItem13.Size = new System.Drawing.Size(152, 22);
+            this.toolStripMenuItem13.Size = new System.Drawing.Size(133, 22);
             this.toolStripMenuItem13.Text = "Game Edits";
             // 
             // editFileToolStripMenuItem
@@ -302,7 +302,7 @@
             this.toolStripMenuItem21,
             this.toolStripMenuItem22});
             this.iconsToolStripMenuItem.Name = "iconsToolStripMenuItem";
-            this.iconsToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.iconsToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
             this.iconsToolStripMenuItem.Text = "Icons";
             // 
             // toolStripMenuItem19
@@ -342,7 +342,7 @@
             this.resetHighlightToolStripMenuItem,
             this.killPJ64ToolStripMenuItem});
             this.advancedToolStripMenuItem.Name = "advancedToolStripMenuItem";
-            this.advancedToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.advancedToolStripMenuItem.Size = new System.Drawing.Size(133, 22);
             this.advancedToolStripMenuItem.Text = "Advanced";
             // 
             // connectToolStripMenuItem
@@ -373,13 +373,6 @@
             this.resetHighlightToolStripMenuItem.Text = "Reset Highlight";
             this.resetHighlightToolStripMenuItem.Click += new System.EventHandler(this.resetHighlightToolStripMenuItem_Click);
             // 
-            // toolStripMenuItem26
-            // 
-            this.toolStripMenuItem26.Name = "toolStripMenuItem26";
-            this.toolStripMenuItem26.Size = new System.Drawing.Size(152, 22);
-            this.toolStripMenuItem26.Text = "?";
-            this.toolStripMenuItem26.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
-            // 
             // killPJ64ToolStripMenuItem
             // 
             this.killPJ64ToolStripMenuItem.Name = "killPJ64ToolStripMenuItem";
@@ -387,17 +380,24 @@
             this.killPJ64ToolStripMenuItem.Text = "Kill PJ64";
             this.killPJ64ToolStripMenuItem.Click += new System.EventHandler(this.killPJ64ToolStripMenuItem_Click);
             // 
+            // toolStripMenuItem26
+            // 
+            this.toolStripMenuItem26.Name = "toolStripMenuItem26";
+            this.toolStripMenuItem26.Size = new System.Drawing.Size(133, 22);
+            this.toolStripMenuItem26.Text = "?";
+            this.toolStripMenuItem26.Click += new System.EventHandler(this.toolStripMenuItem2_Click);
+            // 
             // MainWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(345, 459);
+            this.ClientSize = new System.Drawing.Size(344, 459);
             this.Controls.Add(this.starPicture);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainWindow";
             this.Text = "Star Display";
+            this.Resize += new System.EventHandler(this.MainWindow_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).EndInit();
             this.menuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
