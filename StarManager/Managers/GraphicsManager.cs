@@ -36,6 +36,11 @@ namespace StarDisplay
         private float medFontSize = 12;
         private float bigFontSize = 15;
 
+        //public float scaleCoef = (float) 7 / 8;
+        public float absoluteSHeight = 23;
+        public float absoluteSWidth = 20;
+        //public float absoluteSOffset = 2;
+
         private float width = 360;
 
         public LayoutDescriptionEx Ld { get => ld; set { if (ld != value) isInvalidated = true; ld = value; } }
@@ -47,11 +52,12 @@ namespace StarDisplay
         public float MedFontSize { get => medFontSize; set { if (medFontSize != value) isInvalidated = true; medFontSize = value; } }
         public float BigFontSize { get => bigFontSize; set { if (bigFontSize != value) isInvalidated = true; bigFontSize = value; } }
         public Image Background { get => background; set { if (background != value) isInvalidated = true; background = value; } }
-        public float Width { get => width; set { if (width != value) { isInvalidated = true; TestFont(); }; width = value; } }
-        public float SHeight { get { return Width / 360 * 23; } } //23
-        public float SWidth { get { return Width / 360 * 20; } } //20
-        public float SOffset { get { return Width / 360 * 2; } } //2
+        public float Width { get => width; set { if (width != value) { width = value; isInvalidated = true; TestFont(); }; width = value; } }
+        public float SHeight { get { return Width / 360 * absoluteSHeight * scaleCoef; } } //23
+        public float SWidth { get { return Width / 360 * absoluteSWidth * scaleCoef; } } //20
+        public float SOffset { get { return (SHeight - SWidth) / 4; } } //2
         public float HalfWidth { get { return (Width - SWidth) / 2; } } //170
+        public float scaleCoef { get { return ld == null ? 1 : 7 / (float)ld.starsShown; } }
 
         public GraphicsManager(Graphics graphics, LayoutDescriptionEx ld)
         {
@@ -123,11 +129,11 @@ namespace StarDisplay
 
         public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask)
         {
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < ld.starsShown; i++)
             {
                 if ((mask & (1 << i)) == 0) continue;
                 float x = (isSecret ? Width / 2 : 0) + (i + 1) * SWidth;
-                float y = lineNumber * SHeight;
+                float y = lineNumber * SHeight + SOffset;
                 bool isAcquired = (stars & (1 << i)) != 0;
                 Image img = isAcquired ? Ld.goldStar : Ld.darkStar;
                 graphics.DrawImage(img, x, y, SWidth, SWidth);
@@ -138,12 +144,17 @@ namespace StarDisplay
         {
             if (act.Text != "")
             {
+                Font drawFont = new Font(FontFamily, DrawFontSize);
+
                 float x = (act.IsSecret ? (Width / 2) : 0) + SOffset;
-                float y = act.Line * SHeight + SOffset;
+                float y = act.Line * SHeight + 4 * SOffset;
+
+                SizeF size = graphics.MeasureString(act.Text, drawFont);
+                drawFont.Dispose();
 
                 SolidBrush yellowBrush = new SolidBrush(Color.DarkGoldenrod);
                 Pen yellowPen = new Pen(yellowBrush);
-                graphics.DrawRectangle(yellowPen, x, y, (SWidth / 2) * act.Text.Length - 2 * SOffset, SWidth - 2 * SOffset);
+                graphics.DrawRectangle(yellowPen, x, y, size.Width - 2 * SOffset, size.Height);
                 yellowPen.Dispose();
                 yellowBrush.Dispose();
             }
@@ -208,7 +219,7 @@ namespace StarDisplay
 
             // Setup draw font: 20 symbols in max 170 width
             float l = 0, r = 40, m = -1;
-            String measureString = new string('W', 20);
+            String measureString = new string('W', 2);
 
             // 10 iterations is enough
             for (int iter = 0; iter < 10; iter++)
@@ -222,7 +233,7 @@ namespace StarDisplay
                 stringSize = g.MeasureString(measureString, drawFont);
 
                 float width = stringSize.Width; //should take 170
-                if (width < HalfWidth)
+                if (width < SWidth)
                     l = m;
                 else
                     r = m;
@@ -270,7 +281,9 @@ namespace StarDisplay
                 stringSize = g.MeasureString(measureString, drawFont);
 
                 float width = stringSize.Width; //should take 170
-                if (width < HalfWidth * 2)
+                float localScaleCoef = ld == null ? 1 : scaleCoef;
+
+                if (width < HalfWidth * 2 * localScaleCoef)
                     l = m;
                 else
                     r = m;

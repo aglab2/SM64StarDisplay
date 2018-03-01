@@ -13,13 +13,18 @@ namespace StarDisplay
     public partial class Settings : Form
     {
         public LineDescriptionEx lind;
+        public int starsShown;
+
         private byte oldMask;
 
-        public Settings(LineDescriptionEx lind)
+        public Settings(LineDescriptionEx lind, int starsShown)
         {
             InitializeComponent();
             this.lind = lind;
-            
+            this.starsShown = starsShown;
+            if (starsShown == 8)
+                this.is8StarsCheckbox.Checked = true;
+                    
             textOnlyCheckbox.Checked = lind is TextOnlyLineDescription;
 
             if (lind is TextOnlyLineDescription told)
@@ -85,6 +90,8 @@ namespace StarDisplay
 
                 lind = new StarsLineDescription(stringTextBox.Text, oldMask, offset, mask, highlightOffset);
             }
+
+            starsShown = is8StarsCheckbox.Checked ? 8 : 7;
 
             this.Close();
         }

@@ -208,7 +208,7 @@ namespace StarDisplay
                     int levelAddressEnd = ReadInt32();
 
                     sld.starMask = GenerateStarMask(initMask, levelAddressStart, levelAddressEnd);
-                    totalStars += MemoryManager.countStars(sld.starMask);
+                    totalStars += MemoryManager.countStars(sld.starMask, 7);
                 }
             }
             return totalStars;

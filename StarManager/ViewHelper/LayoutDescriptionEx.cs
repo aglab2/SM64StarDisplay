@@ -105,9 +105,13 @@ namespace StarDisplay
 
         public string starAmount;
 
+        public int starsShown;
+
         // Method for converting from old to new Layouts
         public LayoutDescriptionEx(LayoutDescription ld)
         {
+            starsShown = 7;
+
             courseDescription = new List<LineDescriptionEx>();
             secretDescription = new List<LineDescriptionEx>();
 
@@ -156,7 +160,7 @@ namespace StarDisplay
                             highlightStarMask = 1 << 5 | 1 << 7;
                         }
 
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1), lined.offset + 8, highlightStarMask, highlightStarOffset);
+                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1 | (1 << 7)), lined.offset + 8, highlightStarMask, highlightStarOffset);
                     }
                 }
 
@@ -208,7 +212,7 @@ namespace StarDisplay
                             highlightStarMask = 1 << 5 | 1 << 7;
                         }
 
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1), lined.offset + 8, highlightStarMask, highlightStarOffset);
+                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1 | (1 << 7)), lined.offset + 8, highlightStarMask, highlightStarOffset);
                     }
                 }
 
@@ -226,6 +230,8 @@ namespace StarDisplay
 
         public LayoutDescriptionEx(LineDescription[] courseDescriptionOut, LineDescription[] secretDescriptionOut, Bitmap star, string starAmount)
         {
+            starsShown = 7;
+
             courseDescription = new List<LineDescriptionEx>();
             secretDescription = new List<LineDescriptionEx>();
 
@@ -274,7 +280,7 @@ namespace StarDisplay
                             highlightStarMask = 1 << 5 | 1 << 7;
                         }
 
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1), lined.offset + 8, highlightStarMask, highlightStarOffset);
+                        lde = new StarsLineDescription(lined.text, (byte)((lined.starMask >> 1) | 1 << 7), lined.offset + 8, highlightStarMask, highlightStarOffset);
                     }
                 }
 
@@ -326,7 +332,7 @@ namespace StarDisplay
                             highlightStarMask = 1 << 5 | 1 << 7;
                         }
 
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1), lined.offset + 8, highlightStarMask, highlightStarOffset);
+                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1 | (1 << 7)), lined.offset + 8, highlightStarMask, highlightStarOffset);
                     }
                 }
 
@@ -346,8 +352,10 @@ namespace StarDisplay
             GenerateOutline();
         }
         
-        public LayoutDescriptionEx(List<LineDescriptionEx> courseDescription, List<LineDescriptionEx> secretDescription, Bitmap star, string starAmount)
+        public LayoutDescriptionEx(List<LineDescriptionEx> courseDescription, List<LineDescriptionEx> secretDescription, Bitmap star, string starAmount, int starsShown)
         {
+            this.starsShown = starsShown;
+
             this.courseDescription = new List<LineDescriptionEx>(courseDescription);
             this.secretDescription = new List<LineDescriptionEx>(secretDescription);
             this.starAmount = starAmount;
@@ -546,7 +554,7 @@ namespace StarDisplay
             {
                 if (lind is StarsLineDescription sld)
                 {
-                    stars += MemoryManager.countStars(sld.starMask);
+                    stars += MemoryManager.countStars(sld.starMask, starsShown);
                 }
             }
 
@@ -554,7 +562,7 @@ namespace StarDisplay
             {
                 if (lind is StarsLineDescription sld)
                 {
-                    stars += MemoryManager.countStars(sld.starMask);
+                    stars += MemoryManager.countStars(sld.starMask, starsShown);
                 }
             }
 

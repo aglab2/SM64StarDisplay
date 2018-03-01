@@ -46,11 +46,11 @@ namespace StarDisplay
         
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < gm.Ld.starsShown; i++)
             {
                 if ((StarMask & (1 << i)) == 0) continue;
                 float x = (IsSecret ? gm.Width / 2 : 0) + (i + 1) * gm.SWidth;
-                float y = (lineOffset + Line) * gm.SHeight;
+                float y = (lineOffset + Line) * gm.SHeight + gm.SOffset;
                 bool isAcquired = (StarByte & (1 << i)) != 0;
                 Image img = isAcquired ? gm.Ld.goldStar : gm.Ld.darkStar;
                 gm.graphics.DrawImage(img, x, y, gm.SWidth, gm.SWidth);
@@ -333,7 +333,7 @@ namespace StarDisplay
                 return 0;
             }
             if (gm.LastSHA == null) return 0;
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < gm.Ld.starsShown; i++)
             {
                 if ((gm.LastSHA.StarMask & (1 << i)) == 0) continue;
                 float x = (gm.LastSHA.IsSecret ? (gm.Width/2) : 0) + (i + 1) * gm.SWidth;
@@ -819,9 +819,9 @@ namespace StarDisplay
                 byte oldStarByte = oldStars[sld.offset];
                 byte newStarByte = stars[sld.offset];
 
-                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask));
+                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask)) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask)), false, sld.starMask);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask);
             }
 
             for (int line = 0; line < ld.secretDescription.Count; line++)
@@ -833,9 +833,9 @@ namespace StarDisplay
                 byte oldStarByte = oldStars[sld.offset];
                 byte newStarByte = stars[sld.offset];
 
-                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask));
+                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask)) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask)), true, sld.starMask);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask);
             }
 
             yield return new StarLayoutFiniAction(ld.GetLength());

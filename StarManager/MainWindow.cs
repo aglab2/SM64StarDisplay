@@ -263,12 +263,14 @@ namespace StarDisplay
                     Console.WriteLine("MM Invalidated!");
                 if (gmIsInvalidated)
                     Console.WriteLine("GM Invalidated!");
-
+                
                 // We do not draw anything!
                 if (!mmIsInvalidated && !gmIsInvalidated)
                 {
                     return;
                 }
+
+                gm.TestFont();
 
                 if (enableAutoDeleteToolStripMenuItem.Checked)
                 {
@@ -374,7 +376,7 @@ namespace StarDisplay
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             Bitmap image = mm.GetImage();
-            ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount);
+            ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
             InvalidateCache();
         }
 
@@ -399,7 +401,7 @@ namespace StarDisplay
             int line = (int) Math.Floor(Y / gm.SHeight);
             bool isSecret = ((int) Math.Floor(X / (gm.Width / 2))) == 1;
             int star = (int) Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
-            if (star == 8) return;
+            if (star > ld.starsShown) return;
 
             try
             {
@@ -425,14 +427,16 @@ namespace StarDisplay
 
                 if (star == 0 || curld is TextOnlyLineDescription)
                 {
-                    Settings settings = new Settings(curld);
+                    Settings settings = new Settings(curld, ld.starsShown);
                     settings.ShowDialog();
+                    ld.starsShown = settings.starsShown;
                     if (isSecret)
                         ld.secretDescription[line] = settings.lind;
                     else
                         ld.courseDescription[line] = settings.lind;
 
                     ld.PrepareForEdit();
+                    gm.TestFont();
                 }
                 if (star > 0 && curld is StarsLineDescription sld)
                 {
@@ -516,7 +520,7 @@ namespace StarDisplay
                         //caps editing, keys editing, maybe other stuff?
                         if (sld.starMask != 0)
                         {
-                            for (int i = 0; i < 7; i++)
+                            for (int i = 0; i < ld.starsShown; i++)
                             {
                                 if ((sld.starMask & (byte)(1 << i)) != 0)
                                 {
@@ -842,7 +846,7 @@ namespace StarDisplay
                     ROMManager rm = new ROMManager(openFileDialog.FileName);
                     if (rm == null) throw new IOException();
                     Bitmap image = rm.GetStarImage();
-                    ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount);
+                    ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
                     InvalidateCache();
                 }
                 catch (IOException)
