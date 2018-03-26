@@ -21,7 +21,8 @@ namespace StarDisplay
             InitializeComponent();
 
             this.level = level;
-            offsetComboBox.SelectedIndex = LevelInfo.FindByLevel(level).NaturalIndex;
+            LevelOffsetsDescription lod = LevelInfo.FindByLevel(level);
+            offsetComboBox.SelectedIndex = (lod == null) ? -1 : lod.NaturalIndex;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -31,8 +32,9 @@ namespace StarDisplay
 
             if (!Byte.TryParse(areaTextBox.Text, out area))
                 area = 0x01;
-
-            level = (byte) LevelInfo.FindByNaturalIndex(offsetComboBox.SelectedIndex).Level;
+            ;
+            LevelOffsetsDescription lod = LevelInfo.FindByNaturalIndex(offsetComboBox.SelectedIndex);
+            level = (byte) ((lod == null) ? 1 : lod.Level);
             Close();
         }
     }

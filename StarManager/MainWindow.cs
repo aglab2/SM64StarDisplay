@@ -576,6 +576,8 @@ namespace StarDisplay
         {
             IFormatter formatter = new BinaryFormatter();
 
+            int TotalWidth = this.Width / ld.starsShown;
+
             string ext = Path.GetExtension(name);
 
             Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
@@ -590,6 +592,9 @@ namespace StarDisplay
                 MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
             ld.RecountStars();
+
+            this.SafeInvoke((MethodInvoker)delegate { this.Width = TotalWidth * ld.starsShown; });
+
             if (ld.darkStar == null) ld.GenerateDarkStar();
             if (ld.redOutline == null) ld.GenerateOutline();
             ld.Trim();
@@ -1037,6 +1042,7 @@ namespace StarDisplay
 
         private void MainWindow_Resize(object sender, EventArgs e)
         {
+            Console.WriteLine(this.Width);
             starPicture.Width = this.Width;
             gm.Width = Width;
             gm.InvalidateCache();

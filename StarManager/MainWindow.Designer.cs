@@ -78,7 +78,7 @@
             this.starPicture.ContextMenuStrip = this.menuStrip;
             this.starPicture.Location = new System.Drawing.Point(0, 0);
             this.starPicture.Name = "starPicture";
-            this.starPicture.Size = new System.Drawing.Size(345, 460);
+            this.starPicture.Size = new System.Drawing.Size(346, 460);
             this.starPicture.TabIndex = 2;
             this.starPicture.TabStop = false;
             this.starPicture.Click += new System.EventHandler(this.starPicture_Click);
@@ -391,7 +391,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(344, 459);
+            this.ClientSize = new System.Drawing.Size(345, 459);
             this.Controls.Add(this.starPicture);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
