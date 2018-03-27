@@ -408,22 +408,24 @@ namespace StarDisplay
 
         public void Trim()
         {
-            for (int i = courseDescription.Count() - 1; i >= 0; i--)
+            while (courseDescription.Count() != 0)
             {
-                LineDescriptionEx lind = courseDescription[i];
-                if (lind == null) continue;
+                LineDescriptionEx lde = courseDescription.Last();
 
-                if (lind.IsEmpty())
-                    courseDescription.RemoveAt(i);
+                if (lde == null || lde.IsEmpty())
+                    courseDescription.RemoveAt(courseDescription.Count() - 1);
+                else
+                    break;
             }
 
-            for (int i = secretDescription.Count() - 1; i >= 0; i--)
+            while (secretDescription.Count() != 0)
             {
-                LineDescriptionEx lind = secretDescription[i];
-                if (lind == null) continue;
+                LineDescriptionEx lde = secretDescription.Last();
 
-                if (lind.IsEmpty())
-                    secretDescription.RemoveAt(i);
+                if (lde == null || lde.IsEmpty())
+                    secretDescription.RemoveAt(secretDescription.Count() - 1);
+                else
+                    break;
             }
         }
 

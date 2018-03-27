@@ -537,7 +537,7 @@ namespace StarDisplay
                 DrawTextSecrets(gm, lineOffset);
             else
                 DrawFullSecrets(gm, lineOffset);
-            return 3;
+            return 0;
         }
     }
 
@@ -878,6 +878,9 @@ namespace StarDisplay
         override public IEnumerator<Action> GetEnumerator()
         {
             yield return new DrawCollectablesAction(reds, totalReds, 0, true);
+
+            int maxLine = 0;
+
             int line = 1;
             while (totalReds > 0)
             {
@@ -891,6 +894,8 @@ namespace StarDisplay
                 line++;
                 if (reds < 0) reds = 0;
             }
+
+            maxLine = (maxLine > line) ? maxLine : line;
 
             yield return new SecretsDrawAction(secrets, totalSecrets, 0, true);
             line = 1;
@@ -906,6 +911,10 @@ namespace StarDisplay
                 line++;
                 if (secrets < 0) secrets = 0;
             }
+
+            maxLine = (maxLine > line) ? maxLine : line;
+
+            yield return new StarLayoutFiniAction(maxLine + 1);
         }
     }
 }
