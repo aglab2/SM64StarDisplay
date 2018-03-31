@@ -1043,9 +1043,15 @@ namespace StarDisplay
         private void MainWindow_Resize(object sender, EventArgs e)
         {
             Console.WriteLine(this.Width);
-            starPicture.Width = this.Width;
-            gm.Width = Width;
-            gm.InvalidateCache();
+
+            if (starPicture != null)
+                starPicture.Width = this.Width;
+
+            if (gm != null)
+            {
+                gm.Width = Width;
+                gm.InvalidateCache();
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
