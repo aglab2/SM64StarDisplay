@@ -98,6 +98,7 @@
     </Compile>
     <Compile Include="LevelInfo.cs" />
     <Compile Include="Managers\CacheManager.cs" />
+    <Compile Include="Managers\DownloadManager.cs" />
     <Compile Include="Managers\MagicManager.cs" />
     <Compile Include="Managers\Manager.cs" />
     <Compile Include="Managers\SettingsManager.cs" />

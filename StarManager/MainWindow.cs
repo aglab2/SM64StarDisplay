@@ -22,6 +22,7 @@ namespace StarDisplay
         MemoryManager mm;
         ROMManager rm;
         UpdateManager um;
+        DownloadManager dm;
         SettingsManager sm;
 
         System.Threading.Timer timer;
@@ -258,14 +259,17 @@ namespace StarDisplay
 
                 bool mmIsInvalidated = mm.CheckInvalidated();
                 bool gmIsInvalidated = gm.CheckInvalidated();
+                bool dmIsInvalidated = dm == null ? false : dm.CheckInvalidated();
 
                 if (mmIsInvalidated)
                     Console.WriteLine("MM Invalidated!");
                 if (gmIsInvalidated)
                     Console.WriteLine("GM Invalidated!");
-                
+                if (dmIsInvalidated)
+                    Console.WriteLine("DM Invalidated!");
+
                 // We do not draw anything!
-                if (!mmIsInvalidated && !gmIsInvalidated)
+                if (!mmIsInvalidated && !gmIsInvalidated && !dmIsInvalidated)
                 {
                     return;
                 }
@@ -303,7 +307,7 @@ namespace StarDisplay
                 }
 
                 UInt16 currentCRC = mm.GetRomCRC();
-                if (currentCRC != oldCRC || rm == null)
+                if (currentCRC != oldCRC || rm == null || dmIsInvalidated)
                 {
                     oldCRC = currentCRC;
                     try
@@ -311,10 +315,20 @@ namespace StarDisplay
                         rm = new ROMManager(mm.GetROM());
                         try
                         {
+                            if (dm != null)
+                            {
+                                dm.GetData();
+                            }
+
                             LoadLayoutNoInvalidate("layout/" + rm.GetROMName() + ".sml");
                         }
                         catch (IOException)
                         {
+                            try
+                            {
+                                dm = new DownloadManager(rm.GetROMName() + ".sml");
+                            }
+                            catch(Exception) { }
                             LoadDefaultLayoutNoInvalidate();
                         }
 
