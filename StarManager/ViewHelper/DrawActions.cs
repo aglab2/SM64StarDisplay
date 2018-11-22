@@ -850,24 +850,6 @@ namespace StarDisplay
         }
     }
 
-    public class TwoNumbersDrawActions : DrawActions
-    {
-        int number1;
-        int number2;
-
-        public TwoNumbersDrawActions(int number1, int number2)
-        {
-            this.number1 = number1;
-            this.number2 = number2;
-        }
-
-        override public IEnumerator<Action> GetEnumerator()
-        {
-            yield return new DrawNumber(number1);
-            yield return new DrawNumber(number2);
-        }
-    }
-
     public class CollectablesOnlyDrawActions : DrawActions
     {
         LayoutDescriptionEx ld;

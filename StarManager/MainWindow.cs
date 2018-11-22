@@ -295,11 +295,7 @@ namespace StarDisplay
                 }
 
                 // We do not draw anything!
-<<<<<<< 12d20485e85e4a5a04ebb325d9cf28cdaf28f5d4
-                if (!mmIsInvalidated && !gmIsInvalidated && !dmIsInvalidated)
-=======
-                if (!mmIsInvalidated && !gmIsInvalidated && !smIsInvalidated)
->>>>>>> sync with new server
+                if (!mmIsInvalidated && !gmIsInvalidated && !smIsInvalidated && !dmIsInvalidated)
                 {
                     return;
                 }
@@ -372,12 +368,9 @@ namespace StarDisplay
                     InvalidateCacheNoResetRM();
                 }
 
-<<<<<<< 12d20485e85e4a5a04ebb325d9cf28cdaf28f5d4
-                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
-=======
                 int lineOffset = 0;
-                var actions = sm.GetConfig(collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
->>>>>>> sync with new server
+                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
+
                 if (actions == null) return;
 
                 foreach (var entry in actions)
@@ -401,14 +394,9 @@ namespace StarDisplay
             {
                 this.SafeInvoke((MethodInvoker)delegate { ResetForm(); DrawIntro(); });
             }
-<<<<<<< a685eb94c4ffcc4ad6bdd397b47480a5faa2b364
-            // Not really important exception, just a placeholder basically
-            catch (ObjectDisposedException) { }
-=======
             catch (ObjectDisposedException)
             {
             }
->>>>>>> final
             finally
             {
                 timer.Change(period, Timeout.Infinite);

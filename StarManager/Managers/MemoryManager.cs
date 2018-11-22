@@ -510,20 +510,15 @@ namespace StarDisplay
         {
             byte[] stars = data;
             if (stars == null) return;
-<<<<<<< a685eb94c4ffcc4ad6bdd397b47480a5faa2b364
-            
-            for (int i = 0; i < FileLength; i += 4)
-=======
 
-            int starCounter = countStars((byte)(data[0]));
+            int starCounter = countStars((byte)(data[0]), 7);
             // Fix star counter
             for (int i = 0xB - 7; i < 0x24 - 7; i++)
             {
-                starCounter += countStars((byte)(data[i]));
+                starCounter += countStars((byte)(data[i]), 7);
             }
-
-            for (int i = 0; i < length; i += 4)
->>>>>>> final
+            
+            for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
 
             Process.WriteBytes(filePtr, stars);
