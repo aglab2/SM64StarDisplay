@@ -16,6 +16,28 @@ import (
 	"controllers/application"
 )
 
+func GetOutboundIP() (string, error) {
+	url := "https://api.ipify.org?format=text"
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+
+	defer resp.Body.Close()
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	
+	return string(ip), nil
+}
+
+func TryConnectToIP(ip string, port string) (error) {
+	url := fmt.Sprintf("http://%s%s", ip, port)
+	_, err := http.Get(url)
+	return err
+}
+
 func GenerateRandomString(n int) (string) {
 	const letters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-"
 	bytes := make([]byte, n)
@@ -39,6 +61,12 @@ func ServeByFile(path string, size int) (string, error) {
 }
 
 func main() {
+	ip, err := GetOutboundIP()
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
 	config, err := config.NewServerConfig()
 	if err != nil {
 		fmt.Print(err)
@@ -61,6 +89,9 @@ func main() {
 		log.Print(err)
 		return
 	}
+	
+	log.Print(fmt.Sprintf("Enter ip '%s' in Star Display", ip))
+
 	// TODO: This probably does not help with the fact that passwd is still on stack
 	passwd = ""
 
@@ -88,6 +119,19 @@ func main() {
 	}
 
 	log.Print("Running HTTP server on " + serverAddress)
+	
+	go func(ip string, serverAddress string) {
+		var conerr error
+		for ok := true; ok; ok = conerr != nil {
+			conerr = TryConnectToIP(ip, serverAddress)
+			if conerr != nil {
+				log.Print(fmt.Sprintf("Could not connect to itself, did you forward the port %s?", serverAddress[1:]))
+				time.Sleep(4 * time.Second)
+			} else {
+				log.Print("Outbound connection works! Other players can connect to server")
+			}
+		}
+	}(ip, serverAddress)
 
 	if certFile != "" && keyFile != "" {
 		err = srv.ListenAndServeTLS(certFile, keyFile)
