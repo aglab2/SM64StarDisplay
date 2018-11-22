@@ -46,7 +46,8 @@ namespace StarDisplay
 
         Thread magicThread;
 
-        const int period = 30;
+        const int scanPeriod = 1000;
+        const int updatePeriod = 30;
         
         public MainWindow()
         {
@@ -75,7 +76,7 @@ namespace StarDisplay
                 sm = new SettingsManager();
             }
 
-            timer = new System.Threading.Timer(UpdateStars, null, period, Timeout.Infinite);
+            timer = new System.Threading.Timer(UpdateStars, null, 1, Timeout.Infinite);
             
             oldCRC = 0;
 
@@ -112,12 +113,15 @@ namespace StarDisplay
 
         private void doMagicThread()
         {
-            while (mm != null && !mm.isMagicDone())
+            bool isActive = !mm.ProcessActive();
+            while (mm != null && isActive && !mm.isMagicDone())
+            {
                 try
                 {
                     mm.doMagic();
                 }
                 catch (Exception) { }
+            }
         }
         
         private void DrawIntro()
@@ -149,9 +153,23 @@ namespace StarDisplay
             catch (Exception) { }
         }
 
+        static string[] processNames = { "project64", "project64d" /*, "mupen64plus-ui-console", "mupen64-rerecording"*/ };
+
+        private Process FindEmulatorProcess()
+        {
+            foreach (string name in processNames)
+            {
+                Process process = Process.GetProcessesByName(name).FirstOrDefault();
+                if (process != null)
+                    return process;
+            }
+
+            return null;
+        }
+
         private void ConnectToProcess()
         {
-            Process process = Process.GetProcessesByName("project64").FirstOrDefault();
+            Process process = FindEmulatorProcess();
             mm = new MemoryManager(process);
             connectToolStripMenuItem.Enabled = false;
             layoutToolStripMenuItem.Enabled = true;
@@ -399,6 +417,7 @@ namespace StarDisplay
             }
             finally
             {
+                int period = (isEmulatorStarted && isHackLoaded && isOffsetsFound) ? updatePeriod : scanPeriod;
                 timer.Change(period, Timeout.Infinite);
             }
         }

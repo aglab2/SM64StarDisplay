@@ -45,6 +45,7 @@ namespace StarDisplay
         IntPtr levelSpawnPtr; //byte
 
         IntPtr starsCountPtr; //short
+        IntPtr bank13RamStartPtr; // int
 
         public bool isStarsInvalidated = false;
 
@@ -133,7 +134,8 @@ namespace StarDisplay
                 }
             }
 
-            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray());
+            // Process.ProcessName;
+            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), 0);
 
             igtPtr = new IntPtr(mm.ramPtrBase + 0x32D580);
             filesPtr = new IntPtr[4];
@@ -160,6 +162,7 @@ namespace StarDisplay
             levelSpawnPtr = new IntPtr(mm.ramPtrBase + 0x33B24A);
 
             starsCountPtr = new IntPtr(mm.ramPtrBase + 0x33B218);
+            bank13RamStartPtr = new IntPtr(mm.ramPtrBase + 0x33B400 + 4 * 0x13);
         }
 
         public void PerformRead()
@@ -255,19 +258,27 @@ namespace StarDisplay
             return Reds;
         }
 
+        public uint GetBehaviourRAMAddress(uint behav) // only bank 13 for now
+        {
+            uint bank13RamStart = Process.ReadValue<uint>(bank13RamStartPtr);
+            uint request = 0x80000000 + bank13RamStart + behav;
+            return request;
+        }
+
         public int GetSecrets()
         {
-            return SearchObjects(0x800EF0B4);
+            return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
         }
 
         public int GetActivePanels()
         {
-            return SearchObjects(0x800EB770, 1) + SearchObjects(0x800EB770, 2); //1 - active, 2 - finalized
+            uint request = GetBehaviourRAMAddress(0x5D8);
+            return SearchObjects(request, 1) + SearchObjects(request, 2); //1 - active, 2 - finalized
         }
 
         public int GetAllPanels()
         {
-            return SearchObjects(0x800EB770);
+            return SearchObjects(GetBehaviourRAMAddress(0x5D8));
         }
 
         public Bitmap GetImage()
@@ -433,15 +444,17 @@ namespace StarDisplay
                 IntPtr currentObjectPtr = new IntPtr(mm.ramPtrBase + (int)address);
                 byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
 
-                UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
-                UInt32 behaviourActive1 = BitConverter.ToUInt32(data, 0x1CC);
-                UInt32 behaviourActive2 = BitConverter.ToUInt32(data, 0x1D0);
-                UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
-                UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
-                
-                if (behaviourActive1 == searchBehaviour)
+                UInt32 active = BitConverter.ToUInt32(data, 0x74);
+                if (active != 0)
                 {
-                    count++;
+                    UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
+                    UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
+                    UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
+
+                    if (behaviour == searchBehaviour)
+                    {
+                        count++;
+                    }
                 }
 
                 address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
@@ -459,17 +472,19 @@ namespace StarDisplay
                 IntPtr currentObjectPtr = new IntPtr(mm.ramPtrBase + (int)address);
                 byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
 
-                UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
-                UInt32 behaviourActive1 = BitConverter.ToUInt32(data, 0x1CC);
-                UInt32 behaviourActive2 = BitConverter.ToUInt32(data, 0x1D0);
-                UInt32 initialBehaviour = BitConverter.ToUInt32(data, 0x20C);
-                UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
-
-                //Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
-
-                if (behaviourActive1 == searchBehaviour && scriptParameter == state)
+                UInt32 active = BitConverter.ToUInt32(data, 0x74);
+                if (active != 0)
                 {
-                    count++;
+                    UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
+                    UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
+                    UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
+
+                    //Console.Write("{0:X8}({1:X8}) ", behaviourActive1, scriptParameter);
+
+                    if (behaviour == searchBehaviour && scriptParameter == state)
+                    {
+                        count++;
+                    }
                 }
 
                 address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;

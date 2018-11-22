@@ -25,12 +25,15 @@ namespace StarDisplay
         Cookie token;
         WebClient starsPollClient;
         public bool isClosed;
+
+        int Length;
         
         public SyncManager(string url, string passwd, byte[] data)
         {
-            Data = new byte[32];
-            if (data != null && data.Count() == 32)
-                Array.Copy(data, Data, 32);
+            Length = data.Length;
+            Data = new byte[Length];
+            if (data != null && data.Count() == Length)
+                Array.Copy(data, Data, Length);
 
             longpollStars = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("10"), Uri.EscapeDataString("stars"));
 
@@ -93,7 +96,7 @@ namespace StarDisplay
                             Console.WriteLine(ev);
                             byte[] newData = Convert.FromBase64String(ev["data"].Value<string>());
 
-                            if (newData.Count() != 32)
+                            if (newData.Count() != Length)
                                 throw new Exception("Wrong data size");
 
                             UInt64.TryParse(ev["timestamp"].Value<string>(), out timestamp);

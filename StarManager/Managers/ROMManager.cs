@@ -15,7 +15,11 @@ namespace StarDisplay
         BinaryReader reader;
 
         static int courseBaseAddress = 0x02AC094;
-        
+
+        static byte levelscriptEndDescriptor = 0x02;
+        static byte jumpDescriptor = 0x05;
+        static byte callDescriptor = 0x06;
+        static byte returnDescriptor = 0x07;
         static byte objectDescriptor = 0x24;
         static byte areaStartDescriptor = 0x1F;
         static byte areaEndDescriptor = 0x20;
@@ -235,7 +239,7 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart + levelOffset, levelAddressEnd, redsBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, redsBehaviour, currentStar, currentArea);
         }
 
         public int ParseSecrets(int level, int currentStar, int currentArea)
@@ -243,7 +247,7 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart + levelOffset, levelAddressEnd, secretsBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, secretsBehaviour, currentStar, currentArea);
         }
     
         public int ParseFlipswitches(int level, int currentStar, int currentArea)
@@ -251,39 +255,65 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart + levelOffset, levelAddressEnd, flipswitchBehaviour, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, flipswitchBehaviour, currentStar, currentArea);
         }
 
-        private int GetAmountOfObjects(int start, int end, byte[] searchBehaviour, int currentStar, int currentArea)
+        private int GetAmountOfObjects(int start, int end, int offset, byte[] searchBehaviour, int currentStar, int currentArea)
+        {
+            int area = 0;
+            return GetAmountOfObjectsInternal(start, end, offset, searchBehaviour, currentStar, currentArea, ref area);
+        }
+
+        private int GetAmountOfObjectsInternal (int start, int end, int Loffset, byte[] searchBehaviour, int currentStar, int currentArea, ref int area)
         {
             if (currentArea == 0) currentArea = 1;
             byte currentStarMask = (byte) (1 << currentStar);
             int counter = 0;
             if (start < 0) return counter;
 
-            int area = 0;
-
             try
             {
-                int offset = start;
+                int offset = start + Loffset;
                 while (offset < end)
                 {
                     reader.BaseStream.Position = offset;
 
                     byte command = reader.ReadByte();
                     int length = reader.ReadByte();
-                    if (length == 0) return counter;
+                    if ((length == 0) || 
+                        (command == levelscriptEndDescriptor) || (command == returnDescriptor))
+                        return counter;
+
                     offset += length;
 
-                    if (command == areaStartDescriptor)
+                    if (command == jumpDescriptor || command == callDescriptor)
+                    {
+                        reader.BaseStream.Position = offset + 0x4;
+                        int bank = reader.ReadByte();
+                        if (bank != 0x13)
+                            continue;
+
+                        reader.BaseStream.Position = offset + 0x6;
+                        byte[] jumpOffsetBytes = reader.ReadBytes(2);
+                        byte x = jumpOffsetBytes[0];
+                        jumpOffsetBytes[0] = jumpOffsetBytes[1];
+                        jumpOffsetBytes[1] = x;
+
+                        int jumpOffset = BitConverter.ToInt16(jumpOffsetBytes, 0);
+
+                        counter += GetAmountOfObjectsInternal(start, end, jumpOffset, searchBehaviour, currentArea, currentArea, ref area);
+                        if (command == jumpDescriptor)
+                            return counter;
+                    }
+                    else if (command == areaStartDescriptor)
                     {
                         area = reader.ReadByte();
                     }
-                    if (command == areaEndDescriptor)
+                    else if (command == areaEndDescriptor)
                     {
                         area = 0;
                     }
-                    if (command == objectDescriptor) 
+                    else if (command == objectDescriptor) 
                     {
                         if (area != currentArea) continue;
                         int act = ReadAct(offset);
