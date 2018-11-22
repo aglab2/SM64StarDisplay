@@ -2,3 +2,10 @@ packages
 StarManager/bin
 StarManager/obj
 .vs
+SyncServer/pkg
+SyncServer/src/github.com
+SyncServer/src/golang.org
+SyncServer/src/gopkg.in
+SyncServer/src/cookie
+SyncServer/src/jwt
+SyncServer/src/main.exe
