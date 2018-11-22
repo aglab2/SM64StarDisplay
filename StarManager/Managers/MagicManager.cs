@@ -11,7 +11,7 @@ namespace StarDisplay
     class MagicManager
     {
         const int PageSize = 4096;
-        const long MaxMem = (long) 4 * 1024 * 1024 * 1024;
+        const long MaxMem = (long) 2 * 1024 * 1024 * 1024;
 
         const uint ramMagic = 0x3C1A8032;
         const uint romMagic = 0x80371240;
