@@ -3,7 +3,7 @@ This is program to display acquired stars in casual playthrough! App reads game 
 Caps automatically. The level you are at is highlighted with yellow rectangle. 
 
 # How to use?
-Start Project64 1.6 (or any other version you like) and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarManager/blob/master/StarDisplay.zip?raw=true), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and wait for it to load. If your hack has layout support, it should load automatically. Else make your own layout, give it a try!
+Start Project64 1.6 (or any other version you like) and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and wait for it to load. If your hack has layout support, it should load automatically. Else make your own layout, give it a try!
 
 # Layout Support
  * Brutal Mario 64
@@ -67,6 +67,9 @@ Your hack is not supported? You can easily create a layout yourself! Choose one 
 
 # Speedrun
 For speedrunners this program can be useful too! It can soft erase file A on ROM reset that is handy for reset-heavy runs!
+
+# Star Display Sync
+Star Display can sync your progress with other players online. You just need to get the [sync-server.exe](https://github.com/aglab2/SM64StarDisplay/blob/master/sync-server.exe?raw=true). On launch it will ask you for password that you will need to use in "Sync Online" menu. Server uses port 25565 that you should port forward if you want to host the server.
 
 # Credits
  * Original idea: FramePerfection
