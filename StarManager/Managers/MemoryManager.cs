@@ -46,6 +46,8 @@ namespace StarDisplay
 
         IntPtr starsCountPtr; //short
 
+        public bool isStarsInvalidated = false;
+
         int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
         int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
         int[] overworldLevels = { 6, 26, 16 };
@@ -54,7 +56,7 @@ namespace StarDisplay
 
         public int SelectedFile { get => selectedFile; set { if (selectedFile != value) isInvalidated = true; selectedFile = value; } }
         public int Igt { get => igt; set => igt = value; }
-        public byte[] Stars { get => stars; set { if (stars == null || value == null || !stars.SequenceEqual(value)) isInvalidated = true; stars = value; } }
+        public byte[] Stars { get => stars; set { if (stars == null || value == null || !stars.SequenceEqual(value)) { isInvalidated = true; isStarsInvalidated = true; } stars = value; } }
         public byte Level { get => level; set { if (level != value) isInvalidated = true; level = value; } }
         public byte Area { get => area; set { if (area != value) isInvalidated = true; area = value; } }
         public sbyte Reds { get => reds; set { if (reds != value) isInvalidated = true; reds = value; } }
@@ -500,7 +502,7 @@ namespace StarDisplay
 
             stars.CopyTo(Stars, 0);
 
-
+            isStarsInvalidated = true;
             isInvalidated = true;
         }
 
@@ -513,7 +515,7 @@ namespace StarDisplay
             for (int i = 0; i < FileLength; i += 4)
 =======
 
-            int starCounter = countStars((byte)(data[0] << 1));
+            int starCounter = countStars((byte)(data[0]));
             // Fix star counter
             for (int i = 0xB - 7; i < 0x24 - 7; i++)
             {

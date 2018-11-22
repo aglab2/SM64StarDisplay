@@ -216,6 +216,8 @@ namespace StarDisplay
 
             try
             {
+                //if (slf != null && slf.sm != null && slf.sm.isServer)
+                //    goto bla;
 
                 if (mm.ProcessActive())
                 {
@@ -257,18 +259,21 @@ namespace StarDisplay
                     this.SafeInvoke((MethodInvoker)delegate { DrawIntro(); ResetForm(); });
                     return;
                 }
-
-                bool mmIsInvalidated = mm.CheckInvalidated();
-                bool gmIsInvalidated = gm.CheckInvalidated();
+ 
+                bool mmIsInvalidated = mm == null ? false : mm.CheckInvalidated();
+                bool gmIsInvalidated = gm == null ? false : gm.CheckInvalidated();
                 bool dmIsInvalidated = dm == null ? false : dm.CheckInvalidated();
                 bool smIsInvalidated = false;
                 if (slf != null && slf.sm != null)
                     smIsInvalidated = slf.sm.CheckInvalidated();
 
-                if (mmIsInvalidated)
+                if (mmIsInvalidated && mm.isStarsInvalidated)
                 {
+                    mm.isStarsInvalidated = false;
                     if (slf != null && slf.sm != null)
+                    {
                         slf.sm.SendData(mm.Stars);
+                    }
 
                     Console.WriteLine("MM Invalidated!");
                 }
@@ -290,7 +295,11 @@ namespace StarDisplay
                 }
 
                 // We do not draw anything!
+<<<<<<< 12d20485e85e4a5a04ebb325d9cf28cdaf28f5d4
                 if (!mmIsInvalidated && !gmIsInvalidated && !dmIsInvalidated)
+=======
+                if (!mmIsInvalidated && !gmIsInvalidated && !smIsInvalidated)
+>>>>>>> sync with new server
                 {
                     return;
                 }
@@ -363,10 +372,14 @@ namespace StarDisplay
                     InvalidateCacheNoResetRM();
                 }
 
+<<<<<<< 12d20485e85e4a5a04ebb325d9cf28cdaf28f5d4
                 var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
+=======
+                int lineOffset = 0;
+                var actions = sm.GetConfig(collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
+>>>>>>> sync with new server
                 if (actions == null) return;
 
-                int lineOffset = 0;
                 foreach (var entry in actions)
                 {
                     lineOffset += entry.Execute(gm, lineOffset, sm);
@@ -1097,8 +1110,11 @@ namespace StarDisplay
 	
         private void syncToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            slf = new SyncLoginForm(mm.Stars);
-            slf.Show();
+            if (slf == null || slf.isClosed)
+            {
+                slf = new SyncLoginForm(mm.Stars);
+                slf.Show();
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
