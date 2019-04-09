@@ -349,7 +349,8 @@
             this.Controls.Add(this.checkBox8);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Fixed3D;
             this.Name = "FlagsEditForm";
-            this.Text = "FlagsEditForm";
+            this.ShowIcon = false;
+            this.Text = "Flags";
             this.ResumeLayout(false);
             this.PerformLayout();
 

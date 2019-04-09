@@ -100,7 +100,8 @@
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.serverTextBox);
             this.Name = "SyncLoginForm";
-            this.Text = "SyncLoginForm";
+            this.ShowIcon = false;
+            this.Text = "Sync";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SyncLoginForm_FormClosing);
             this.ResumeLayout(false);
             this.PerformLayout();

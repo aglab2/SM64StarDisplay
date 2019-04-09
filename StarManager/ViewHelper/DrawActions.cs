@@ -191,15 +191,12 @@ namespace StarDisplay
             SolidBrush redBrush = new SolidBrush(Color.IndianRed);
             SolidBrush drawBrush = new SolidBrush(Color.White);
 
-            Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
-
             gm.graphics.DrawImage(gm.reds, gm.SWidth, totalStarLine * gm.SHeight + gm.SHeight / 2, gm.SWidth, gm.SWidth);
-            gm.graphics.DrawString(starLine, bigFont, redBrush, gm.SWidth * 2, totalStarLine * gm.SHeight + gm.SHeight / 2);
+            gm.graphics.DrawStringWithOutline(starLine, gm.FontFamily, gm.MedFontSize, redBrush, Pens.Black, gm.SWidth * 2, totalStarLine * gm.SHeight + gm.SHeight / 2);
 
             redBrush.Dispose();
             drawBrush.Dispose();
-
-            bigFont.Dispose();
+            
             return starLine.Length + 4;
         }
 
@@ -210,16 +207,13 @@ namespace StarDisplay
 
             SolidBrush blueBrush = new SolidBrush(Color.LightBlue);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-
-            Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
-
-            gm.graphics.DrawString(starLine, bigFont, blueBrush, gm.SWidth + (gm.SWidth / 2) * totalSize - starLine.Length * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2));
+            
+            gm.graphics.DrawStringWithOutline(starLine, gm.FontFamily, gm.MedFontSize, blueBrush, Pens.Black, gm.SWidth + (gm.SWidth / 2) * totalSize - starLine.Length * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2));
             gm.graphics.DrawImage(gm.secrets, (gm.SWidth / 2) * totalSize - starLine.Length * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2), gm.SWidth, gm.SWidth);
             
             blueBrush.Dispose();
             drawBrush.Dispose();
 
-            bigFont.Dispose();
             return starLine.Length + 4;
         }
 
@@ -230,16 +224,13 @@ namespace StarDisplay
 
             SolidBrush redBrush = new SolidBrush(Color.LightGreen);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-
-            Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
-
+            
             gm.graphics.DrawImage(gm.flipswitchOff, offset * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2), gm.SWidth, gm.SWidth);
-            gm.graphics.DrawString(starLine, bigFont, redBrush, gm.SWidth + offset * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2));
+            gm.graphics.DrawStringWithOutline(starLine, gm.FontFamily, gm.MedFontSize, redBrush, Pens.Black, gm.SWidth + offset * (gm.SWidth / 2), totalStarLine * gm.SHeight + (gm.SHeight / 2));
 
             redBrush.Dispose();
             drawBrush.Dispose();
-
-            bigFont.Dispose();
+            
             return starLine.Length + 4;
         }
 
@@ -390,7 +381,6 @@ namespace StarDisplay
                 return 0;
 
             SolidBrush drawBrush = new SolidBrush(Color.LightGreen);
-            Font drawFont = new Font(gm.FontFamily, gm.DrawFontSize);
 
             RectangleF drawRect = new RectangleF((IsSecret ? (gm.Width / 2) : 0), Line * gm.SHeight, gm.HalfWidth, gm.SHeight);
             StringFormat drawFormat = new StringFormat
@@ -398,10 +388,9 @@ namespace StarDisplay
                 Alignment = StringAlignment.Near,
                 LineAlignment = StringAlignment.Center
             };
-            gm.graphics.DrawString(Text, drawFont, drawBrush, drawRect, drawFormat);
+            gm.graphics.DrawStringWithOutline(Text, gm.FontFamily, gm.DrawFontSize, drawBrush, Pens.Black, drawRect, drawFormat);
 
             drawBrush.Dispose();
-            drawFont.Dispose();
 
             return 0;
         }
@@ -463,16 +452,12 @@ namespace StarDisplay
 
             SolidBrush redBrush = new SolidBrush(Color.IndianRed);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-
-            Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
-
+            
             gm.graphics.DrawImage(gm.reds, gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
-            gm.graphics.DrawString(starLine, bigFont, redBrush, gm.SWidth * 2, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2);
+            gm.graphics.DrawStringWithOutline(starLine, gm.FontFamily, gm.MedFontSize, redBrush, Pens.Black, gm.SWidth * 2, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2);
 
             redBrush.Dispose();
             drawBrush.Dispose();
-
-            bigFont.Dispose();
         }
         
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
@@ -520,15 +505,11 @@ namespace StarDisplay
             SolidBrush blueBrush = new SolidBrush(Color.LightBlue);
             SolidBrush drawBrush = new SolidBrush(Color.White);
 
-            Font bigFont = new Font(gm.FontFamily, gm.MedFontSize);
-
             gm.graphics.DrawImage(gm.secrets, gm.Width / 2 + gm.SWidth, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2, gm.SWidth, gm.SWidth);
-            gm.graphics.DrawString(starLine, bigFont, blueBrush, gm.Width / 2 + gm.SWidth * 2, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2);
+            gm.graphics.DrawStringWithOutline(starLine, gm.FontFamily, gm.MedFontSize, blueBrush, Pens.Black, gm.Width / 2 + gm.SWidth * 2, (lineOffset + Line) * gm.SHeight + gm.SWidth / 2);
 
             blueBrush.Dispose();
             drawBrush.Dispose();
-
-            bigFont.Dispose();
         }
 
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
@@ -596,9 +577,7 @@ namespace StarDisplay
 
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-
-            Font bigFont = new Font(gm.FontFamily, gm.BigFontSize);
-
+            
             RectangleF drawRect = new RectangleF(0, lineOffset * gm.SHeight, gm.Width, gm.SHeight);
             StringFormat drawFormat = new StringFormat
             {
@@ -606,7 +585,7 @@ namespace StarDisplay
                 Alignment = StringAlignment.Center,
                 FormatFlags = StringFormatFlags.MeasureTrailingSpaces
             };
-            gm.graphics.DrawString(Line, bigFont, drawBrush, drawRect, drawFormat);
+            gm.graphics.DrawStringWithOutline(Line, gm.FontFamily, gm.BigFontSize, drawBrush, Pens.Black, drawRect, drawFormat);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
@@ -631,7 +610,6 @@ namespace StarDisplay
                 Checked = amf.sm.GetConfig(configureName, true),
                 AutoSize = true
             };
-
             height += cb.Height;
             
             TextBox tb = new TextBox
@@ -671,9 +649,7 @@ namespace StarDisplay
 
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
-
-            Font bigFont = new Font(gm.FontFamily, gm.BigFontSize);
-
+            
             RectangleF drawRect = new RectangleF(0, lineOffset * gm.SHeight, gm.Width, gm.SHeight);
             StringFormat drawFormat = new StringFormat
             {
@@ -681,7 +657,7 @@ namespace StarDisplay
                 Alignment = StringAlignment.Center,
                 FormatFlags = StringFormatFlags.MeasureTrailingSpaces
             };
-            gm.graphics.DrawString(textLine, bigFont, drawBrush, drawRect, drawFormat);
+            gm.graphics.DrawStringWithOutline(textLine, gm.FontFamily, gm.BigFontSize, drawBrush, Pens.Black, drawRect, drawFormat);
 
             blackBrush.Dispose();
             drawBrush.Dispose();
@@ -718,11 +694,11 @@ namespace StarDisplay
                 AutoSize = true
             };
 
-            cb.CheckedChanged += (sender, e) => {
+            cb.CheckedChanged += (sender, e) =>
+            {
                 CheckBox cb_local = sender as CheckBox;
                 amf.sm.SetConfig(cb_local.Name, cb_local.Checked);
             };
-
             amf.Controls.Add(cb);
 
             return cb.Height;
@@ -730,7 +706,80 @@ namespace StarDisplay
 
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
+        }
+    }
+
+    public class BackgroundSettingsAction : Action
+    {
+        static string configureReadableName = "Use custom background";
+        public static string configureName = "Background_isEnabled";
+        public static string pathConfigureName = "background_path";
+
+        public static int DrawConfigs(int height, ActionMaskForm amf)
+        {
+            CheckBox cb = new CheckBox
+            {
+                Name = configureName,
+                Text = configureReadableName,
+                Location = new Point(10, height),
+                Checked = amf.sm.GetConfig(configureName, false),
+                AutoSize = true
+            };
+            height += cb.Height;
+
+            TextBox tb = new TextBox
+            {
+                Name = pathConfigureName,
+                Text = amf.sm.GetConfig(pathConfigureName, ""),
+                Location = new Point(30, height),
+                AutoSize = true,
+                Width = 120
+            };
+
+            Button b = new Button
+            {
+                Name = "backgroundPathButton",
+                Text = ".",
+                Location = new Point(160, height - 1),
+                AutoSize = true,
+                Width = 20,
+                Height = tb.Height
+            };
+
+            cb.CheckedChanged += (sender, e) => {
+                CheckBox cb_local = sender as CheckBox;
+                amf.sm.SetConfig(cb_local.Name, cb_local.Checked);
+            };
+            tb.TextChanged += (sender, e) => {
+                TextBox tb_local = sender as TextBox;
+                amf.sm.SetConfig(tb_local.Name, tb_local.Text);
+            };
+            b.Click += (sender, e) =>
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog
+                {
+                    Filter = "PNG Images (*.png)|*.png",
+                    FilterIndex = 1,
+                    RestoreDirectory = true
+                };
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    tb.Text = openFileDialog.FileName;
+                }
+            };
+
+            amf.Controls.Add(cb);
+            amf.Controls.Add(tb);
+            amf.Controls.Add(b);
+
+            return cb.Height + tb.Height + 10;
+        }
+
+        public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            throw new NotSupportedException();
         }
     }
 

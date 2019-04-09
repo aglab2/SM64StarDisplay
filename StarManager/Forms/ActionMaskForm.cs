@@ -30,7 +30,7 @@ namespace StarDisplay
                 height += (int)addedHeight + 5;
             }
 
-            this.Height = height + (this.Height - this.ClientRectangle.Height);
+            Height = height + (Height - this.ClientRectangle.Height);
         }
     }
 }

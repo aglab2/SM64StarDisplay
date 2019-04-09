@@ -9,6 +9,7 @@ import (
 	"os"
 	"crypto/rand"
 	"log"
+	"strings"
 
 	"github.com/tylerb/graceful"
 
@@ -90,7 +91,11 @@ func main() {
 		return
 	}
 	
-	log.Print(fmt.Sprintf("Enter ip '%s' in Star Display", ip))
+	fmt.Print("Enter Port\n")
+	port, _ := reader.ReadString('\n')
+	port = strings.TrimSpace(port)
+	
+	log.Print(fmt.Sprintf("Enter ip '%s' port '%s' in Star Display", ip, port))
 
 	// TODO: This probably does not help with the fact that passwd is still on stack
 	passwd = ""
@@ -102,6 +107,9 @@ func main() {
 	}
 
 	serverAddress := config.Get("http_addr").(string)
+	if (port != "") {
+		serverAddress = ":" + port
+	}
 
 	certFile := config.Get("http_cert_file").(string)
 	keyFile := config.Get("http_key_file").(string)

@@ -207,6 +207,7 @@ namespace StarDisplay
             isHackLoaded = false;
             isOffsetsFound = false;
 
+#if !DEBUG
             try
             {
                 if (um.IsCompleted())
@@ -231,6 +232,7 @@ namespace StarDisplay
                 }
             }
             catch (Exception) { }
+#endif
 
             try
             {
@@ -383,7 +385,7 @@ namespace StarDisplay
                     catch (Exception)
                     { oldCRC = 0; }
 
-                    InvalidateCacheNoResetRM();
+                    InvalidateCache();
                 }
 
                 int lineOffset = 0;
@@ -441,19 +443,36 @@ namespace StarDisplay
             InvalidateCache();
         }
 
+        string prevBackgroundPath = "";
         private void InvalidateCache()
         {
+            Console.WriteLine("invalidated");
             gm.Ld = ld;
             mm.InvalidateCache();
             gm.InvalidateCache();
-        }
 
-        // Should be called from UpdateStars not to cause recursion
-        private void InvalidateCacheNoResetRM()
-        {
-            gm.Ld = ld;
-            mm.InvalidateCache();
-            gm.InvalidateCache();
+            if (sm.GetConfig(BackgroundSettingsAction.configureName, false))
+            {
+
+                string backgroundPath = sm.GetConfig(BackgroundSettingsAction.pathConfigureName, "");
+                if (prevBackgroundPath != backgroundPath)
+                {
+                    prevBackgroundPath = backgroundPath;
+                    try
+                    {
+                        Image img = Image.FromFile(sm.GetConfig(BackgroundSettingsAction.pathConfigureName, ""));
+                        if (img == null)
+                            throw new Exception();
+
+                        gm.SetBackground(img, 0.5f);
+                    }
+                    catch (Exception)
+                    {
+                        sm.SetConfig(BackgroundSettingsAction.configureName, false);
+                        prevBackgroundPath = "";
+                    }
+                }
+            }
         }
 
         private void EditDisplay()
@@ -921,35 +940,6 @@ namespace StarDisplay
                     return;
                 }
             }
-        }
-
-        private void replaceBackgroundToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "PNG Images (*.png)|*.png",
-                FilterIndex = 1,
-                RestoreDirectory = true
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    Image img = Image.FromFile(openFileDialog.FileName);
-                    if (img == null) throw new IOException();
-                    gm.SetBackground(img);
-                    
-                    InvalidateCache();
-                }
-                catch (IOException)
-                {
-                    MessageBox.Show("Failed to import star icons!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-            }
-
-            InvalidateCache();
         }
 
         private void recolorTextToolStripMenuItem_Click(object sender, EventArgs e)

@@ -9,14 +9,14 @@ namespace StarDisplay
     [Serializable]
     public class SettingsManager
     {
-        Dictionary<String, object> configs;
+        Dictionary<string, object> configs;
 
         public SettingsManager()
         {
             configs = new Dictionary<string, object>();
         }
 
-        public T GetConfig<T>(String configureName, T def)
+        public T GetConfig<T>(string configureName, T def)
         {
             T ret = def;
             try
@@ -38,7 +38,7 @@ namespace StarDisplay
             return ret;
         }
 
-        public void SetConfig<T>(String configureName, T value)
+        public void SetConfig<T>(string configureName, T value)
         {
             configs[configureName] = value;
         }

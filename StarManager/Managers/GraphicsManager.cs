@@ -1,9 +1,36 @@
 ﻿using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Drawing.Text;
 
 namespace StarDisplay
 {
+    public static class GraphicsExtensions
+    {
+        public static void DrawStringWithOutline(this Graphics g, string s, FontFamily fontFamily, float fontSize, Brush brush, Pen pen, float x, float y)
+        {
+            g.SmoothingMode = SmoothingMode.HighQuality; g.CompositingQuality = CompositingQuality.HighQuality; g.InterpolationMode = InterpolationMode.High;
+            GraphicsPath path = new GraphicsPath();
+            path.AddString(s, fontFamily, (int)FontStyle.Regular, g.DpiY * fontSize / 72, new PointF(x, y), new StringFormat());
+            g.DrawPath(pen, path);
+            Font font = new Font(fontFamily, fontSize);
+            g.DrawString(s, font, brush, x, y);
+
+            path.Dispose();
+            font.Dispose();
+        }
+        public static void DrawStringWithOutline(this Graphics g, string s, FontFamily fontFamily, float fontSize, Brush brush, Pen pen, RectangleF drawRect, StringFormat format)
+        {
+            g.SmoothingMode = SmoothingMode.HighQuality;
+            GraphicsPath path = new GraphicsPath();
+            path.AddString(s, fontFamily, (int)FontStyle.Regular, g.DpiY * fontSize / 72, drawRect, format);
+            g.DrawPath(new Pen(Color.Black, 3) { LineJoin = LineJoin.Round }, path);
+            Font font = new Font(fontFamily, fontSize);
+            g.DrawString(s, font, brush, drawRect, format);
+        }
+    }
+
     public class GraphicsManager : CachedManager
     {
         public readonly Image reds;
@@ -173,19 +200,36 @@ namespace StarDisplay
             IsFirstCall = true;
         }
 
-        public void SetBackground(Image image)
+        public void SetBackground(Image image, float opacity)
         {
-            double ratioX = (double)Width / image.Width;
-            double ratioY = (double)Width * 2 / image.Height;
-            double ratio = Math.Max(ratioX, ratioY);
+            float Height = Width * 2;
+            float ratioX = Width  / image.Width;
+            float ratioY = Height / image.Height;
+            float ratio = Math.Max(ratioX, ratioY);
 
             int newWidth = (int)(image.Width * ratio);
             int newHeight = (int)(image.Height * ratio);
             
-            Background = new Bitmap((int)Width, (int)Width * 2);
+            Background = new Bitmap((int)Width, (int)Height);
 
             using (var graphics = Graphics.FromImage(Background))
-                graphics.DrawImage(image, (Width - newWidth) / 2, (Width * 2 - newHeight) / 2, newWidth, newHeight);
+            {
+                ColorMatrix matrix = new ColorMatrix
+                {
+                    Matrix33 = opacity
+                };
+                ImageAttributes attrs = new ImageAttributes();
+                attrs.SetColorMatrix(matrix);
+
+                PointF p1 = new PointF(0, 0);
+                PointF p2 = new PointF(Width, 0);
+                PointF p3 = new PointF(0, Height);
+
+                float x1 = Width / ratio; float x2 = Height / ratio;
+                graphics.DrawImage(image, new PointF[]{ p1, p2, p3 }, 
+                                          new RectangleF((image.Width - x1) / 2, (image.Height - x2) / 2, x1, x2),
+                                          GraphicsUnit.Pixel, attrs);
+            }
         }
 
         public void DrawIntro(bool isEmulatorLoaded, bool isHackLoaded, bool isOffsetsInitialized)

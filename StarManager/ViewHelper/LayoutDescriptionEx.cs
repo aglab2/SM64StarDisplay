@@ -37,7 +37,7 @@ namespace StarDisplay
                 Alignment = StringAlignment.Near,
                 LineAlignment = StringAlignment.Center
             };
-            gm.graphics.DrawString(text, drawFont, drawBrush, drawRect, drawFormat);
+            gm.graphics.DrawStringWithOutline(text, gm.FontFamily, gm.DrawFontSize, drawBrush, Pens.Black, drawRect, drawFormat);
             drawBrush.Dispose();
             drawFont.Dispose();
         }
@@ -70,8 +70,6 @@ namespace StarDisplay
 
         public override void DrawBase(GraphicsManager gm, int lineNumber, bool isSecret)
         {
-            Font drawFont = new Font(gm.FontFamily, gm.DrawFontSize);
-
             SolidBrush drawBrush = new SolidBrush(Color.White);
             RectangleF drawRect = new RectangleF((isSecret ? (gm.Width / 2) : 0), lineNumber * gm.SHeight, gm.HalfWidth, gm.SHeight);
             StringFormat drawFormat = new StringFormat
@@ -79,11 +77,10 @@ namespace StarDisplay
                 Alignment = StringAlignment.Near,
                 LineAlignment = StringAlignment.Center
             };
-            gm.graphics.DrawString(text, drawFont, drawBrush, drawRect, drawFormat);
+            gm.graphics.DrawStringWithOutline(text, gm.FontFamily, gm.DrawFontSize, drawBrush, Pens.Black, drawRect, drawFormat);
             gm.DrawByte(0, lineNumber, isSecret, starMask);
 
             drawBrush.Dispose();
-            drawFont.Dispose();
         }
 
         public override bool IsEmpty()

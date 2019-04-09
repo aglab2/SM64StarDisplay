@@ -60,6 +60,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ChangeTextDialog";
+            this.ShowIcon = false;
             this.Text = "Change Text";
             this.ResumeLayout(false);
             this.PerformLayout();

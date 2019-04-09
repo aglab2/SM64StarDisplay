@@ -39,6 +39,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ActionMaskForm";
+            this.ShowIcon = false;
             this.Text = "Configure Display";
             this.ResumeLayout(false);
 

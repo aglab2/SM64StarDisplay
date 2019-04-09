@@ -499,13 +499,26 @@ namespace StarDisplay
             base.InvalidateCache();
         }
 
+        public void FixStarCount(byte[] data)
+        {
+            int starCounter = countStars((byte)(data[0x8]), 7);
+            // Fix star counter
+            for (int i = 0xC; i <= 0x24; i++)
+            {
+                starCounter += countStars((byte)(data[i]), 7);
+            }
+
+            Process.WriteBytes(starsCountPtr, new byte[] { (byte)starCounter });
+        }
+
         public void WriteToFile(int offset, int bit)
         {
             byte[] stars = new byte[FileLength];
             Stars.CopyTo(stars, 0);
+            
+            stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit));
 
-            //fix stuff here!!!
-            stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit)); //???
+            FixStarCount(stars);
 
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
@@ -526,18 +539,15 @@ namespace StarDisplay
             byte[] stars = data;
             if (stars == null) return;
 
-            int starCounter = countStars((byte)(data[0]), 7);
-            // Fix star counter
-            for (int i = 0xB - 7; i < 0x24 - 7; i++)
-            {
-                starCounter += countStars((byte)(data[i]), 7);
-            }
+            FixStarCount(data);
             
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
 
             Process.WriteBytes(filePtr, stars);
-            Process.WriteBytes(starsCountPtr, new byte[] { (byte) starCounter });
+
+            isStarsInvalidated = true;
+            isInvalidated = true;
         }
 
         public string GetTitle()
