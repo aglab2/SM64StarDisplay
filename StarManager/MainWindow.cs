@@ -21,7 +21,6 @@ namespace StarDisplay
         GraphicsManager gm;
         MemoryManager mm;
         ROMManager rm;
-        UpdateManager um;
         DownloadManager dm;
         SettingsManager sm;
         SyncLoginForm slf;
@@ -60,7 +59,6 @@ namespace StarDisplay
             gm = new GraphicsManager(Graphics.FromImage(randomImage), ld);
             starPicture.Image = randomImage;
             mm = new MemoryManager(null);
-            um = new UpdateManager();
 
             try
             {
@@ -206,33 +204,6 @@ namespace StarDisplay
             isEmulatorStarted = false;
             isHackLoaded = false;
             isOffsetsFound = false;
-
-#if !DEBUG
-            try
-            {
-                if (um.IsCompleted())
-                {
-                    if (!isUpdateRequested && !um.IsUpdated())
-                    {
-                        isUpdateRequested = true;
-                        this.SafeInvoke((MethodInvoker)delegate
-                        {
-                            DialogResult result = MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now? Press cancel to skip update", um.UpdateName()), "Update",
-                            MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
-                            if (result == DialogResult.Yes)
-                            {
-                                Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");
-                            }
-                            if (result == DialogResult.Cancel)
-                            {
-                                um.WritebackUpdate();
-                            }
-                        });
-                    }
-                }
-            }
-            catch (Exception) { }
-#endif
 
             try
             {

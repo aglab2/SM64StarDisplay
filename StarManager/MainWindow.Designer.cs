@@ -168,35 +168,35 @@
             // loadToolStripMenuItem
             // 
             this.loadToolStripMenuItem.Name = "loadToolStripMenuItem";
-            this.loadToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.loadToolStripMenuItem.Text = "Load";
             this.loadToolStripMenuItem.Click += new System.EventHandler(this.loadToolStripMenuItem_Click_1);
             // 
             // loadDefaultToolStripMenuItem
             // 
             this.loadDefaultToolStripMenuItem.Name = "loadDefaultToolStripMenuItem";
-            this.loadDefaultToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadDefaultToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.loadDefaultToolStripMenuItem.Text = "Load Default";
             this.loadDefaultToolStripMenuItem.Click += new System.EventHandler(this.loadDefaultToolStripMenuItem_Click_1);
             // 
             // saveToolStripMenuItem
             // 
             this.saveToolStripMenuItem.Name = "saveToolStripMenuItem";
-            this.saveToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.saveToolStripMenuItem.Text = "Save";
             this.saveToolStripMenuItem.Click += new System.EventHandler(this.saveToolStripMenuItem_Click_1);
             // 
             // editComponentsToolStripMenuItem
             // 
             this.editComponentsToolStripMenuItem.Name = "editComponentsToolStripMenuItem";
-            this.editComponentsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.editComponentsToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.editComponentsToolStripMenuItem.Text = "Edit Settings...";
             this.editComponentsToolStripMenuItem.Click += new System.EventHandler(this.editComponentsToolStripMenuItem_Click);
             // 
             // loadCustomFontToolStripMenuItem
             // 
             this.loadCustomFontToolStripMenuItem.Name = "loadCustomFontToolStripMenuItem";
-            this.loadCustomFontToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.loadCustomFontToolStripMenuItem.Size = new System.Drawing.Size(172, 22);
             this.loadCustomFontToolStripMenuItem.Text = "Load Custom Font";
             this.loadCustomFontToolStripMenuItem.Click += new System.EventHandler(this.loadCustomFontToolStripMenuItem_Click);
             // 
@@ -396,7 +396,7 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "MainWindow";
-            this.Text = "Star Display";
+            this.Text = "Star Display 1.0";
             this.Resize += new System.EventHandler(this.MainWindow_Resize);
             ((System.ComponentModel.ISupportInitialize)(this.starPicture)).EndInit();
             this.menuStrip.ResumeLayout(false);

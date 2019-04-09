@@ -158,7 +158,6 @@
     <Compile Include="Forms\SettingsDialog.Designer.cs">
       <DependentUpon>SettingsDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Managers\UpdateManager.cs" />
     <Compile Include="Process\WinAPI.cs" />
     <Compile Include="ViewHelper\LayoutDescriptionEx.cs" />
     <Content Include="TKStar.ico" />
