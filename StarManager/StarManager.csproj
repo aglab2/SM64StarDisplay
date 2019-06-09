@@ -94,12 +94,6 @@
     <Compile Include="Forms\ChangeTextDialog.Designer.cs">
       <DependentUpon>ChangeTextDialog.cs</DependentUpon>
     </Compile>
-    <Compile Include="Forms\SyncLoginForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Forms\SyncLoginForm.Designer.cs">
-      <DependentUpon>SyncLoginForm.cs</DependentUpon>
-    </Compile>
     <Compile Include="Forms\WarpDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -112,7 +106,6 @@
     <Compile Include="Managers\MagicManager.cs" />
     <Compile Include="Managers\Manager.cs" />
     <Compile Include="Managers\SettingsManager.cs" />
-    <Compile Include="Managers\SyncManager.cs" />
     <Compile Include="Server\CookieAwareWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -175,9 +168,6 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\FlagsEditForm.resx">
       <DependentUpon>FlagsEditForm.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Forms\SyncLoginForm.resx">
-      <DependentUpon>SyncLoginForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Forms\WarpDialog.resx">
       <DependentUpon>WarpDialog.cs</DependentUpon>

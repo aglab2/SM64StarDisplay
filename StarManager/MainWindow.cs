@@ -23,7 +23,6 @@ namespace StarDisplay
         ROMManager rm;
         DownloadManager dm;
         SettingsManager sm;
-        SyncLoginForm slf;
 
         System.Threading.Timer timer;
         
@@ -32,8 +31,6 @@ namespace StarDisplay
         int picX, picY;
 
         Image baseImage;
-
-        bool isUpdateRequested = false;
 
         ToolStripMenuItem[] fileMenuItems;
         
@@ -254,18 +251,10 @@ namespace StarDisplay
                 bool mmIsInvalidated = mm == null ? false : mm.CheckInvalidated();
                 bool gmIsInvalidated = gm == null ? false : gm.CheckInvalidated();
                 bool dmIsInvalidated = dm == null ? false : dm.CheckInvalidated();
-                bool smIsInvalidated = false;
-                if (slf != null && slf.sm != null)
-                    smIsInvalidated = slf.sm.CheckInvalidated();
 
                 if (mmIsInvalidated && mm.isStarsInvalidated)
                 {
                     mm.isStarsInvalidated = false;
-                    if (slf != null && slf.sm != null)
-                    {
-                        slf.sm.SendData(mm.Stars);
-                    }
-
                     Console.WriteLine("MM Invalidated!");
                 }
 
@@ -274,19 +263,8 @@ namespace StarDisplay
                 if (dmIsInvalidated)
                     Console.WriteLine("DM Invalidated!");
 
-                if (smIsInvalidated)
-                {
-                    Console.WriteLine("SM Invalidated!");
-
-                    byte[] stars = (byte[]) slf.sm.Data.Clone();
-                    //for (int i = 0; i < 32; i += 4)
-                    //    Array.Reverse(stars, i, 4);
-
-                    mm.WriteToFile(stars);
-                }
-
                 // We do not draw anything!
-                if (!mmIsInvalidated && !gmIsInvalidated && !smIsInvalidated && !dmIsInvalidated)
+                if (!mmIsInvalidated && !gmIsInvalidated && !dmIsInvalidated)
                 {
                     return;
                 }
@@ -1075,15 +1053,6 @@ namespace StarDisplay
                 gm.InvalidateCache();
             }
 		}
-	
-        private void syncToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            if (slf == null || slf.isClosed)
-            {
-                slf = new SyncLoginForm(mm.Stars);
-                slf.Show();
-            }
-        }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
