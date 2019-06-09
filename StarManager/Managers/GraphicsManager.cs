@@ -3,6 +3,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using System.Runtime.InteropServices;
 
 namespace StarDisplay
 {
@@ -101,20 +102,20 @@ namespace StarDisplay
                 for (int j = 0; j < blackSquare.Height; j++)
                     blackSquare.SetPixel(i, j, Color.Black);
 
-            flipswitchOn = new Bitmap("images/flipswitch_on.png");
-            flipswitchOff = new Bitmap("images/flipswitch_off.png");
-            flipswitchDone = new Bitmap("images/flipswitch_done.png");
+            flipswitchOn = Resource.flipswitch_on;
+            flipswitchOff = Resource.flipswitch_off;
+            flipswitchDone = Resource.flipswitch_done;
 
-            Bitmap redsBitmap = new Bitmap("images/red.png");
+            Bitmap redsBitmap = Resource.red;
             reds = redsBitmap;
             darkReds = ImageProcessing.Desaturate(redsBitmap);
 
-            Bitmap secretsBitmap = new Bitmap("images/secret.png");
+            Bitmap secretsBitmap = Resource.secret;
             secrets = secretsBitmap;
             darkSecrets = ImageProcessing.Desaturate(secretsBitmap);
 
             Collection = new PrivateFontCollection();
-            Collection.AddFontFile("font/CourierNew.ttf");
+            Collection.AddMemoryFont(Marshal.UnsafeAddrOfPinnedArrayElement(Resource.CourierNew, 0), Resource.CourierNew.Length);
             FontFamily = new FontFamily("Courier New", Collection);
 
             TestFont();

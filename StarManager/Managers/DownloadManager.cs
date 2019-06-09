@@ -38,6 +38,7 @@ namespace StarDisplay
         {
             try
             {
+                Directory.CreateDirectory("layout/");
                 RepositoryContent content = task.Result.First();
                 byte[] data = Convert.FromBase64String(content.EncodedContent);
 

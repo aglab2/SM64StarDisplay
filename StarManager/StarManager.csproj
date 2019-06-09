@@ -55,8 +55,8 @@
     <ApplicationIcon>TKStar.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=11.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.11.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Octokit, Version=0.32.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Octokit.0.32.0\lib\net45\Octokit.dll</HintPath>
@@ -113,6 +113,11 @@
     <Compile Include="Managers\Manager.cs" />
     <Compile Include="Managers\SettingsManager.cs" />
     <Compile Include="Managers\SyncManager.cs" />
+    <Compile Include="Resource.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
     <Compile Include="Server\CookieAwareWebClient.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -161,6 +166,9 @@
     <Compile Include="Managers\UpdateManager.cs" />
     <Compile Include="Process\WinAPI.cs" />
     <Compile Include="ViewHelper\LayoutDescriptionEx.cs" />
+    <None Include="bin\Release\gold_star.png" />
+    <None Include="bin\Release\Newtonsoft.Json.dll" />
+    <None Include="bin\Release\Octokit.dll" />
     <Content Include="TKStar.ico" />
     <EmbeddedResource Include="Forms\AboutDialog.resx">
       <DependentUpon>AboutDialog.cs</DependentUpon>
@@ -202,39 +210,21 @@
     <EmbeddedResource Include="Forms\SettingsDialog.resx">
       <DependentUpon>SettingsDialog.cs</DependentUpon>
     </EmbeddedResource>
-    <None Include="font\CourierNew.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <Content Include="images\flipswitch_done.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\flipswitch_off.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\flipswitch_on.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\paypal.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\red.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\secret.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\star.rgba16">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <None Include="layout\STAR REVENGE 7.5KR.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\STAR REVENGE 7.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="layout\SUPER MARIO 64.sml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="Resource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="font\CourierNew.ttf" />
+    <Content Include="images\flipswitch_done.png" />
+    <Content Include="images\flipswitch_off.png" />
+    <Content Include="images\flipswitch_on.png" />
+    <Content Include="images\paypal.png" />
+    <Content Include="images\red.png" />
+    <Content Include="images\secret.png" />
+    <Content Include="images\star.rgba16" />
+    <None Include="layout\STAR REVENGE 7.5KR.sml" />
+    <None Include="layout\STAR REVENGE 7.sml" />
+    <None Include="layout\SUPER MARIO 64.sml" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -253,12 +243,7 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="images\dark_star.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="images\gold_star.png">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
+    <Content Include="images\gold_star.png" />
   </ItemGroup>
   <ItemGroup>
     <BootstrapperPackage Include=".NETFramework,Version=v4.5.2">

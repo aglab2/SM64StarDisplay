@@ -308,10 +308,10 @@ namespace StarDisplay
                     Console.WriteLine("SM Invalidated!");
 
                     byte[] stars = (byte[]) slf.sm.Data.Clone();
-                    //for (int i = 0; i < 32; i += 4)
-                    //    Array.Reverse(stars, i, 4);
+                    for (int i = 0; i < stars.Length; i++)
+                        mm.Stars[i] |= stars[i];
 
-                    mm.WriteToFile(stars);
+                    mm.WriteToFile(mm.Stars);
                 }
 
                 // We do not draw anything!
