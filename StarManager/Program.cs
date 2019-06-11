@@ -24,8 +24,21 @@ namespace StarDisplay
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
             AppDomain.CurrentDomain.UnhandledException += new UnhandledExceptionEventHandler(CurrentDomain_UnhandledException);
 
+            AppDomain.CurrentDomain.AssemblyResolve += CurrentDomain_AssemblyResolve;
+
             Application.Run(new MainWindow());
             Environment.Exit(Environment.ExitCode);
+        }
+
+        private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args)
+        {
+            string name = args.Name.Split(new char[] { ',' })[0].Trim();
+            if (name == "Octokit")
+                return Assembly.Load(Resource.Octokit);
+            if (name == "Newtonsoft.Json")
+                return Assembly.Load(Resource.Newtonsoft_Json);
+
+            return null;
         }
 
         // Handle the UI exceptions by showing a dialog box, and asking the user whether

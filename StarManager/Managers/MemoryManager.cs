@@ -550,6 +550,19 @@ namespace StarDisplay
             isInvalidated = true;
         }
 
+        public void WriteToFile()
+        {
+            byte[] stars = (byte[]) Stars.Clone();
+            if (stars == null) return;
+
+            FixStarCount(stars);
+
+            for (int i = 0; i < FileLength; i += 4)
+                Array.Reverse(stars, i, 4);
+
+            Process.WriteBytes(filePtr, stars);
+        }
+
         public string GetTitle()
         {
             Process.Refresh();

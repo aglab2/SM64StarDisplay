@@ -307,11 +307,24 @@ namespace StarDisplay
                 {
                     Console.WriteLine("SM Invalidated!");
 
-                    byte[] stars = (byte[]) slf.sm.Data.Clone();
-                    for (int i = 0; i < stars.Length; i++)
-                        mm.Stars[i] |= stars[i];
+                    byte[] stars = slf.sm.AcquiredData;
 
-                    mm.WriteToFile(mm.Stars);
+                    bool shouldSendHelp = false;
+                    for (int i = 0; i < stars.Count(); i++)
+                    {
+                        byte diff = (byte)(mm.Stars[i] ^ stars[i]);
+                        if ((mm.Stars[i] & diff) != 0)
+                            shouldSendHelp = true;
+
+                        mm.Stars[i] = (byte)(mm.Stars[i] | stars[i]);
+                    }
+
+                    if (shouldSendHelp)
+                    {
+                        slf.sm.SendData(mm.Stars);
+                    }
+
+                    mm.WriteToFile();
                 }
 
                 // We do not draw anything!
