@@ -159,7 +159,7 @@ namespace StarDisplay
         {
             foreach (string name in processNames)
             {
-                Process process = Process.GetProcessesByName(name).FirstOrDefault();
+                Process process = Process.GetProcessesByName(name).Where(p => !p.HasExited).FirstOrDefault();
                 if (process != null)
                     return process;
             }
@@ -207,7 +207,6 @@ namespace StarDisplay
             isHackLoaded = false;
             isOffsetsFound = false;
 
-#if !DEBUG
             try
             {
                 if (um.IsCompleted())
@@ -232,7 +231,6 @@ namespace StarDisplay
                 }
             }
             catch (Exception) { }
-#endif
 
             try
             {
@@ -324,7 +322,7 @@ namespace StarDisplay
                         slf.sm.SendData(mm.Stars);
                     }
 
-                    mm.WriteToFile();
+                    mm.WriteToFile(ld.starsShown);
                 }
 
                 // We do not draw anything!
@@ -379,7 +377,8 @@ namespace StarDisplay
                                 dm.GetData();
                             }
 
-                            LoadLayoutNoInvalidate("layout/" + rm.GetROMName() + ".sml");
+                            string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                            LoadLayoutNoInvalidate(exePath + "\\layout\\" + rm.GetROMName() + ".sml");
                         }
                         catch (IOException)
                         {
@@ -617,7 +616,7 @@ namespace StarDisplay
                             {
                                 if ((sld.starMask & (byte)(1 << i)) != 0)
                                 {
-                                    mm.WriteToFile(sld.offset, i);
+                                    mm.WriteToFile(sld.offset, i, ld.starsShown);
                                 }
                             }
                             InvalidateCache();
@@ -627,7 +626,7 @@ namespace StarDisplay
                     {
                         if ((sld.starMask & (byte)(1 << (star - 1))) != 0)
                         {
-                            mm.WriteToFile(sld.offset, star - 1);
+                            mm.WriteToFile(sld.offset, star - 1, ld.starsShown);
                             InvalidateCache();
                         }
                     }
@@ -745,7 +744,8 @@ namespace StarDisplay
             {
                 do
                 {
-                    LoadLayout("layout/" + rm.GetROMName() + ".sml");
+                    string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                    LoadLayout(exePath + "\\layout\\" + rm.GetROMName() + ".sml");
                 } while (false);
             }
             catch (IOException){
@@ -1017,7 +1017,7 @@ namespace StarDisplay
         {
             FlagsEditForm fef = new FlagsEditForm(mm.GetStars());
             fef.ShowDialog();
-            mm.WriteToFile(fef.stars);
+            mm.WriteToFile(fef.stars, ld.starsShown);
             InvalidateCache();
         }
 
@@ -1131,7 +1131,8 @@ namespace StarDisplay
         {
             try
             {
-                string name = "layout/" + rm.GetROMName() + ".sml";
+                string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                string name = exePath + "\\layout\\" + rm.GetROMName() + ".sml";
                 if (File.Exists(name))
                 {
                     var result = MessageBox.Show("Layout for this hack already exists! Do you want to overwrite it?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);

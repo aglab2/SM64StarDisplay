@@ -1,9 +1,10 @@
-﻿using Octokit;
+﻿using Microsoft.Win32;
+using Octokit;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace StarDisplay
@@ -11,14 +12,26 @@ namespace StarDisplay
     class UpdateManager
     {
         GitHubClient client;
-        Task<GitHubCommit> task;
-        string lastUpdate;
+        Task<IReadOnlyList<Release>> task;
+        Version version;
 
         public UpdateManager()
         {
+            version = Assembly.GetEntryAssembly().GetName().Version;
+            using (RegistryKey softwareKey = Registry.CurrentUser.CreateSubKey("Software"),
+                   sdKey = softwareKey.CreateSubKey("StarDisplay"))
+            {
+                try
+                {
+                    Version registryVersion = new Version((string)sdKey.GetValue("updatecfg"));
+                    if (registryVersion != null && (registryVersion > version))
+                        version = registryVersion;
+                }
+                catch(Exception) { }
+            }
+
             client = new GitHubClient(new ProductHeaderValue("star-display"));
-            task = client.Repository.Commit.Get("aglab2", "SM64StarManager", "HEAD");
-            lastUpdate = File.ReadLines("updateinfo.cfg").First();
+            task = client.Repository.Release.GetAll("aglab2", "SM64StarManager");
         }
 
         public bool IsCompleted()
@@ -28,18 +41,27 @@ namespace StarDisplay
 
         public bool IsUpdated()
         {
-            var commit = task.Result;
-            return commit.Commit.Message == lastUpdate;
+            Version updVersion = UpdateVersion();
+            return updVersion <= version;
         }
 
         public string UpdateName()
         {
-            return task.Result.Commit.Message;
+            return task.Result[0].Body;
+        }
+
+        public Version UpdateVersion()
+        {
+            return new Version(task.Result[0].TagName);
         }
 
         public void WritebackUpdate()
         {
-            File.WriteAllText("updateinfo.cfg", task.Result.Commit.Message);
+            using (RegistryKey softwareKey = Registry.CurrentUser.CreateSubKey("Software"),
+                   sdKey = softwareKey.CreateSubKey("StarDisplay"))
+            {
+                sdKey.SetValue("updatecfg", UpdateVersion());
+            }
         }
     }
 }

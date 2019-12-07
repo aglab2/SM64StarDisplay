@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -38,11 +39,12 @@ namespace StarDisplay
         {
             try
             {
-                Directory.CreateDirectory("layout/");
+                string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+                Directory.CreateDirectory(exePath + "\\layout\\");
                 RepositoryContent content = task.Result.First();
                 byte[] data = Convert.FromBase64String(content.EncodedContent);
 
-                File.WriteAllBytes("layout/" + path, data);
+                File.WriteAllBytes(exePath + "\\layout\\" + path, data);
             }
             catch (Exception)
             {

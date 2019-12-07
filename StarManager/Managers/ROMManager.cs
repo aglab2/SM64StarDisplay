@@ -188,12 +188,12 @@ namespace StarDisplay
         public void ParseStars(LayoutDescriptionEx ld)
         {
             int totalStars = 0;
-            totalStars += UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription);
-            totalStars += UpdateLineDescriptionsWithStars(0, ld.secretDescription);
+            totalStars += UpdateLineDescriptionsWithStars(2 << 6, ld.courseDescription, ld.starsShown);
+            totalStars += UpdateLineDescriptionsWithStars(0, ld.secretDescription, ld.starsShown);
             ld.RecountStars();
         }
 
-        private int UpdateLineDescriptionsWithStars(byte initMask, List<LineDescriptionEx> descriptions)
+        private int UpdateLineDescriptionsWithStars(byte initMask, List<LineDescriptionEx> descriptions, int maxShown)
         {
             int totalStars = 0;
             for (int i = 0; i < descriptions.Count; i++)
@@ -212,7 +212,7 @@ namespace StarDisplay
                     int levelAddressEnd = ReadInt32();
 
                     sld.starMask = GenerateStarMask(initMask, levelAddressStart, levelAddressEnd);
-                    totalStars += MemoryManager.countStars(sld.starMask, 7);
+                    totalStars += MemoryManager.countStars(sld.starMask, maxShown);
                 }
             }
             return totalStars;

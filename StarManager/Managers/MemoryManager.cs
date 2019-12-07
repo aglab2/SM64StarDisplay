@@ -499,26 +499,26 @@ namespace StarDisplay
             base.InvalidateCache();
         }
 
-        public void FixStarCount(byte[] data)
+        public void FixStarCount(byte[] data, int maxShown)
         {
-            int starCounter = countStars((byte)(data[0x8]), 7);
+            int starCounter = countStars((byte)(data[0x8]), maxShown);
             // Fix star counter
             for (int i = 0xC; i <= 0x24; i++)
             {
-                starCounter += countStars((byte)(data[i]), 7);
+                starCounter += countStars((byte)(data[i]), maxShown);
             }
 
             Process.WriteBytes(starsCountPtr, new byte[] { (byte)starCounter });
         }
 
-        public void WriteToFile(int offset, int bit)
+        public void WriteToFile(int offset, int bit, int maxShown)
         {
             byte[] stars = new byte[FileLength];
             Stars.CopyTo(stars, 0);
             
             stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit));
 
-            FixStarCount(stars);
+            FixStarCount(stars, maxShown);
 
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
@@ -534,12 +534,12 @@ namespace StarDisplay
             isInvalidated = true;
         }
 
-        public void WriteToFile(byte[] data)
+        public void WriteToFile(byte[] data, int maxShown)
         {
             byte[] stars = data;
             if (stars == null) return;
 
-            FixStarCount(data);
+            FixStarCount(data, maxShown);
             
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
@@ -550,12 +550,12 @@ namespace StarDisplay
             isInvalidated = true;
         }
 
-        public void WriteToFile()
+        public void WriteToFile(int maxShown)
         {
             byte[] stars = (byte[]) Stars.Clone();
             if (stars == null) return;
 
-            FixStarCount(stars);
+            FixStarCount(stars, maxShown);
 
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
