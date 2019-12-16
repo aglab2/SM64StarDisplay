@@ -66,6 +66,10 @@
             this.offsetComboBox.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.offsetComboBox.FormattingEnabled = true;
             this.offsetComboBox.Items.AddRange(new object[] {
+            "Overworld",
+            "Flags 1",
+            "Flags 2",
+            "Flags 3",
             "Course 1",
             "Course 2",
             "Course 3",
@@ -90,8 +94,7 @@
             "Vanish Cap",
             "Rainbow",
             "Aquarium",
-            "\"The End\"",
-            "OverWorld"});
+            "\"The End\""});
             this.offsetComboBox.Location = new System.Drawing.Point(6, 42);
             this.offsetComboBox.Name = "offsetComboBox";
             this.offsetComboBox.Size = new System.Drawing.Size(89, 21);

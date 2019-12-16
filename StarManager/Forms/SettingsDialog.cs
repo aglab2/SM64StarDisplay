@@ -35,10 +35,10 @@ namespace StarDisplay
             if (lind is StarsLineDescription sld)
             {
                 stringTextBox.Text = sld.text;
-                if (sld.offset != 0 && sld.offset != 8)
-                    offsetComboBox.SelectedIndex = sld.offset - 12;
+                if (sld.offset != 0)
+                    offsetComboBox.SelectedIndex = sld.offset - 8;
                 else
-                    offsetComboBox.SelectedIndex = offsetComboBox.Items.Count - 1;
+                    offsetComboBox.SelectedIndex = 0;
 
                 byte mask = sld.highlightStarMask;
                 if ((mask & (1 << 0)) != 0) checkBox1.Checked = true;
@@ -52,8 +52,6 @@ namespace StarDisplay
 
                 oldMask = sld.starMask;
                 highlightOffsetTextBox.Text = sld.highlightOffset.ToString();
-
-                offsetComboBox.SelectedIndex = sld.offset == 8 ? offsetComboBox.Items.Count - 1 : sld.offset - 12;
             }
 
             highlightPresetComboBox.SelectedIndex = 0;
@@ -72,7 +70,7 @@ namespace StarDisplay
                 byte mask = 0;
                 int offset = 0;
 
-                if (is8StarsCheckbox.Checked) mask |= (1 << 0);
+                if (checkBox1.Checked) mask |= (1 << 0);
                 if (checkBox2.Checked) mask |= (1 << 1);
                 if (checkBox3.Checked) mask |= (1 << 2);
                 if (checkBox4.Checked) mask |= (1 << 3);
@@ -81,11 +79,7 @@ namespace StarDisplay
                 if (checkBox7.Checked) mask |= (1 << 6);
                 if (checkBox8.Checked) mask |= (1 << 7);
 
-                if (offsetComboBox.SelectedIndex == offsetComboBox.Items.Count - 1)
-                    offset = 8;
-                else
-                    offset = offsetComboBox.SelectedIndex + 12;
-
+                offset = offsetComboBox.SelectedIndex + 8;
                 int.TryParse(highlightOffsetTextBox.Text, out int highlightOffset);
 
                 lind = new StarsLineDescription(stringTextBox.Text, oldMask, offset, mask, highlightOffset);
@@ -101,7 +95,7 @@ namespace StarDisplay
             int index = highlightPresetComboBox.SelectedIndex;
             if (index == 1)
             {
-                is8StarsCheckbox.Checked = false;
+                checkBox1.Checked = false;
                 checkBox2.Checked = false;
                 checkBox3.Checked = false;
                 checkBox4.Checked = false;
@@ -113,7 +107,7 @@ namespace StarDisplay
             if (index == 2)
             {
                 highlightOffsetTextBox.Text = "11";
-                is8StarsCheckbox.Checked = false;
+                checkBox1.Checked = false;
                 checkBox2.Checked = true;
                 checkBox3.Checked = false;
                 checkBox4.Checked = false;
@@ -126,7 +120,7 @@ namespace StarDisplay
             if (index == 3)
             {
                 highlightOffsetTextBox.Text = "11";
-                is8StarsCheckbox.Checked = false;
+                checkBox1.Checked = false;
                 checkBox2.Checked = false;
                 checkBox3.Checked = true;
                 checkBox4.Checked = false;
@@ -139,7 +133,7 @@ namespace StarDisplay
             if (index == 4)
             {
                 highlightOffsetTextBox.Text = "11";
-                is8StarsCheckbox.Checked = false;
+                checkBox1.Checked = false;
                 checkBox2.Checked = false;
                 checkBox3.Checked = false;
                 checkBox4.Checked = true;
@@ -152,7 +146,7 @@ namespace StarDisplay
             if (index == 5)
             {
                 highlightOffsetTextBox.Text = "11";
-                is8StarsCheckbox.Checked = false;
+                checkBox1.Checked = false;
                 checkBox2.Checked = false;
                 checkBox3.Checked = false;
                 checkBox4.Checked = false;
@@ -165,7 +159,7 @@ namespace StarDisplay
             if (index == 6)
             {
                 highlightOffsetTextBox.Text = "11";
-                is8StarsCheckbox.Checked = false;
+                checkBox1.Checked = false;
                 checkBox2.Checked = false;
                 checkBox3.Checked = false;
                 checkBox4.Checked = false;

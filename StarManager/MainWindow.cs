@@ -220,7 +220,7 @@ namespace StarDisplay
                             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
                             if (result == DialogResult.Yes)
                             {
-                                Process.Start("https://github.com/aglab2/SM64StarDisplay/blob/master/StarDisplay.zip?raw=true");
+                                Process.Start(um.DownloadPath());
                             }
                             if (result == DialogResult.Cancel)
                             {
@@ -581,7 +581,7 @@ namespace StarDisplay
             int line = (int)Math.Floor(Y / gm.SHeight);
             bool isSecret = ((int)Math.Floor(X / (gm.Width / 2))) == 1;
             int star = (int)Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
-            if (star == 8) return;
+            if (star > ld.starsShown) return;
 
             try
             {
@@ -1031,14 +1031,16 @@ namespace StarDisplay
         private void LoadSettings()
         {
             IFormatter formatter = new BinaryFormatter();
-            Stream stream = new FileStream("settings.cfg", FileMode.Open, FileAccess.Read, FileShare.None);
+            string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            Stream stream = new FileStream(exePath + "\\settings.cfg", FileMode.Open, FileAccess.Read, FileShare.None);
             sm = (SettingsManager)formatter.Deserialize(stream);
             stream.Close();
         }
 
         private void loadToolStripMenuItem_Click_1(object sender, EventArgs e)
         {
-            if (!File.Exists("settings.cfg"))
+            string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            if (!File.Exists(exePath + "\\settings.cfg"))
             {
                 sm = new SettingsManager();
                 return;
@@ -1067,8 +1069,9 @@ namespace StarDisplay
 
         void SaveSettings()
         {
+            string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
             IFormatter formatter = new BinaryFormatter();
-            Stream stream = new FileStream("settings.cfg", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
+            Stream stream = new FileStream(exePath + "\\settings.cfg", FileMode.OpenOrCreate, FileAccess.Write, FileShare.None);
             formatter.Serialize(stream, sm);
             stream.Close();
         }
@@ -1132,7 +1135,9 @@ namespace StarDisplay
             try
             {
                 string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                string name = exePath + "\\layout\\" + rm.GetROMName() + ".sml";
+                string layoutDir = exePath + "\\layout\\";
+                Directory.CreateDirectory(layoutDir);
+                string name = layoutDir + rm.GetROMName() + ".sml";
                 if (File.Exists(name))
                 {
                     var result = MessageBox.Show("Layout for this hack already exists! Do you want to overwrite it?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);

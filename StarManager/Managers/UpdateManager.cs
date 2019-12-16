@@ -12,8 +12,11 @@ namespace StarDisplay
     class UpdateManager
     {
         GitHubClient client;
-        Task<IReadOnlyList<Release>> task;
+        Task<IReadOnlyList<Release>> versionTask;
         Version version;
+        bool isUpdated;
+
+        Task<IReadOnlyList<ReleaseAsset>> assetTask;
 
         public UpdateManager()
         {
@@ -31,28 +34,60 @@ namespace StarDisplay
             }
 
             client = new GitHubClient(new ProductHeaderValue("star-display"));
-            task = client.Repository.Release.GetAll("aglab2", "SM64StarManager");
+            versionTask = client.Repository.Release.GetAll("aglab2", "SM64StarManager", new ApiOptions() { PageSize = 5, PageCount = 1 });
+            isUpdated = false;
+        }
+
+        static bool IsCompleted<T>(Task<T> task)
+        {
+            return task != null && task.IsCompleted && !task.IsFaulted;
         }
 
         public bool IsCompleted()
         {
-            return task.IsCompleted && !task.IsFaulted;
+            if (isUpdated)
+                return true;
+
+            if (IsCompleted(assetTask))
+                return true;
+
+            if (IsCompleted(versionTask))
+            {
+                if (assetTask == null)
+                {
+                    isUpdated = CalcIsUpdated();
+                    if (!isUpdated)
+                        assetTask = client.Repository.Release.GetAllAssets("aglab2", "SM64StarManager", versionTask.Result[0].Id);
+                }
+            }
+
+            return false;
         }
 
-        public bool IsUpdated()
+        bool CalcIsUpdated()
         {
             Version updVersion = UpdateVersion();
             return updVersion <= version;
         }
 
+        public bool IsUpdated()
+        {
+            return isUpdated;
+        }
+
         public string UpdateName()
         {
-            return task.Result[0].Body;
+            return versionTask.Result[0].Body;
+        }
+
+        public string DownloadPath()
+        {
+            return assetTask.Result[0].BrowserDownloadUrl;
         }
 
         public Version UpdateVersion()
         {
-            return new Version(task.Result[0].TagName);
+            return new Version(versionTask.Result[0].TagName);
         }
 
         public void WritebackUpdate()
