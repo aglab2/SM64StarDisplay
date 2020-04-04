@@ -216,7 +216,7 @@ namespace StarDisplay
                         isUpdateRequested = true;
                         this.SafeInvoke((MethodInvoker)delegate
                         {
-                            DialogResult result = MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\n\nDo you want to download it now? Press cancel to skip update", um.UpdateName()), "Update",
+                            DialogResult result = MessageBox.Show(String.Format("Update for Star Display available!\n\n{0}\nDo you want to download it now? Press cancel to skip update", um.UpdateName()), "Update",
                             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
                             if (result == DialogResult.Yes)
                             {
@@ -285,6 +285,10 @@ namespace StarDisplay
                 if (slf != null && slf.sm != null)
                     smIsInvalidated = slf.sm.CheckInvalidated();
 
+                bool nmIsInvalidated = false;
+                if (slf != null && slf.nm != null)
+                    nmIsInvalidated = slf.nm.CheckInvalidated();
+
                 if (mmIsInvalidated && mm.isStarsInvalidated)
                 {
                     mm.isStarsInvalidated = false;
@@ -304,25 +308,48 @@ namespace StarDisplay
                 if (smIsInvalidated)
                 {
                     Console.WriteLine("SM Invalidated!");
-
-                    byte[] stars = slf.sm.AcquiredData;
-
-                    bool shouldSendHelp = false;
-                    for (int i = 0; i < stars.Count(); i++)
                     {
-                        byte diff = (byte)(mm.Stars[i] ^ stars[i]);
-                        if ((mm.Stars[i] & diff) != 0)
-                            shouldSendHelp = true;
+                        byte[] stars = slf.sm.AcquiredData;
 
-                        mm.Stars[i] = (byte)(mm.Stars[i] | stars[i]);
+                        bool shouldSendHelp = false;
+                        for (int i = 0; i < stars.Count(); i++)
+                        {
+                            byte diff = (byte)(mm.Stars[i] ^ stars[i]);
+                            if ((mm.Stars[i] & diff) != 0)
+                                shouldSendHelp = true;
+
+                            mm.Stars[i] = (byte)(mm.Stars[i] | stars[i]);
+                        }
+
+                        if (shouldSendHelp)
+                        {
+                            slf.sm.SendData(mm.Stars);
+                        }
+
+                        mm.WriteToFile(ld.starsShown);
                     }
-
-                    if (shouldSendHelp)
                     {
-                        slf.sm.SendData(mm.Stars);
-                    }
+                        var netData = slf.sm.getNetData();
+                        foreach (var item in netData)
+                        {
+                            var player = item.Key;
+                            var data = item.Value;
 
-                    mm.WriteToFile(ld.starsShown);
+                            if (slf is object && slf.nm is object)
+                            {
+                                var id = slf.nm.RegisterPlayer(player);
+                                mm.WriteNetState(id, data);
+                            }
+                        }
+                    }
+                }
+
+                if (nmIsInvalidated)
+                {
+                    mm.WriteNetPatch();
+                    var state = mm.GetMarioState();
+                    if (slf.sm is object)
+                        slf.sm.SendNet64Data(slf.GetNet64Name(), state);
                 }
 
                 // We do not draw anything!

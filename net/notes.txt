@@ -1,0 +1,4 @@
+free mem 0x80026000 - 0x8005c000
+
+linked list of players 25 players max
+single player size 0x240 * 

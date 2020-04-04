@@ -34,6 +34,10 @@
             this.portTextBox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.richTextBox1 = new System.Windows.Forms.RichTextBox();
+            this.textBoxName = new System.Windows.Forms.TextBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.textBoxCategory = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // serverTextBox
@@ -88,11 +92,53 @@
             this.label2.TabIndex = 5;
             this.label2.Text = "Port";
             // 
+            // richTextBox1
+            // 
+            this.richTextBox1.Location = new System.Drawing.Point(12, 93);
+            this.richTextBox1.Name = "richTextBox1";
+            this.richTextBox1.ReadOnly = true;
+            this.richTextBox1.Size = new System.Drawing.Size(235, 183);
+            this.richTextBox1.TabIndex = 7;
+            this.richTextBox1.Text = "";
+            // 
+            // textBoxName
+            // 
+            this.textBoxName.Enabled = false;
+            this.textBoxName.Location = new System.Drawing.Point(13, 282);
+            this.textBoxName.Name = "textBoxName";
+            this.textBoxName.Size = new System.Drawing.Size(174, 20);
+            this.textBoxName.TabIndex = 8;
+            this.textBoxName.Text = "Net64 Name";
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Enabled = false;
+            this.checkBox1.Location = new System.Drawing.Point(192, 284);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(55, 17);
+            this.checkBox1.TabIndex = 9;
+            this.checkBox1.Text = "Net64";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.netCheckbox_CheckedChanged);
+            // 
+            // textBoxCategory
+            // 
+            this.textBoxCategory.Location = new System.Drawing.Point(13, 67);
+            this.textBoxCategory.Name = "textBoxCategory";
+            this.textBoxCategory.Size = new System.Drawing.Size(154, 20);
+            this.textBoxCategory.TabIndex = 10;
+            this.textBoxCategory.Text = "Category";
+            // 
             // SyncLoginForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(260, 71);
+            this.ClientSize = new System.Drawing.Size(260, 310);
+            this.Controls.Add(this.textBoxCategory);
+            this.Controls.Add(this.checkBox1);
+            this.Controls.Add(this.textBoxName);
+            this.Controls.Add(this.richTextBox1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.portTextBox);
@@ -116,5 +162,9 @@
         private System.Windows.Forms.TextBox portTextBox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.RichTextBox richTextBox1;
+        private System.Windows.Forms.TextBox textBoxName;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.TextBox textBoxCategory;
     }
 }

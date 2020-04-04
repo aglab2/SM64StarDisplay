@@ -11,14 +11,14 @@ namespace StarDisplay
     class MagicManager
     {
         const int PageSize = 4096;
-        const long MaxMem = (long) 2 * 1024 * 1024 * 1024;
+        const long MaxMem = (long) 4 * 1024 * 1024 * 1024;
 
         const uint ramMagic = 0x3C1A8032;
         const uint romMagic = 0x80371240;
 
         private Process process;
-        public readonly int romPtrBase;
-        public readonly int ramPtrBase;
+        public readonly uint romPtrBase;
+        public readonly uint ramPtrBase;
 
         public MagicManager(Process process, int[] romPtrBaseSuggestions, int[] ramPtrBaseSuggestions, int offset)
         {
@@ -27,7 +27,7 @@ namespace StarDisplay
             bool isRomFound = false;
             bool isRamFound = false;
 
-            foreach(int romPtrBaseSuggestion in romPtrBaseSuggestions)
+            foreach(uint romPtrBaseSuggestion in romPtrBaseSuggestions)
             {
                 romPtrBase = romPtrBaseSuggestion;
                 if (IsRomBaseValid())
@@ -37,7 +37,7 @@ namespace StarDisplay
                 }
             }
 
-            foreach (int ramPtrBaseSuggestion in ramPtrBaseSuggestions)
+            foreach (uint ramPtrBaseSuggestion in ramPtrBaseSuggestions)
             {
                 ramPtrBase = ramPtrBaseSuggestion;
                 if (IsRamBaseValid())
@@ -59,13 +59,13 @@ namespace StarDisplay
                 {
                     if (!isRamFound && value == ramMagic)
                     {
-                        ramPtrBase = addr.ToInt32();
+                        ramPtrBase = (uint) addr.ToInt64();
                         isRamFound = true;
                     }
 
                     if (!isRomFound && value == romMagic)
                     {
-                        romPtrBase = addr.ToInt32();
+                        romPtrBase = (uint) addr.ToInt64();
                         isRomFound = true;
                     }
                 }

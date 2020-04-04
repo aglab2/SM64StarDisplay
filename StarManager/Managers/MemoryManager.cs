@@ -13,12 +13,14 @@ namespace StarDisplay
     public class MemoryManager : CachedManager
     {
         private const int FileLength = 0x70;
+        private const int MarioStateLength = 0xc8;
 
         Process Process;
         MagicManager mm;
 
         private int previousTime;
         private byte[] oldStars;
+        byte[] marioStatus;
         
         IntPtr igtPtr; int igt;
         IntPtr[] filesPtr; IntPtr filePtr; byte[] stars;
@@ -45,7 +47,13 @@ namespace StarDisplay
         IntPtr levelSpawnPtr; //byte
 
         IntPtr starsCountPtr; //short
-        IntPtr bank13RamStartPtr; // int
+        IntPtr bank13RamStartPtr; // int 
+
+        IntPtr marioStatePtr; // 
+        IntPtr netMagicPtr;
+        IntPtr netCodePtr;
+        IntPtr netStatesPtr;
+        IntPtr netHookPtr;
 
         public bool isStarsInvalidated = false;
 
@@ -163,6 +171,15 @@ namespace StarDisplay
 
             starsCountPtr = new IntPtr(mm.ramPtrBase + 0x33B218);
             bank13RamStartPtr = new IntPtr(mm.ramPtrBase + 0x33B400 + 4 * 0x13);
+
+            marioStatePtr = new IntPtr(mm.ramPtrBase + 0x33B170);
+
+            var data = Resource.NetBin;
+            netMagicPtr = new IntPtr(mm.ramPtrBase + 0x26004);
+            netCodePtr = new IntPtr(mm.ramPtrBase + 0x26000);
+            netHookPtr = new IntPtr(mm.ramPtrBase + 0x5840c + 0x245000);
+            var off = BitConverter.ToUInt32(data, 8) - 0x80000000;
+            netStatesPtr = new IntPtr(mm.ramPtrBase + off);
         }
 
         public void PerformRead()
@@ -327,6 +344,17 @@ namespace StarDisplay
         public byte[] GetStars()
         {
             return Stars;
+        }
+
+        // Warning, not inverted
+        public byte[] GetMarioState()
+        {
+            return Process.ReadBytes(marioStatePtr, MarioStateLength);
+        }
+
+        public int GetNetMagic()
+        {
+            return Process.ReadValue<int>(netMagicPtr);
         }
 
         public static Bitmap FromRGBA16(byte[] data)
@@ -563,6 +591,11 @@ namespace StarDisplay
             Process.WriteBytes(filePtr, stars);
         }
 
+        public void WriteNetState(int id, byte[] data)
+        {
+            Process.WriteBytes(netStatesPtr, data);
+        }
+
         public string GetTitle()
         {
             Process.Refresh();
@@ -578,6 +611,16 @@ namespace StarDisplay
             Process.WriteBytes(menuModifierPtr, new byte[] { 0x04, 0x00 });
             Process.WriteBytes(spawnStatusPtr, new byte[] { 0x02 });
             Process.WriteBytes(igtigtPtr, new byte[] { 0x00, 0x00 });
+        }
+
+        public void WriteNetPatch()
+        {
+            var magic = Process.ReadValue<int>(netMagicPtr);
+            if (0 == magic)
+            {
+                Process.WriteBytes(netCodePtr, Resource.NetBin);
+                Process.WriteBytes(netHookPtr, new byte[] { 0x04, 0x98, 0x00, 0x0c });
+            }
         }
 
         public void KillProcess()

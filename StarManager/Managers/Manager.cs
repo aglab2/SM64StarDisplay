@@ -26,10 +26,5 @@ namespace StarDisplay
                 return false;
             }
         }
-
-        bool checkChanged<T>(T a, T b)
-        {
-            return a.Equals(b);
-        }
     }
 }

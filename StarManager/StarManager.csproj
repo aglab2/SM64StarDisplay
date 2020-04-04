@@ -25,7 +25,7 @@
     <UpdateRequired>false</UpdateRequired>
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
-    <ApplicationVersion>1.1.0.%2a</ApplicationVersion>
+    <ApplicationVersion>1.2.0.%2a</ApplicationVersion>
     <UseApplicationTrust>false</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
@@ -125,6 +125,7 @@
     <Compile Include="Managers\DownloadManager.cs" />
     <Compile Include="Managers\MagicManager.cs" />
     <Compile Include="Managers\Manager.cs" />
+    <Compile Include="Managers\NetManager.cs" />
     <Compile Include="Managers\SettingsManager.cs" />
     <Compile Include="Managers\SyncManager.cs" />
     <Compile Include="Resource.Designer.cs">

@@ -54,6 +54,14 @@ func (app *Application) mux() *gorilla_mux.Router {
 	router.Handle("/sd/post", http.HandlerFunc(
 		jwt.Validate("user", "/",
 			handlerssd.PostState))).Methods("POST")
+	
+	router.Handle("/sd/longpoll2/{where}", http.HandlerFunc(
+		jwt.Validate("user", "/",
+			handlerssd.GetState))).Methods("GET")
+
+	router.Handle("/sd/post2/{where}", http.HandlerFunc(
+		jwt.Validate("user", "/",
+			handlerssd.PostState))).Methods("POST")
 
 	// router.PathPrefix("/").Handler(http.FileServer(http.Dir("static")))
 

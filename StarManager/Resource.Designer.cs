@@ -69,6 +69,13 @@ namespace StarDisplay {
                 return ((byte[])(obj));
             }
         }
+		
+		internal static byte[] NetBin {
+            get {
+                object obj = ResourceManager.GetObject("NetBin", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.

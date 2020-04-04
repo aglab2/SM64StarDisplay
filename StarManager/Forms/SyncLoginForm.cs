@@ -13,6 +13,7 @@ namespace StarDisplay
     public partial class SyncLoginForm : Form
     {
         public SyncManager sm;
+        public NetManager nm;
         public bool Silent = false;
         byte[] data;
         public bool isClosed = false;
@@ -21,6 +22,11 @@ namespace StarDisplay
         {
             this.data = data;
             InitializeComponent();
+        }
+
+        public string GetNet64Name()
+        {
+            return textBoxName.Text;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -35,7 +41,7 @@ namespace StarDisplay
 
             try
             {
-                sm = new SyncManager("http://" + serverTextBox.Text + ":" + portTextBox.Text + "/", textBox2.Text, data);
+                sm = new SyncManager("http://" + serverTextBox.Text + ":" + portTextBox.Text + "/", textBox2.Text, data, checkBox1.Checked, textBoxCategory.Text);
                 button1.Text = "Stop";
             }
             catch(Exception ex)
@@ -56,6 +62,27 @@ namespace StarDisplay
             else
             {
                 isClosed = true;
+            }
+        }
+
+        private void netCheckbox_CheckedChanged(object sender, EventArgs e)
+        {
+            if (nm is object)
+            {
+                if (sm is object)
+                    sm.listenNet = false;
+                
+                nm = null;
+            }
+            else
+            {
+                if (sm is object)
+                {
+                    sm.listenNet = true;
+                    sm.RegisterNetListener();
+                }
+                nm = new NetManager();
+                nm.isInvalidated = true;
             }
         }
     }
