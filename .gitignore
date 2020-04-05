@@ -1,6 +1,9 @@
 packages
 StarManager/bin
 StarManager/obj
+StarManagerUpdater/bin
+StarManagerUpdater/obj
+net/code/obj
 .vs
 SyncServer/pkg
 SyncServer/src/github.com

@@ -20,7 +20,6 @@ namespace StarDisplay
 
         private int previousTime;
         private byte[] oldStars;
-        byte[] marioStatus;
         
         IntPtr igtPtr; int igt;
         IntPtr[] filesPtr; IntPtr filePtr; byte[] stars;
