@@ -153,7 +153,16 @@ namespace StarDisplay
             catch (Exception) { }
         }
 
-        static string[] processNames = { "project64", "project64d" /*, "mupen64plus-ui-console", "mupen64-rerecording"*/ };
+        static string[] processNames = { 
+            "project64", "project64d",
+            "mupen64-rerecording",
+            "mupen64-pucrash",
+            "mupen64_lua",
+            "mupen64-wiivc",
+            "mupen64-RTZ",
+            "mupen64-rerecording-v2-reset",
+            "mupen64-rrv8-avisplit",
+            "mupen64-rerecording-v2-reset" };
 
         private Process FindEmulatorProcess()
         {

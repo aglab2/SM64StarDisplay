@@ -53,19 +53,19 @@ namespace StarDisplay
                     break;
 
                 uint value = 0;
-                bool readSuccess = process.ReadValue(addr, out value);
+                bool readSuccess = process.ReadValue(IntPtr.Add(addr, offset), out value);
 
                 if (readSuccess)
                 {
                     if (!isRamFound && value == ramMagic)
                     {
-                        ramPtrBase = (uint) addr.ToInt64();
+                        ramPtrBase = (uint) (addr.ToInt64() + offset);
                         isRamFound = true;
                     }
 
                     if (!isRomFound && value == romMagic)
                     {
-                        romPtrBase = (uint) addr.ToInt64();
+                        romPtrBase = (uint) (addr.ToInt64() + offset);
                         isRomFound = true;
                     }
                 }

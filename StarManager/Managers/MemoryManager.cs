@@ -104,45 +104,79 @@ namespace StarDisplay
             List<int> romPtrBaseSuggestions = new List<int>();
             List<int> ramPtrBaseSuggestions = new List<int>();
 
-            DeepPointer[] ramPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A1C),     //1.6
-                    new DeepPointer("RSP 1.7.dll", 0x4C054), new DeepPointer("RSP 1.7.dll", 0x44B5C)        //2.3.2; 2.4
+            var name = Process.ProcessName.ToLower();
+
+            if (name.Contains("Project64"))
+            {
+                DeepPointer[] ramPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A1C),     //1.6
+                    new DeepPointer("RSP 1.7.dll", 0x4C054), new DeepPointer("RSP 1.7.dll", 0x44B5C),        //2.3.2; 2.4
                 };
 
-            DeepPointer[] romPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A2C),     //1.6
+                DeepPointer[] romPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A2C),     //1.6
                     new DeepPointer("RSP 1.7.dll", 0x4C050), new DeepPointer("RSP 1.7.dll", 0x44B58)        //2.3.2; 2.4
                 };
 
-            // Time to generate some addesses for magic check
-            foreach (DeepPointer romSuggestionPtr in romPtrBaseSuggestionsDPtrs)
-            {
-                int ptr = -1;
-                try
+                // Time to generate some addesses for magic check
+                foreach (DeepPointer romSuggestionPtr in romPtrBaseSuggestionsDPtrs)
                 {
-                    ptr = romSuggestionPtr.Deref<int>(Process);
-                    romPtrBaseSuggestions.Add(ptr);
+                    int ptr = -1;
+                    try
+                    {
+                        ptr = romSuggestionPtr.Deref<int>(Process);
+                        romPtrBaseSuggestions.Add(ptr);
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
                 }
-                catch (Exception)
+
+                foreach (DeepPointer ramSuggestionPtr in ramPtrBaseSuggestionsDPtrs)
                 {
-                    continue;
+                    int ptr = -1;
+                    try
+                    {
+                        ptr = ramSuggestionPtr.Deref<int>(Process);
+                        ramPtrBaseSuggestions.Add(ptr);
+                    }
+                    catch (Exception)
+                    {
+                        continue;
+                    }
                 }
             }
 
-            foreach (DeepPointer ramSuggestionPtr in ramPtrBaseSuggestionsDPtrs)
+            if (name.Contains("mupen"))
             {
-                int ptr = -1;
-                try
+                Dictionary<string, int> mupenRAMSuggestions = new Dictionary<string, int>
                 {
-                    ptr = ramSuggestionPtr.Deref<int>(Process);
-                    ramPtrBaseSuggestions.Add(ptr);
-                }
-                catch (Exception)
-                {
-                    continue;
-                }
+                    { "mupen64-rerecording", 0x008EBA80 },
+                    { "mupen64-pucrash", 0x00912300 },
+                    { "mupen64_lua", 0x00888F60 },
+                    { "mupen64-wiivc", 0x00901920 },
+                    { "mupen64-RTZ", 0x00901920 },
+                    { "mupen64-rrv8-avisplit", 0x008ECBB0 },
+                    { "mupen64-rerecording-v2-reset", 0x008ECA90 },
+                };
+
+                ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
             }
+
+            Dictionary<string, int> offsets = new Dictionary<string, int>
+            {
+                { "Project64", 0 },
+                { "Project64d", 0 },
+                { "mupen64-rerecording", 0x20 },
+                { "mupen64-pucrash", 0x20 },
+                { "mupen64_lua", 0x20 },
+                { "mupen64-wiivc", 0x20 },
+                { "mupen64-RTZ", 0x20 },
+                { "mupen64-rrv8-avisplit", 0x20 },
+                { "mupen64-rerecording-v2-reset", 0x20 },
+            };
 
             // Process.ProcessName;
-            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), 0);
+            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offsets[Process.ProcessName]);
 
             igtPtr = new IntPtr(mm.ramPtrBase + 0x32D580);
             filesPtr = new IntPtr[4];
