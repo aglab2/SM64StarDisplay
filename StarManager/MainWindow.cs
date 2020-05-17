@@ -76,6 +76,12 @@ namespace StarDisplay
                 sm = new SettingsManager();
             }
 
+            DrawIntro(); 
+            ResetForm();
+
+            magicThread = new Thread(doMagicThread);
+            magicThread.Start();
+
             timer = new System.Threading.Timer(UpdateStars, null, 1, Timeout.Infinite);
             
             oldCRC = 0;

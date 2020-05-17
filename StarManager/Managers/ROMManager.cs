@@ -23,6 +23,7 @@ namespace StarDisplay
         static byte objectDescriptor = 0x24;
         static byte areaStartDescriptor = 0x1F;
         static byte areaEndDescriptor = 0x20;
+        static byte loadSegmentDescriptor = 0x17;
 
         static byte[] collectStarBehaviour = { 0x00, 0x3E, 0x3C };
         static byte[] redCoinStarBehaviour = { 0x00, 0x3E, 0x8C };
@@ -264,6 +265,15 @@ namespace StarDisplay
             return GetAmountOfObjectsInternal(start, end, offset, searchBehaviour, currentStar, currentArea, ref area);
         }
 
+        public int SwapBytes(int x)
+        {
+            return (int) (((x & 0x000000ff) << 24) +
+                   ((x & 0x0000ff00) << 8) +
+                   ((x & 0x00ff0000) >> 8) +
+                   ((x & 0xff000000) >> 24));
+        }
+
+
         private int GetAmountOfObjectsInternal (int start, int end, int Loffset, byte[] searchBehaviour, int currentStar, int currentArea, ref int area)
         {
             if (currentArea == 0) currentArea = 1;
@@ -271,26 +281,27 @@ namespace StarDisplay
             int counter = 0;
             if (start < 0) return counter;
 
+            int temporaryBankEStart = 0;
+            int temporaryBankEEnd   = 0;
+
             try
             {
-                int offset = start + Loffset;
-                while (offset < end)
+                int length = 0;
+                for (int offset = start + Loffset; offset < end; offset += length)
                 {
                     reader.BaseStream.Position = offset;
 
                     byte command = reader.ReadByte();
-                    int length = reader.ReadByte();
+                    length = reader.ReadByte();
                     if ((length == 0) || 
                         (command == levelscriptEndDescriptor) || (command == returnDescriptor))
                         return counter;
-
-                    offset += length;
 
                     if (command == jumpDescriptor || command == callDescriptor)
                     {
                         reader.BaseStream.Position = offset + 0x4;
                         int bank = reader.ReadByte();
-                        if (bank != 0x13)
+                        if (bank != 0x13 && bank != 0xe)
                             continue;
 
                         reader.BaseStream.Position = offset + 0x6;
@@ -301,7 +312,15 @@ namespace StarDisplay
 
                         int jumpOffset = BitConverter.ToInt16(jumpOffsetBytes, 0);
 
-                        counter += GetAmountOfObjectsInternal(start, end, jumpOffset, searchBehaviour, currentArea, currentArea, ref area);
+                        var newStart = start;
+                        var newEnd = end;
+                        if (bank == 0xE)
+                        {
+                            newStart = temporaryBankEStart;
+                            newEnd = temporaryBankEEnd;
+                        }
+
+                        counter += GetAmountOfObjectsInternal(newStart, newEnd, jumpOffset, searchBehaviour, currentArea, currentArea, ref area);
                         if (command == jumpDescriptor)
                             return counter;
                     }
@@ -328,6 +347,18 @@ namespace StarDisplay
                         {
                             counter++;
                         }
+                    }
+                    else if (command == loadSegmentDescriptor)
+                    {
+                        reader.BaseStream.Position = offset + 0x3;
+                        int bank = reader.ReadByte();
+                        if (bank != 0xE)
+                            continue;
+
+                        reader.BaseStream.Position = offset + 0x4;
+                        temporaryBankEStart = SwapBytes(reader.ReadInt32());
+                        reader.BaseStream.Position = offset + 0x8;
+                        temporaryBankEEnd = SwapBytes(reader.ReadInt32());
                     }
                 }
             }
