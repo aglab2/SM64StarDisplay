@@ -1,4 +1,4 @@
-# Star Display -- online sync edition
+# Star Display
 This is program to display acquired stars in casual playthrough! App reads game memory and depending on it displays Stars, Keys and 
 Caps automatically. The level you are at is highlighted with yellow rectangle. 
 
@@ -15,7 +15,13 @@ Your hack is not supported? You can easily create a layout yourself! Choose one 
 For speedrunners this program can be useful too! It can soft erase file A on ROM reset that is handy for reset-heavy runs!
 
 # Star Display Sync
-Star Display can sync your progress with other players online. You just need to get the [sync-server.exe](https://github.com/aglab2/SM64StarDisplay/blob/master/sync-server.exe?raw=true). On launch it will ask you for password that you will need to use in "Sync Online" menu. Server uses port 25565 that you should port forward if you want to host the server.
+Star Display can sync your progress with other players online. You just need to get the [sync-server.exe](https://github.com/aglab2/SM64StarDisplay/blob/master/sync-server.exe?raw=true). On launch it will ask you for password that you will need to use in "Sync Online" menu. Server uses port 25565 that you should port forward if you want to host the server. Linux may also be used to host server.
+
+# Features
+ * Warp to any stage and any warp
+ * Flexible configuration for background and general view
+ * Support for multiple emulators: Project 64 any version, Mupen64
+ * Add/Remove stars
 
 # Credits
  * Original idea: FramePerfection
