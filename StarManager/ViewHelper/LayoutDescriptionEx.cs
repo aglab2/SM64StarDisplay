@@ -104,6 +104,8 @@ namespace StarDisplay
 
         public int starsShown;
 
+        public bool useEmptyStars;
+
         // Method for converting from old to new Layouts
         public LayoutDescriptionEx(LayoutDescription ld)
         {
@@ -376,6 +378,8 @@ namespace StarDisplay
         public void GenerateDarkStar()
         {
             darkStar = ImageProcessing.Desaturate(goldStar);
+            if (useEmptyStars)
+                darkStar = ImageProcessing.GetEmptied(darkStar, 2);
         }
 
         public void GenerateOutline()

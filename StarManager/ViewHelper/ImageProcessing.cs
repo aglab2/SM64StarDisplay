@@ -22,11 +22,68 @@ namespace StarDisplay
                     ColorRGB.RGB2HSL(crgb, out h, out s, out l);
 
                     ColorRGB nrgb = ColorRGB.HSL2RGB(h, 0, l);
-                    ColorRGB orgb = ColorRGB.HSL2RGB(h + 0.05 > 1 ? h + 0.05 - 1 : h + 0.05, s, l);
 
                     Color n = Color.FromArgb(c.A, nrgb.R, nrgb.G, nrgb.B);
 
                     darkStar.SetPixel(i, j, n);
+                }
+            }
+            return darkStar;
+        }
+
+        public static Bitmap GetEmptied(Bitmap goldStar, int size)
+        {
+            bool IsTupleValid(Tuple<int, int> t)
+            {
+                if (t.Item1 < 0 || t.Item1 >= goldStar.Width)
+                    return false;
+
+                if (t.Item2 < 0 || t.Item2 >= goldStar.Height)
+                    return false;
+
+                return true;
+            }
+
+            List<Tuple<int, int>> GetIndices(int x, int y)
+            {
+                List<Tuple<int, int>> indices = new List<Tuple<int, int>>();
+                for (int i = -size; i <= size; i++)
+                {
+                    for (int j = -size; j <= size; j++)
+                    {
+                        if (i == 0 && j == 0)
+                            continue;
+
+                        var pos = new Tuple<int, int>(x - i, y - j);
+                        if (!IsTupleValid(pos))
+                            continue;
+
+                        indices.Add(pos);
+                    }
+                }
+                return indices;
+            }
+
+            Bitmap darkStar = new Bitmap(goldStar);
+            for (int i = 0; i < goldStar.Width; i++)
+            {
+                for (int j = 0; j < goldStar.Height; j++)
+                {
+                    var indices = GetIndices(i, j);
+                    var alphas = indices.Select(t => goldStar.GetPixel(t.Item1, t.Item2).A);
+                    var visibleCount = alphas.Where(a => a == 0xff).Count();
+                    var invisibleCount = alphas.Count() - visibleCount;
+                    var totalCount = indices.Count();
+
+                    Color c = goldStar.GetPixel(i, j);
+                    if (invisibleCount == totalCount)
+                    {
+                        darkStar.SetPixel(i, j, c);
+                    }
+                    else
+                    {
+                        darkStar.SetPixel(i, j, Color.FromArgb((int) ((float) invisibleCount / (float) alphas.Count() * 255), c.R, c.G, c.B));
+                    }
                 }
             }
             return darkStar;

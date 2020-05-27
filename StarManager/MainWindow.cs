@@ -1172,6 +1172,13 @@ namespace StarDisplay
             }
         }
 
+        private void useEmptyStarsToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            ld.useEmptyStars = !ld.useEmptyStars;
+            ld.GenerateDarkStar();
+            gm.InvalidateCache();
+        }
+
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             try
