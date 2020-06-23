@@ -34,14 +34,16 @@ namespace StarDisplay
         public int StarDiff;
         public bool IsSecret;
         public byte StarMask;
+        public Image FilledStar;
 
-        public LineDrawAction(int line, byte starByte, int starDiff, bool isSecret, byte starMask)
+        public LineDrawAction(int line, byte starByte, int starDiff, bool isSecret, byte starMask, Image filledStar)
         {
             this.Line = line;
             this.StarByte = starByte;
             this.StarDiff = starDiff;
             this.IsSecret = isSecret;
             this.StarMask = starMask;
+            this.FilledStar = filledStar;
         }
         
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
@@ -52,8 +54,8 @@ namespace StarDisplay
                 float x = (IsSecret ? gm.Width / 2 : 0) + (i + 1) * gm.SWidth;
                 float y = (lineOffset + Line) * gm.SHeight + gm.SOffset;
                 bool isAcquired = (StarByte & (1 << i)) != 0;
-                Image img = isAcquired ? gm.Ld.goldStar : gm.Ld.darkStar;
-                gm.graphics.DrawImage(img, x, y, gm.SWidth, gm.SWidth);
+                if (isAcquired)
+                    gm.graphics.DrawImage(FilledStar, x, y, gm.SWidth, gm.SWidth);
             }
             return 0; //Line Actions should not increase global offset
         }
@@ -788,6 +790,7 @@ namespace StarDisplay
         LayoutDescriptionEx ld;
         byte[] stars;
         byte[] oldStars;
+        byte[] otherStars;
         int reds;
         int totalReds;
         int secrets;
@@ -797,11 +800,12 @@ namespace StarDisplay
 
         public DrawActions() { }
 
-        public DrawActions(LayoutDescriptionEx ld, byte[] stars, byte[] oldStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
+        public DrawActions(LayoutDescriptionEx ld, byte[] stars, byte[] oldStars, byte[] otherStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
         {
             this.ld = ld;
             this.stars = stars;
             this.oldStars = oldStars;
+            this.otherStars = otherStars;
             this.reds = reds;
             this.totalReds = totalReds;
             this.secrets = secrets;
@@ -870,7 +874,7 @@ namespace StarDisplay
 
                 starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask, ld.goldStar);
             }
 
             for (int line = 0; line < ld.secretDescription.Count; line++)
@@ -884,7 +888,30 @@ namespace StarDisplay
 
                 starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask, ld.goldStar);
+            }
+
+            if (otherStars is object)
+            {
+                for (int line = 0; line < ld.courseDescription.Count; line++)
+                {
+                    var descr = ld.courseDescription[line];
+                    StarsLineDescription sld = descr as StarsLineDescription;
+                    if (sld == null) continue;
+
+                    byte starByte = otherStars[sld.offset];
+                    yield return new LineDrawAction(line, starByte, 0, false, sld.starMask, ld.invertedStar);
+                }
+
+                for (int line = 0; line < ld.secretDescription.Count; line++)
+                {
+                    var descr = ld.secretDescription[line];
+                    StarsLineDescription sld = descr as StarsLineDescription;
+                    if (sld == null) continue;
+
+                    byte starByte = otherStars[sld.offset];
+                    yield return new LineDrawAction(line, starByte, 0, true, sld.starMask, ld.invertedStar);
+                }
             }
 
             yield return new StarLayoutFiniAction(ld.GetLength());

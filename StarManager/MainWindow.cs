@@ -48,6 +48,8 @@ namespace StarDisplay
 
         const int scanPeriod = 1000;
         const int updatePeriod = 30;
+
+        byte[] otherStars = new byte[MemoryManager.FileLength];
         
         public MainWindow()
         {
@@ -333,6 +335,7 @@ namespace StarDisplay
                             if ((mm.Stars[i] & diff) != 0)
                                 shouldSendHelp = true;
 
+                            otherStars[i] |= (byte)(diff & stars[i]);
                             mm.Stars[i] = (byte)(mm.Stars[i] | stars[i]);
                         }
 
@@ -443,7 +446,9 @@ namespace StarDisplay
                 }
 
                 int lineOffset = 0;
-                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ? mm.GetCollectablesOnlyDrawActions(ld, rm) : mm.GetDrawActions(ld, rm);
+                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ?
+                    mm.GetCollectablesOnlyDrawActions(ld, rm) : 
+                    mm.GetDrawActions(ld, rm, enableLockoutToolStripMenuItem.Checked ? otherStars : null);
 
                 if (actions == null) return;
 
@@ -731,6 +736,7 @@ namespace StarDisplay
 
             if (ld.darkStar == null) ld.GenerateDarkStar();
             if (ld.redOutline == null) ld.GenerateOutline();
+            if (ld.invertedStar == null) ld.GenerateInvertedStar();
             ld.Trim();
         }
 
@@ -745,7 +751,12 @@ namespace StarDisplay
             ld.Trim();
             IFormatter formatter = new BinaryFormatter();
             Stream stream = new FileStream(name, FileMode.Create, FileAccess.Write, FileShare.None);
-            formatter.Serialize(stream, ld);
+            {
+                var invertedStar = ld.invertedStar;
+                ld.invertedStar = null;
+                formatter.Serialize(stream, ld);
+                ld.invertedStar = invertedStar;
+            }
             stream.Close();
         }
         
@@ -1177,6 +1188,11 @@ namespace StarDisplay
             ld.useEmptyStars = !ld.useEmptyStars;
             ld.GenerateDarkStar();
             gm.InvalidateCache();
+        }
+
+        private void clearOtherPlayerScoreToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            otherStars = new byte[MemoryManager.FileLength];
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

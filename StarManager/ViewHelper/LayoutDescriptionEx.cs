@@ -97,6 +97,7 @@ namespace StarDisplay
 
         public Bitmap goldStar;
         public Bitmap darkStar;
+        public Bitmap invertedStar;
         public Bitmap redOutline;
         public Bitmap greenOutline;
 
@@ -347,6 +348,7 @@ namespace StarDisplay
             if (goldStar.Width != 20 || goldStar.Height != 20)
                 Compress();
 
+            GenerateInvertedStar();
             GenerateDarkStar();
             GenerateOutline();
         }
@@ -364,6 +366,7 @@ namespace StarDisplay
             if (goldStar.Width != 20 || goldStar.Height != 20)
                 Compress();
 
+            GenerateInvertedStar();
             GenerateDarkStar();
             GenerateOutline();
 
@@ -373,6 +376,11 @@ namespace StarDisplay
         public bool isValid()
         {
             return courseDescription == null || secretDescription == null;
+        }
+
+        public void GenerateInvertedStar()
+        {
+            invertedStar = ImageProcessing.Invert(goldStar);
         }
 
         public void GenerateDarkStar()

@@ -31,6 +31,21 @@ namespace StarDisplay
             return darkStar;
         }
 
+        public static Bitmap Invert(Bitmap goldStar)
+        {
+            Bitmap invStar = new Bitmap(goldStar);
+            for (int i = 0; i < goldStar.Width; i++)
+            {
+                for (int j = 0; j < goldStar.Height; j++)
+                {
+                    Color c = goldStar.GetPixel(i, j);
+                    Color n = Color.FromArgb(c.A, 255 - c.R, 255 - c.G, 255 - c.B);
+                    invStar.SetPixel(i, j, n);
+                }
+            }
+            return invStar;
+        }
+
         public static Bitmap GetEmptied(Bitmap goldStar, int size)
         {
             bool IsTupleValid(Tuple<int, int> t)

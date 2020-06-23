@@ -12,7 +12,7 @@ namespace StarDisplay
 {
     public class MemoryManager : CachedManager
     {
-        private const int FileLength = 0x70;
+        public const int FileLength = 0x70;
         private const int MarioStateLength = 0xc8;
 
         Process Process;
@@ -411,7 +411,7 @@ namespace StarDisplay
             return picture;
         }
 
-        public DrawActions GetDrawActions(LayoutDescriptionEx ld, ROMManager rm)
+        public DrawActions GetDrawActions(LayoutDescriptionEx ld, ROMManager rm, byte[] otherStars)
         {
             int totalReds = 0, reds = 0;
             try
@@ -444,7 +444,7 @@ namespace StarDisplay
             }
             catch (Exception) { }
 
-            DrawActions da = new DrawActions(ld, Stars, oldStars, reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);
+            DrawActions da = new DrawActions(ld, Stars, oldStars, otherStars, reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);
             oldStars = Stars;
             return da;
         }
