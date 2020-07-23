@@ -306,6 +306,14 @@ namespace StarDisplay
                 if (slf != null && slf.nm != null)
                     nmIsInvalidated = slf.nm.CheckInvalidated();
 
+                if (smIsInvalidated && slf.sm.dropFile)
+                {
+                    slf.sm.dropFile = false;
+                    mm.Stars = new byte[MemoryManager.FileLength];
+                    mm.WriteToFile(ld.starsShown);
+                    mm.isStarsInvalidated = true;
+                }
+
                 if (mmIsInvalidated && mm.isStarsInvalidated)
                 {
                     mm.isStarsInvalidated = false;
@@ -615,7 +623,7 @@ namespace StarDisplay
                 
                 
                 if (curld is StarsLineDescription sld)
-                    mm.WriteWarp(wd.warp, (byte) LevelInfo.FindByEEPOffset(sld.offset).Level, wd.area);
+                    mm.WriteWarp(wd is object ? wd.warp : (byte) 0xa, (byte) LevelInfo.FindByEEPOffset(sld.offset).Level, wd is object ? wd.area : (byte) 1);
 
                 return;
             }
@@ -695,7 +703,7 @@ namespace StarDisplay
                 if (editFileToolStripMenuItem.Checked)
                     EditFile();
 
-                if (warpToLevelToolStripMenuItem.Checked)
+                if (enableClickToWarpToolStripMenuItem.Checked)
                     EditWarps();
             }
         }
@@ -1047,7 +1055,7 @@ namespace StarDisplay
         private void configureDisplayToolStripMenuItem_Click(object sender, EventArgs e)
         {
             editFileToolStripMenuItem.Checked = false;
-            warpToLevelToolStripMenuItem.Checked = false;
+            enableClickToWarpToolStripMenuItem.Checked = false;
 
             if (configureLayoutToolStripMenuItem.Checked)
             {
@@ -1063,7 +1071,7 @@ namespace StarDisplay
         private void editFileToolStripMenuItem_Click(object sender, EventArgs e)
         {
             configureLayoutToolStripMenuItem.Checked = false;
-            warpToLevelToolStripMenuItem.Checked = false;
+            enableClickToWarpToolStripMenuItem.Checked = false;
         }
 
         private void editFlagsToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1144,12 +1152,10 @@ namespace StarDisplay
 
         private void warpToLevelToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            editFileToolStripMenuItem.Checked = false;
-            configureLayoutToolStripMenuItem.Checked = false;
-
             wd = new WarpDialog(mm.GetCurrentLevel());
-            wd.ShowDialog();
-            mm.WriteWarp(wd.warp, wd.level, wd.area);
+            DialogResult r = wd.ShowDialog();
+            if (r == DialogResult.OK)
+               mm.WriteWarp(wd.warp, wd.level, wd.area);
         }
 
         private void killPJ64ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -1178,7 +1184,7 @@ namespace StarDisplay
         {
             if (slf == null || slf.isClosed)
             {
-                slf = new SyncLoginForm(mm.Stars);
+                slf = new SyncLoginForm();
                 slf.Show();
             }
         }
@@ -1193,6 +1199,12 @@ namespace StarDisplay
         private void clearOtherPlayerScoreToolStripMenuItem_Click(object sender, EventArgs e)
         {
             otherStars = new byte[MemoryManager.FileLength];
+        }
+
+        private void enableClickToWarpToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            editFileToolStripMenuItem.Checked = false;
+            configureLayoutToolStripMenuItem.Checked = false;
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)

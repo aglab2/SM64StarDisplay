@@ -137,7 +137,7 @@
     <value>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="Octokit" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\packages\Octokit.0.46.0\lib\net46\Octokit.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    <value>..\packages\Octokit.0.48.0\lib\net46\Octokit.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="NetBin" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\net\netbin;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

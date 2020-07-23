@@ -15,12 +15,10 @@ namespace StarDisplay
         public SyncManager sm;
         public NetManager nm;
         public bool Silent = false;
-        byte[] data;
         public bool isClosed = false;
 
-        public SyncLoginForm(byte[] data)
+        public SyncLoginForm()
         {
-            this.data = data;
             InitializeComponent();
         }
 
@@ -41,7 +39,7 @@ namespace StarDisplay
 
             try
             {
-                sm = new SyncManager("http://" + serverTextBox.Text + ":" + portTextBox.Text + "/", textBox2.Text, data, checkBox1.Checked, textBoxCategory.Text);
+                sm = new SyncManager("http://" + serverTextBox.Text + ":" + portTextBox.Text + "/", textBox2.Text, new byte[MemoryManager.FileLength], checkBox1.Checked, textBoxCategory.Text);
                 button1.Text = "Stop";
             }
             catch(Exception ex)

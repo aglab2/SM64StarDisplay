@@ -25,7 +25,8 @@ namespace StarDisplay
 
         Cookie token;
         WebClient starsPollClient;
-
+        
+        public bool dropFile = false;
         public bool isClosed = false;
         public bool listenNet = false;
 
@@ -61,6 +62,7 @@ namespace StarDisplay
 
             isClosed = false;
             //Pull all information from server
+            dropFile = true;
             SendData(data);
 
             /*WebClient overrideStarsPollClient = new WebClient();
