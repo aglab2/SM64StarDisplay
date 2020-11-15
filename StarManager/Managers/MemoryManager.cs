@@ -213,6 +213,32 @@ namespace StarDisplay
             netHookPtr = new IntPtr(mm.ramPtrBase + 0x5840c + 0x245000);
             var off = BitConverter.ToUInt32(data, 8) - 0x80000000;
             netStatesPtr = new IntPtr(mm.ramPtrBase + off);
+
+            bool wasSet = false;
+            if (!wasSet)
+            {
+                try
+                {
+                    Process.PriorityClass = ProcessPriorityClass.RealTime;
+                    wasSet = true;
+                }
+                catch (Exception) { }
+            }
+            if (!wasSet)
+            {
+                try
+                {
+                    Process.PriorityClass = ProcessPriorityClass.High;
+                    wasSet = true;
+                }
+                catch (Exception) { }
+            }
+            try
+            {
+                using (Process p = Process.GetCurrentProcess())
+                    p.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+            catch (Exception) { }
         }
 
         public void PerformRead()

@@ -617,7 +617,7 @@ namespace StarDisplay
             TextBox tb = new TextBox
             {
                 Name = textlineConfigureName,
-                Text = amf.sm.GetConfig(textlineConfigureName, "Savestateless Stars"),
+                Text = amf.sm.GetConfig(textlineConfigureName, "Stars Collected"),
                 Location = new Point(30, height),
                 AutoSize = true,
                 Width = 150
@@ -642,7 +642,7 @@ namespace StarDisplay
 
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
-            String textLine = sm.GetConfig(textlineConfigureName, "Savestateless Stars");
+            String textLine = sm.GetConfig(textlineConfigureName, "Stars Collected");
             bool isShown = sm.GetConfig(configureName, true);
 
             if (!isShown)
