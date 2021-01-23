@@ -34,6 +34,8 @@ namespace StarDisplay
                 sm.isClosed = true;
                 sm = null;
                 button1.Text = "Login";
+                checkBox1.Enabled = true;
+                textBoxName.Enabled = !checkBox1.Checked;
                 return;
             }
 
@@ -41,6 +43,9 @@ namespace StarDisplay
             {
                 sm = new SyncManager("http://" + serverTextBox.Text + ":" + portTextBox.Text + "/", textBox2.Text, new byte[MemoryManager.FileLength], checkBox1.Checked, textBoxCategory.Text);
                 button1.Text = "Stop";
+                checkBox1.Enabled = false;
+                textBoxName.Enabled = false;
+
             }
             catch(Exception ex)
             {
@@ -48,7 +53,14 @@ namespace StarDisplay
                 sm = null;
                 return;
             }
-            MessageBox.Show("Login Finished", "Sync", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            if (checkBox1.Checked)
+            {
+                MessageBox.Show("Login Finished. Reset the game (F1) for Net64 to be enabled", "Sync", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+            else
+            {
+                MessageBox.Show("Login Finished", "Sync", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
         }
 
         private void SyncLoginForm_FormClosing(object sender, FormClosingEventArgs e)

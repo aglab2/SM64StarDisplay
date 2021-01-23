@@ -360,7 +360,9 @@ namespace StarDisplay
                         foreach (var item in netData)
                         {
                             var player = item.Key;
-                            // if (player != slf.GetPlayerName())
+#if DEBUG == false
+                            if (player != slf.GetPlayerName())
+#endif
                             {
                                 var data = item.Value;
 

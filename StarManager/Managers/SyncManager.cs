@@ -56,7 +56,7 @@ namespace StarDisplay
             this.category = category;
             listenNet = net;
             longpollStars = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("10"), Uri.EscapeDataString(category));
-            longpollNet = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("1"), Uri.EscapeDataString("net"));
+            longpollNet = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("10"), Uri.EscapeDataString("net"));
 
             this.url = url;
             AcquiredData = data;
