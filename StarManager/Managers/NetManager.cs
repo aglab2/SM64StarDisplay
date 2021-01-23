@@ -14,21 +14,12 @@ namespace StarDisplay
 
         List<string> players = new List<string>();
         List<string> deadPlayers = new List<string>();
-        UInt32 call;
-        public bool mustReload;
+        public bool mustReload = true;
 
         public NetManager()
         {
-            byte[] bin = Resource.NetBin;
-            byte[] func = new byte[4];
-            Array.Copy(func, 0, bin, 0, 4);
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(func);
-
-            UInt32 addr = BitConverter.ToUInt32(func, 0);
-            call = (addr / 4) | 0x0c000000;
-
             watch.Start();
+            deadWatch.Start();
         }
 
         public override bool CheckInvalidated()
@@ -51,7 +42,7 @@ namespace StarDisplay
 
             {
                 var elapsed = watch.ElapsedMilliseconds;
-                if(elapsed > 1000)
+                if(elapsed > 30)
                 {
                     invalidated = true;
                     watch.Restart();
@@ -68,6 +59,11 @@ namespace StarDisplay
                 players.Add(name);
 
             return players.IndexOf(name);
+        }
+
+        public List<string> GetPlayers()
+        {
+            return players;
         }
     }
 }

@@ -355,16 +355,21 @@ namespace StarDisplay
                         mm.WriteToFile(ld.starsShown);
                     }
                     {
+                        var location = mm.GetLocation();
                         var netData = slf.sm.getNetData();
                         foreach (var item in netData)
                         {
                             var player = item.Key;
-                            var data = item.Value;
-
-                            if (slf is object && slf.nm is object)
+                            // if (player != slf.GetPlayerName())
                             {
-                                var id = slf.nm.RegisterPlayer(player);
-                                mm.WriteNetState(id, data);
+                                var data = item.Value;
+
+                                if (slf is object && slf.nm is object)
+                                {
+                                    var id = slf.nm.RegisterPlayer(player);
+                                    if (data.location == location)
+                                        mm.WriteNetState(id, data.state);
+                                }
                             }
                         }
                     }
@@ -375,7 +380,20 @@ namespace StarDisplay
                     mm.WriteNetPatch();
                     var state = mm.GetMarioState();
                     if (slf.sm is object)
-                        slf.sm.SendNet64Data(slf.GetNet64Name(), state);
+                    {
+                        slf.sm.SendNet64Data(slf.GetNet64Name(), state, mm.GetLocation());
+                    }
+
+                    if (slf.nm.mustReload)
+                    {
+                        for (int i = 0; i < 16; i++)
+                        {
+                            mm.WriteNetState(i, null);
+                        }
+                        slf.nm.mustReload = false;
+                    }
+
+                    this.SafeInvoke((MethodInvoker)delegate { slf.UpdatePlayers(slf.nm.GetPlayers()); });
                 }
 
                 // We do not draw anything!

@@ -13,7 +13,10 @@ namespace StarDisplay
     public class MemoryManager : CachedManager
     {
         public const int FileLength = 0x70;
-        private const int MarioStateLength = 0xc8;
+        private const int MarioStateOff = 0x18;
+        private const int MarioStateLength = 0x34;
+        private const int NetStateCtlLength = 0x60;
+        private const int NetEnabledOff = 0x0;
 
         Process Process;
         MagicManager mm;
@@ -48,11 +51,11 @@ namespace StarDisplay
         IntPtr starsCountPtr; //short
         IntPtr bank13RamStartPtr; // int 
 
-        IntPtr marioStatePtr; // 
+        IntPtr marioObjectPtr;
         IntPtr netMagicPtr;
         IntPtr netCodePtr;
-        IntPtr netStatesPtr;
         IntPtr netHookPtr;
+        uint netStatesOff;
 
         public bool isStarsInvalidated = false;
 
@@ -205,14 +208,13 @@ namespace StarDisplay
             starsCountPtr = new IntPtr(mm.ramPtrBase + 0x33B218);
             bank13RamStartPtr = new IntPtr(mm.ramPtrBase + 0x33B400 + 4 * 0x13);
 
-            marioStatePtr = new IntPtr(mm.ramPtrBase + 0x33B170);
+            marioObjectPtr = new IntPtr(mm.ramPtrBase + 0x361158);
 
             var data = Resource.NetBin;
             netMagicPtr = new IntPtr(mm.ramPtrBase + 0x26004);
             netCodePtr = new IntPtr(mm.ramPtrBase + 0x26000);
-            netHookPtr = new IntPtr(mm.ramPtrBase + 0x5840c + 0x245000);
-            var off = BitConverter.ToUInt32(data, 8) - 0x80000000;
-            netStatesPtr = new IntPtr(mm.ramPtrBase + off);
+            netHookPtr = new IntPtr(mm.ramPtrBase + 0x38a3c + 0x245000); // 0x5840c
+            netStatesOff = BitConverter.ToUInt32(data, 8) - 0x80000000;
 
             bool wasSet = false;
             if (!wasSet)
@@ -408,7 +410,17 @@ namespace StarDisplay
         // Warning, not inverted
         public byte[] GetMarioState()
         {
-            return Process.ReadBytes(marioStatePtr, MarioStateLength);
+            var objPtr = Process.ReadValue<int>(marioObjectPtr);
+            if (0 == objPtr)
+                return null;
+
+            var statePtr = new IntPtr(mm.ramPtrBase + (objPtr & 0xffffff) + MarioStateOff);
+            var bytes = Process.ReadBytes(statePtr, MarioStateLength);
+            var afterObjPtr = Process.ReadValue<int>(marioObjectPtr);
+            if (objPtr != afterObjPtr)
+                return null;
+
+            return bytes;
         }
 
         public int GetNetMagic()
@@ -652,7 +664,19 @@ namespace StarDisplay
 
         public void WriteNetState(int id, byte[] data)
         {
-            Process.WriteBytes(netStatesPtr, data);
+            if (data is object)
+            {
+                var netStatesPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + MarioStateOff);
+                Process.WriteBytes(netStatesPtr, data);
+
+                var netEnabledPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + NetEnabledOff);
+                Process.WriteBytes(netEnabledPtr, new byte[] { 1 });
+            }
+            else
+            {
+                var netEnabledPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + NetEnabledOff);
+                Process.WriteBytes(netEnabledPtr, new byte[] { 0 });
+            }
         }
 
         public string GetTitle()
@@ -680,6 +704,12 @@ namespace StarDisplay
                 Process.WriteBytes(netCodePtr, Resource.NetBin);
                 Process.WriteBytes(netHookPtr, new byte[] { 0x04, 0x98, 0x00, 0x0c });
             }
+        }
+
+        public string GetLocation()
+        {
+            var data = new byte[] { Level, Area };
+            return Convert.ToBase64String(data);
         }
 
         public void KillProcess()

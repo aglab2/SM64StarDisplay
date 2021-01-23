@@ -8,9 +8,24 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Runtime.InteropServices;
+using StarDisplay.Server;
 
 namespace StarDisplay
 {
+    public struct NetPlayer
+    {
+        public NetPlayer(byte[] state, string location, UInt64 timestamp)
+        {
+            this.state = state;
+            this.location = location;
+            this.timestamp = timestamp;
+        }
+
+        public byte[] state;
+        public string location;
+        public UInt64 timestamp;
+    };
+
     public class SyncManager : CachedManager
     {
         string url;
@@ -24,7 +39,6 @@ namespace StarDisplay
         UInt64 netTimestamp = 0;
 
         Cookie token;
-        WebClient starsPollClient;
         
         public bool dropFile = false;
         public bool isClosed = false;
@@ -32,7 +46,8 @@ namespace StarDisplay
 
         public byte[] AcquiredData;
         public Mutex NetDataMtx = new Mutex();
-        Dictionary<string, byte[]> NetData;
+
+        Dictionary<string, NetPlayer> NetData;
 
         string category;
         
@@ -41,7 +56,7 @@ namespace StarDisplay
             this.category = category;
             listenNet = net;
             longpollStars = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("10"), Uri.EscapeDataString(category));
-            longpollNet = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("10"), Uri.EscapeDataString("net"));
+            longpollNet = string.Format("sd/longpoll?timeout={0}&category={1}", Uri.EscapeDataString("1"), Uri.EscapeDataString("net"));
 
             this.url = url;
             AcquiredData = data;
@@ -104,7 +119,6 @@ namespace StarDisplay
                     {
                         try
                         {
-                            Console.WriteLine(ev);
                             var data = ev["data"];
                             AcquiredData = Convert.FromBase64String(data.Value<string>());
 
@@ -131,12 +145,12 @@ namespace StarDisplay
             RegisterStarsListener(starsTimestamp);
         }
 
-        public Dictionary<string, byte[]> getNetData()
+        public Dictionary<string, NetPlayer> getNetData()
         {
-            Dictionary<string, byte[]> ptr;
+            Dictionary<string, NetPlayer> ptr;
             NetDataMtx.WaitOne();
             ptr = NetData;
-            NetData = new Dictionary<string, byte[]>();
+            NetData = new Dictionary<string, NetPlayer>();
             NetDataMtx.ReleaseMutex();
             return ptr;
         }
@@ -164,8 +178,6 @@ namespace StarDisplay
 
                 if (o.TryGetValue("events", out value))
                 {
-                    Console.WriteLine(String.Format("Data: {0}", value));
-
                     foreach (var ev in value)
                     {
                         try
@@ -176,12 +188,22 @@ namespace StarDisplay
 
                             var player = data["player"].Value<string>();
                             var state = data["state"].Value<string>();
-
-                            NetData[player] = Convert.FromBase64String(state);
+                            var location = data["location"].Value<string>();
 
                             UInt64.TryParse(ev["timestamp"].Value<string>(), out UInt64 timestamp);
                             if (timestamp > netTimestamp)
                                 netTimestamp = timestamp;
+
+                            if (NetData.ContainsKey(player))
+                            {
+                                var playerData = NetData[player];
+                                if (playerData.timestamp < timestamp)
+                                    NetData[player] = new NetPlayer(Convert.FromBase64String(state), location, timestamp);
+                            }
+                            else
+                            {
+                                NetData[player] = new NetPlayer(Convert.FromBase64String(state), location, timestamp);
+                            }
 
                             isInvalidated = true;
                         }
@@ -219,7 +241,7 @@ namespace StarDisplay
         
         public void RegisterStarsListener()
         {
-            starsPollClient = new WebClient();
+            var starsPollClient = new ExtendedWebClient();
             starsPollClient.DownloadDataCompleted += starsPollHandler;
             starsPollClient.Headers.Add(HttpRequestHeader.Cookie, token.ToString());
             starsPollClient.DownloadDataAsync(new Uri(url + longpollStars));
@@ -227,7 +249,7 @@ namespace StarDisplay
 
         public void RegisterStarsListener(ulong timestamp)
         {
-            starsPollClient = new WebClient();
+            var starsPollClient = new ExtendedWebClient();
             starsPollClient.DownloadDataCompleted += starsPollHandler;
             starsPollClient.Headers.Add(HttpRequestHeader.Cookie, token.ToString());
             starsPollClient.DownloadDataAsync(new Uri(url + longpollStars + "&since_time=" + timestamp));
@@ -237,7 +259,7 @@ namespace StarDisplay
         {
             if (listenNet)
             {
-                starsPollClient = new WebClient();
+                var starsPollClient = new ExtendedWebClient();
                 starsPollClient.DownloadDataCompleted += netPollHandler;
                 starsPollClient.Headers.Add(HttpRequestHeader.Cookie, token.ToString());
                 starsPollClient.DownloadDataAsync(new Uri(url + longpollNet));
@@ -248,7 +270,7 @@ namespace StarDisplay
         {
             if (listenNet)
             {
-                starsPollClient = new WebClient();
+                var starsPollClient = new ExtendedWebClient();
                 starsPollClient.DownloadDataCompleted += netPollHandler;
                 starsPollClient.Headers.Add(HttpRequestHeader.Cookie, token.ToString());
                 starsPollClient.DownloadDataAsync(new Uri(url + longpollNet + "&since_time=" + timestamp));
@@ -257,7 +279,7 @@ namespace StarDisplay
 
         public void SendData(byte[] data)
         {
-            WebClient postStarsClient = new WebClient();
+            var postStarsClient = new ExtendedWebClient();
             
             string sendString = Convert.ToBase64String(data);
 
@@ -271,14 +293,18 @@ namespace StarDisplay
             postStarsClient.UploadValuesAsync(new Uri(url + post), "POST", values);
         }
 
-        public void SendNet64Data(string name, byte[] data)
+        public void SendNet64Data(string name, byte[] data, string location)
         {
-            WebClient postStarsClient = new WebClient();
+            if (!(data is object))
+                return;
+
+            var postStarsClient = new ExtendedWebClient();
 
             JObject json = new JObject
             {
                 ["player"] = name,
-                ["state"] = Convert.ToBase64String(data)
+                ["state"] = Convert.ToBase64String(data),
+                ["location"] = location
             };
 
             string sendString = json.ToString();

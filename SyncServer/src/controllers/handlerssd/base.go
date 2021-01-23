@@ -12,7 +12,7 @@ var longpollManager *golongpoll.LongpollManager
 func InitLongpoll() {
 	var err error
 	longpollManager, err = golongpoll.StartLongpoll(golongpoll.Options{
-		LoggingEnabled: true,
+		LoggingEnabled: false,
 		EventTimeToLiveSeconds: 60,
 	})
 

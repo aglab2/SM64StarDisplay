@@ -3,11 +3,10 @@
 
 namespace Net
 {
-    constexpr int cPlayerCount = 25;
+    constexpr int cPlayerCount = 16;
     constexpr int cMagic = 'NETG';
 
-    extern int magic;
-    extern MarioState states[cPlayerCount];
+    extern GraphNodeObject gNodes[cPlayerCount];
 
-    void EmplaceObjects();
+    void DoNet(struct GraphNode *firstNode);
 } // namespace Net

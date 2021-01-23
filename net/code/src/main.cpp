@@ -5,7 +5,7 @@
 #define REGISTER_GEOLAYOUT(obj) 0x02000000, (int) obj::Geolayout,
 
 int _start[] = {
-    (int) Net::EmplaceObjects, // 26000
-    (int) 0,                   // 26004
-    (int) Net::states,         // 26008
+    (int) Net::DoNet,  // 26000
+    (int) 0,           // 26004
+    (int) Net::gNodes, // 26008
 };

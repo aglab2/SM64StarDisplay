@@ -103,7 +103,6 @@
             // 
             // textBoxName
             // 
-            this.textBoxName.Enabled = false;
             this.textBoxName.Location = new System.Drawing.Point(13, 282);
             this.textBoxName.Name = "textBoxName";
             this.textBoxName.Size = new System.Drawing.Size(174, 20);
@@ -113,7 +112,6 @@
             // checkBox1
             // 
             this.checkBox1.AutoSize = true;
-            this.checkBox1.Enabled = false;
             this.checkBox1.Location = new System.Drawing.Point(192, 284);
             this.checkBox1.Name = "checkBox1";
             this.checkBox1.Size = new System.Drawing.Size(55, 17);

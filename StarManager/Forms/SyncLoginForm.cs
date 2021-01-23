@@ -67,6 +67,7 @@ namespace StarDisplay
         {
             if (nm is object)
             {
+                textBoxName.Enabled = true;
                 if (sm is object)
                     sm.listenNet = false;
                 
@@ -74,6 +75,7 @@ namespace StarDisplay
             }
             else
             {
+                textBoxName.Enabled = false;
                 if (sm is object)
                 {
                     sm.listenNet = true;
@@ -82,6 +84,28 @@ namespace StarDisplay
                 nm = new NetManager();
                 nm.isInvalidated = true;
             }
+        }
+
+        public void UpdatePlayers(List<string> players)
+        {
+            var text = "";
+            foreach (var player in players)
+            {
+                if (text.Length == 0)
+                {
+                    text = player;
+                }
+                else
+                {
+                    text += "/n" + player;
+                }
+            }
+            richTextBox1.Text = text;
+        }
+
+        public string GetPlayerName()
+        {
+            return textBoxName.Text;
         }
     }
 }
