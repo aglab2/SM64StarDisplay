@@ -371,6 +371,8 @@ namespace StarDisplay
                                     var id = slf.nm.RegisterPlayer(player);
                                     if (data.location == location)
                                         mm.WriteNetState(id, data.state);
+                                    else
+                                        mm.WriteNetState(id, null);
                                 }
                             }
                         }

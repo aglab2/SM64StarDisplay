@@ -666,6 +666,25 @@ namespace StarDisplay
         {
             if (data is object)
             {
+                /*
+                byte[] dataPreAnim = new byte[0x24];
+                for (int i = 0; i < 0x24; i++)
+                {
+                    dataPreAnim[i] = data[i];
+                }
+
+                byte[] dataPostAnim = new byte[0xc];
+                for (int i = 0; i < 0xc; i++)
+                {
+                    dataPostAnim[i] = data[i + 0x28];
+                }
+
+                var netStatesPtrPreAnim = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + MarioStateOff);
+                Process.WriteBytes(netStatesPtrPreAnim, dataPreAnim);
+
+                var netStatesPtrPostAnim = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + MarioStateOff + 0x28);
+                Process.WriteBytes(netStatesPtrPostAnim, dataPostAnim);
+                */
                 var netStatesPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + MarioStateOff);
                 Process.WriteBytes(netStatesPtr, data);
 

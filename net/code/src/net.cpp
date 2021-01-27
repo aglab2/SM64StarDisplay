@@ -12,12 +12,11 @@ extern "C"
 
 namespace Net
 {
-    // SD updates these from 0x1A to 0x4c + 0x2 for flags without curAnim
+    // SD updates these from 0x18 to 0x4c without 0x3c to 0x40 + 0x2 for flags without curAnim
     // Everything else is synced to current mao
     GraphNodeObject gNodes[cPlayerCount] = {};
-    u32 gAnimIds[cPlayerCount] = {};
     MarioAnimation gMarioAnimations[cPlayerCount] = {};
-    u8 gAnimData[256][cPlayerCount];
+    u8 gAnimData[cPlayerCount][256];
 
     static void copyNode(GraphNodeObject* to, GraphNodeObject* from)
     {
@@ -42,15 +41,13 @@ namespace Net
         // node->unk38 = marioNode->unk38;
     }
 
-    void initMarioAnimation(struct MarioAnimation* to, struct MarioAnimation* from, struct Animation* target) 
-    {
-        to->animDmaTable = from->animDmaTable;
-        to->currentAnimAddr = nullptr;
-        to->targetAnim = target;
-    }
+    void __attribute__ ((noinline)) initMarioAnimation(struct MarioAnimation* to, struct MarioAnimation* from, struct Animation* target);
 
     void DoNet(struct GraphNode *firstNode)
     {
+        if (!gMarioStates->animation)
+            return geo_process_node_and_siblings(firstNode);
+
         if (gMagic != cMagic)
         {
             for (int i = 0; i < cPlayerCount; i++)
@@ -79,7 +76,7 @@ namespace Net
             }
             for (int i = 0; i < cPlayerCount; i++)
             {
-                // initMarioAnimation(&gMarioAnimations[i], gMarioStates->animation, (Animation*) gAnimData[i]);
+                initMarioAnimation(&gMarioAnimations[i], gMarioStates->animation, (Animation*) gAnimData[i]);
             }
             gMagic = cMagic;
         }
@@ -89,12 +86,15 @@ namespace Net
             // On Frame
             for (int i = 0; i < cPlayerCount; i++)
             {
-                if (gAnimIds[i] != gNodes->unk38.animID)
+                auto id = gNodes[i].unk38.animID;
+                if (id >= 0)
                 {
-                    auto id = gNodes->unk38.animID;
-                    gAnimIds[i] = id;
-                //    func_80278AD4 /*load_patchable_table*/ (&gMarioAnimations[i], id);
-                //    gNodes[i].unk38.curAnim = (Animation*) gAnimData[i];
+                    auto targetAnim = gMarioAnimations[i].targetAnim;
+                    if (func_80278AD4 /*load_patchable_table*/ (&gMarioAnimations[i], id)) {
+                        targetAnim->values = (const s16 *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->values);
+                        targetAnim->index  = (const u16 *) VIRTUAL_TO_PHYSICAL((u8 *) targetAnim + (uintptr_t) targetAnim->index);
+                    }
+                    // gNodes[i].unk38.curAnim = (Animation*) gAnimData[i];
                 }
             }
 
@@ -106,5 +106,12 @@ namespace Net
 
         geo_process_node_and_siblings(firstNode);
         geo_process_node_and_siblings(&gNodes[0].node);
+    }
+    
+    void __attribute__ ((noinline)) initMarioAnimation(struct MarioAnimation* to, struct MarioAnimation* from, struct Animation* target) 
+    {
+        to->animDmaTable = from->animDmaTable;
+        to->currentAnimAddr = nullptr;
+        to->targetAnim = target;
     }
 }
