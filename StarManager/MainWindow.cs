@@ -354,6 +354,7 @@ namespace StarDisplay
 
                         mm.WriteToFile(ld.starsShown);
                     }
+                    if (!mm.IsDecomp)
                     {
                         var location = mm.GetLocation();
                         var netData = slf.sm.getNetData();
@@ -381,23 +382,26 @@ namespace StarDisplay
 
                 if (nmIsInvalidated)
                 {
-                    mm.WriteNetPatch();
-                    var state = mm.GetMarioState();
-                    if (slf.sm is object)
+                    if (!mm.IsDecomp)
                     {
-                        slf.sm.SendNet64Data(slf.GetNet64Name(), state, mm.GetLocation());
-                    }
-
-                    if (slf.nm.mustReload)
-                    {
-                        for (int i = 0; i < 16; i++)
+                        mm.WriteNetPatch();
+                        var state = mm.GetMarioState();
+                        if (slf.sm is object)
                         {
-                            mm.WriteNetState(i, null);
+                            slf.sm.SendNet64Data(slf.GetNet64Name(), state, mm.GetLocation());
                         }
-                        slf.nm.mustReload = false;
-                    }
 
-                    this.SafeInvoke((MethodInvoker)delegate { slf.UpdatePlayers(slf.nm.GetPlayers()); });
+                        if (slf.nm.mustReload)
+                        {
+                            for (int i = 0; i < 16; i++)
+                            {
+                                mm.WriteNetState(i, null);
+                            }
+                            slf.nm.mustReload = false;
+                        }
+
+                        this.SafeInvoke((MethodInvoker)delegate { slf.UpdatePlayers(slf.nm.GetPlayers()); });
+                    }
                 }
 
                 // We do not draw anything!
@@ -527,6 +531,12 @@ namespace StarDisplay
 
         private void importIconsToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (mm.IsDecomp)
+            {
+                MessageBox.Show("Cannot extract assets from decomp ROM...", "Decomp Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             Bitmap image = mm.GetImage();
             ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
             InvalidateCache();
@@ -623,6 +633,12 @@ namespace StarDisplay
 
         private void EditWarps()
         {
+            if (mm.IsDecomp)
+            {
+                MessageBox.Show("No cheating on decomp ROMs allowed FUNgineer", "Decomp Error", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                return;
+            }
+
             int X = picX; int Y = picY;
             int line = (int)Math.Floor(Y / gm.SHeight);
             bool isSecret = ((int)Math.Floor(X / (gm.Width / 2))) == 1;
@@ -915,6 +931,12 @@ namespace StarDisplay
 
         private void importStarMasksToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (mm.IsDecomp)
+            {
+                MessageBox.Show("Cannot parse decomp ROMs", "Decomp Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "ROM Files (*.z64)|*.z64",
@@ -1013,6 +1035,12 @@ namespace StarDisplay
 
         private void importIconsFromROMToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (mm.IsDecomp)
+            {
+                MessageBox.Show("Cannot import assets from decomp ROMs", "Decomp Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
                 Filter = "ROM Files (*.z64)|*.z64",
@@ -1174,6 +1202,12 @@ namespace StarDisplay
 
         private void warpToLevelToolStripMenuItem_Click(object sender, EventArgs e)
         {
+            if (mm.IsDecomp)
+            {
+                MessageBox.Show("No cheating on decomp ROMs allowed FUNgineer", "Decomp Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             wd = new WarpDialog(mm.GetCurrentLevel());
             DialogResult r = wd.ShowDialog();
             if (r == DialogResult.OK)

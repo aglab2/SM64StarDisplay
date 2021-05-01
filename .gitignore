@@ -3,6 +3,8 @@ StarManager/bin
 StarManager/obj
 StarManagerUpdater/bin
 StarManagerUpdater/obj
+MIPSInterpreter/bin
+MIPSInterpreter/obj
 net/code/obj
 .vs
 SyncServer/pkg

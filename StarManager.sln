@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarManager", "StarManager\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarManagerUpdater", "StarManagerUpdater\StarManagerUpdater.csproj", "{6A6C0223-4658-4790-82B5-28D6C5B074F8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MIPSInterpreter", "MIPSInterpreter\MIPSInterpreter.csproj", "{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

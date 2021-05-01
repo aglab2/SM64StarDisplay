@@ -34,7 +34,7 @@ namespace StarDisplay
             }
 
             client = new GitHubClient(new ProductHeaderValue("star-display"));
-            versionTask = client.Repository.Release.GetAll("aglab2", "SM64StarManager", new ApiOptions() { PageSize = 5, PageCount = 1 });
+            versionTask = client.Repository.Release.GetAll("aglab2", "SM64StarDisplay", new ApiOptions() { PageSize = 5, PageCount = 1 });
             isUpdated = false;
         }
 

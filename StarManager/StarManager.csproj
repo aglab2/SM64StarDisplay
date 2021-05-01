@@ -68,11 +68,11 @@
     <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.13.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
-    <Reference Include="Octokit, Version=0.48.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Octokit.0.48.0\lib\net46\Octokit.dll</HintPath>
+    <Reference Include="Octokit, Version=0.50.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Octokit.0.50.0\lib\net46\Octokit.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -89,6 +89,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\MIPSInterpreter\Converter.cs">
+      <Link>Interpreter\Converter.cs</Link>
+    </Compile>
+    <Compile Include="..\MIPSInterpreter\Decompiler.cs">
+      <Link>Interpreter\Decompiler.cs</Link>
+    </Compile>
+    <Compile Include="..\MIPSInterpreter\DecompManager.cs">
+      <Link>Managers\DecompManager.cs</Link>
+    </Compile>
+    <Compile Include="..\MIPSInterpreter\Instruction.cs">
+      <Link>Interpreter\Instruction.cs</Link>
+    </Compile>
+    <Compile Include="..\MIPSInterpreter\Interpreter.cs">
+      <Link>Interpreter\Interpreter.cs</Link>
+    </Compile>
+    <Compile Include="..\MIPSInterpreter\Memory.cs">
+      <Link>Interpreter\Memory.cs</Link>
+    </Compile>
+    <Compile Include="..\MIPSInterpreter\Types.cs">
+      <Link>Interpreter\Types.cs</Link>
+    </Compile>
     <Compile Include="Forms\AboutDialog.cs">
       <SubType>Form</SubType>
     </Compile>

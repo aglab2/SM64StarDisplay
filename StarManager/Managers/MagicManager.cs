@@ -1,4 +1,5 @@
 ﻿using LiveSplit.ComponentUtil;
+using MIPSInterpreter;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,15 +12,16 @@ namespace StarDisplay
 {
     class MagicManager
     {
-        const int PageSize = 4096;
-        const long MaxMem = (long) 4 * 1024 * 1024 * 1024;
-
-        const uint ramMagic = 0x3C1A8032;
+        const uint ramMagic = 0x3C1A8000;
+        const uint ramMagicMask = 0xfffff000;
         const uint romMagic = 0x80371240;
 
         private Process process;
         public readonly uint romPtrBase;
         public readonly uint ramPtrBase;
+
+        public readonly bool isDecomp;
+        public readonly int saveBufferOffset = 0;
 
         [DllImport("kernel32.dll")]
         static extern int VirtualQueryEx(IntPtr hProcess, UIntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
@@ -67,10 +69,12 @@ namespace StarDisplay
 
         public MagicManager(Process process, int[] romPtrBaseSuggestions, int[] ramPtrBaseSuggestions, int offset)
         {
+            GC.Collect();
             this.process = process;
 
             bool isRomFound = false;
             bool isRamFound = false;
+            int ramSize = 0;
 
             foreach(uint romPtrBaseSuggestion in romPtrBaseSuggestions)
             {
@@ -109,9 +113,10 @@ namespace StarDisplay
                     bool readSuccess = process.ReadValue(new IntPtr(address + offset), out uint value);
                     if (readSuccess)
                     {
-                        if (!isRamFound && value == ramMagic)
+                        if (!isRamFound && ((value & ramMagicMask) == ramMagic))
                         {
                             ramPtrBase = (uint)(address + offset);
+                            ramSize = (int) m.RegionSize - offset;
                             isRamFound = true;
                         }
 
@@ -127,15 +132,33 @@ namespace StarDisplay
             }
             while (address <= MaxAddress);
 
-            if (!isRomFound && !isRamFound)
+            if (!isRomFound || !isRamFound)
                 throw new ArgumentException("Failed to find rom and ram!");
+
+            uint[] mem;
+            {
+                byte[] bytes = process.ReadBytes(new IntPtr(ramPtrBase), ramSize);
+                int size = bytes.Count() / 4;
+                mem = new uint[size];
+                for (int idx = 0; idx < size; idx++)
+                {
+                    mem[idx] = BitConverter.ToUInt32(bytes, 4 * idx);
+                }
+            }
+
+            DecompManager dm = new DecompManager(mem);
+            if (!dm.gSaveBuffer.HasValue)
+                throw new ArgumentException("Failed to gSaveBuffer!");
+
+            saveBufferOffset = dm.gSaveBuffer.Value & 0xffffff;
+            isDecomp = saveBufferOffset != 0x207700; // TODO: This is inaccurate
         }
 
         bool IsRamBaseValid()
         {
             uint value = 0;
             bool readSuccess = process.ReadValue(new IntPtr(ramPtrBase), out value);
-            return readSuccess && (value == ramMagic);
+            return readSuccess && ((value & ramMagicMask) == ramMagic);
         }
 
         bool IsRomBaseValid()
@@ -147,7 +170,7 @@ namespace StarDisplay
 
         public bool isValid()
         {
-            return IsRamBaseValid() && IsRomBaseValid();
+            return IsRamBaseValid() && IsRomBaseValid() && saveBufferOffset != 0;
         }
     }
 }
