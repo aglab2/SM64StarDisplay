@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -10,7 +13,80 @@ using System.Threading.Tasks;
 
 namespace StarDisplay
 {
+    public class LineDescriptionExSpecifiedConcreteClassConverter : DefaultContractResolver
+    {
+        protected override JsonConverter ResolveContractConverter(Type objectType)
+        {
+            if (typeof(LineDescriptionEx).IsAssignableFrom(objectType) && !objectType.IsAbstract)
+                return null; // pretend TableSortRuleConvert is not specified (thus avoiding a stack overflow)
+
+            return base.ResolveContractConverter(objectType);
+        }
+    }
+
+    public class LineDescriptionExConverter : JsonConverter
+    {
+        static JsonSerializerSettings SpecifiedSubclassConversion = new JsonSerializerSettings()
+        { ContractResolver = new LineDescriptionExSpecifiedConcreteClassConverter() };
+
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(LineDescriptionEx);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            JObject jo = JObject.Load(reader);
+            switch (jo["Type"].Value<int>())
+            {
+                case 1:
+                    return JsonConvert.DeserializeObject<StarsLineDescription>(jo.ToString(), SpecifiedSubclassConversion);
+                case 2:
+                    return JsonConvert.DeserializeObject<TextOnlyLineDescription>(jo.ToString(), SpecifiedSubclassConversion);
+                default:
+                    throw new Exception();
+            }
+        }
+        public override bool CanWrite
+        {
+            get { return false; }
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            throw new NotImplementedException(); // won't be called because CanWrite returns false
+        }
+    }
+
+    public class ImageConverter : JsonConverter
+    {
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            string text = (string)reader.Value;
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return Resource.gold_star;
+            }
+            return Image.FromStream(new MemoryStream(Convert.FromBase64String(text)));
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            Image obj = (Image)value;
+            MemoryStream memoryStream = new MemoryStream();
+            obj.Save(memoryStream, ImageFormat.Bmp);
+            byte[] value2 = memoryStream.ToArray();
+            writer.WriteValue(value2);
+        }
+
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Image);
+        }
+    }
+
     [Serializable]
+    [JsonConverter(typeof(LineDescriptionExConverter))]
     public abstract class LineDescriptionEx
     {
         public abstract void DrawBase(GraphicsManager gm, int lineNumber, bool isSecret);
@@ -21,6 +97,9 @@ namespace StarDisplay
     public class TextOnlyLineDescription : LineDescriptionEx
     {
         public string text;
+        
+        public int Type = 2;
+
         public TextOnlyLineDescription(string text)
         {
             this.text = text;
@@ -59,6 +138,8 @@ namespace StarDisplay
         public byte highlightStarMask;
         public int highlightOffset;
 
+        public int Type = 1;
+
         public StarsLineDescription(string text, byte starMask, int offset, byte highlightStarMask, int highlightOffset)
         {
             this.text = text;
@@ -95,17 +176,27 @@ namespace StarDisplay
         public List<LineDescriptionEx> courseDescription;
         public List<LineDescriptionEx> secretDescription;
 
+        [JsonConverter(typeof(ImageConverter))]
         public Bitmap goldStar;
+        [JsonConverter(typeof(ImageConverter))]
         public Bitmap darkStar;
-        public Bitmap invertedStar;
+        [JsonConverter(typeof(ImageConverter))]
         public Bitmap redOutline;
+        [JsonConverter(typeof(ImageConverter))]
         public Bitmap greenOutline;
+        [JsonConverter(typeof(ImageConverter))]
+        public Bitmap invertedStar;
 
         public string starAmount;
 
         public int starsShown;
 
         public bool useEmptyStars;
+
+        // JSON
+        public LayoutDescriptionEx()
+        {
+        }
 
         // Method for converting from old to new Layouts
         public LayoutDescriptionEx(LayoutDescription ld)
@@ -352,7 +443,7 @@ namespace StarDisplay
             GenerateDarkStar();
             GenerateOutline();
         }
-        
+
         public LayoutDescriptionEx(List<LineDescriptionEx> courseDescription, List<LineDescriptionEx> secretDescription, Bitmap star, string starAmount, int starsShown)
         {
             this.starsShown = starsShown;

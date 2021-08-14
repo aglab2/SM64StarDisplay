@@ -3,7 +3,7 @@ This is program to display acquired stars in casual playthrough! App reads game 
 Caps automatically. The level you are at is highlighted with yellow rectangle. 
 
 # How to use?
-Start Project64 1.6 (or any other version you like) and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarDisplay/releases/download/1.12/StarManager.exe), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and wait for it to load. If your hack has layout support, it should load automatically. Else make your own layout, give it a try!
+Start Project64 1.6 (or any other version you like) and load ROM with hack. Download [Star Display](https://github.com/aglab2/SM64StarDisplay/releases/download/1.13/StarManager.exe), decompress zip file, go to unpacked folder. Execute StarDisplay.exe and wait for it to load. If your hack has layout support, it should load automatically. Else make your own layout, give it a try!
 
 # Layouts
 layouts are currently stored at [github](https://github.com/StarDisplayLayouts/layouts)
@@ -28,3 +28,6 @@ Star Display can sync your progress with other players online. You just need to 
  * Beta testers: Ap616, katze789, Tomatobird8, OcarinaOfFan05, Sir_Flareon
  * Design tips: Ap616, Karisa113, Tomatobird8, CaptainYoshi64, TriforceTK
  * Layouts development: Mariocrash64, CaptainBowser, Sir_Flareon, TheGael95
+ 
+# Notes
+ * This code was used as a part of RHDC star display. It is more feature rich but also more bloated compared to this original code. Bugs in that version of Star Display or any UX issues may not be related to current release.

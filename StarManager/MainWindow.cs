@@ -11,6 +11,7 @@ using System.Drawing.Text;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace StarDisplay
 {
@@ -759,22 +760,29 @@ namespace StarDisplay
 
         private void LoadLayoutNoInvalidate(string name)
         {
-            IFormatter formatter = new BinaryFormatter();
 
             int TotalWidth = this.Width / ld.starsShown;
 
             string ext = Path.GetExtension(name);
+            if (ext == ".sml")
+            {
+                Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
+                IFormatter formatter = new BinaryFormatter();
+                object layout = formatter.Deserialize(stream);
+                string layoutClassName = layout.GetType().Name;
 
-            Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
-            object layout = formatter.Deserialize(stream);
-            string layoutClassName = layout.GetType().Name;
-
-            if (layoutClassName == "LayoutDescription")
-                ld = new LayoutDescriptionEx((LayoutDescription) layout);
-            else if (layoutClassName == "LayoutDescriptionEx")
-                ld = (LayoutDescriptionEx) layout;
-            else
-                MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (layoutClassName == "LayoutDescription")
+                    ld = new LayoutDescriptionEx((LayoutDescription)layout);
+                else if (layoutClassName == "LayoutDescriptionEx")
+                    ld = (LayoutDescriptionEx)layout;
+                else
+                    MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else if (ext == ".jsml")
+            {
+                var json = File.ReadAllText(name);
+                ld = JsonConvert.DeserializeObject<LayoutDescriptionEx>(json);
+            }
 
             ld.RecountStars();
 
@@ -795,15 +803,19 @@ namespace StarDisplay
         private void SaveLayout(string name)
         {
             ld.Trim();
-            IFormatter formatter = new BinaryFormatter();
-            Stream stream = new FileStream(name, FileMode.Create, FileAccess.Write, FileShare.None);
-            {
-                var invertedStar = ld.invertedStar;
-                ld.invertedStar = null;
-                formatter.Serialize(stream, ld);
-                ld.invertedStar = invertedStar;
-            }
-            stream.Close();
+
+            var redOutline = ld.redOutline;
+            var greenOutline = ld.greenOutline;
+            var invertedStar = ld.invertedStar;
+            ld.invertedStar = null;
+            ld.greenOutline = null;
+            ld.redOutline = null;
+            var json = JsonConvert.SerializeObject(ld);
+            ld.invertedStar = invertedStar;
+            ld.greenOutline = greenOutline;
+            ld.redOutline = redOutline;
+
+            File.WriteAllText(name, json);
         }
         
         public void LoadExternal(string name)
@@ -872,7 +884,7 @@ namespace StarDisplay
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*",
+                Filter = "Star Manager Layout (*.sml,*.jsml)|*.sml;*.jsml|All files (*.*)|*.*",
                 FilterIndex = 1,
                 RestoreDirectory = false,
                 InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
@@ -899,7 +911,7 @@ namespace StarDisplay
         {
             SaveFileDialog saveFileDialog = new SaveFileDialog
             {
-                Filter = "Star Manager Layout (*.sml)|*.sml|All files (*.*)|*.*",
+                Filter = "Star Manager Layout (*.jsml)|*.jsml|All files (*.*)|*.*",
                 FilterIndex = 1,
                 RestoreDirectory = false,
                 InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
@@ -1270,7 +1282,7 @@ namespace StarDisplay
                 string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                 string layoutDir = exePath + "\\layout\\";
                 Directory.CreateDirectory(layoutDir);
-                string name = layoutDir + rm.GetROMName() + ".sml";
+                string name = layoutDir + rm.GetROMName() + ".jsml";
                 if (File.Exists(name))
                 {
                     var result = MessageBox.Show("Layout for this hack already exists! Do you want to overwrite it?", "Layour Error", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation);

@@ -156,8 +156,8 @@ namespace MIPSInterpreter
 
                     int bzerodVAddrIdx = bzerodAddresses.IndexOfKey(bzerodVAddr);
                     int bzerodNextVAddr = bzerodAddresses.ElementAt(bzerodVAddrIdx + 1).Key;
-                    if (bzerodNextVAddr - bzerodVAddr > eepSize)
-                        continue;
+                    //if (bzerodNextVAddr - bzerodVAddr > eepSize)
+                    //    continue;
 
                     gSaveBuffer = bzerodVAddr;
                     gSaveBufferBZeroJmpVAddr = bzeroJmpVAddr;

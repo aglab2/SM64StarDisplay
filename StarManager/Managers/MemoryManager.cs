@@ -766,7 +766,7 @@ namespace StarDisplay
             Process.WriteBytes(areaPtr, new byte[] { areaID });
             Process.WriteBytes(spawnPointPtr, new byte[] { warpID });
             Process.WriteBytes(levelSpawnPtr, new byte[] { levelID });
-            Process.WriteBytes(hpPtr, new byte[] { 0x00, 0x08 });
+            Process.WriteBytes(hpPtr, new byte[] { 0x80, 0x08 });
             Process.WriteBytes(menuModifierPtr, new byte[] { 0x04, 0x00 });
             Process.WriteBytes(spawnStatusPtr, new byte[] { 0x02 });
             Process.WriteBytes(igtigtPtr, new byte[] { 0x00, 0x00 });
