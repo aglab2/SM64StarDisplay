@@ -458,13 +458,13 @@ namespace StarDisplay
                             }
 
                             string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                            LoadLayoutNoInvalidate(exePath + "\\layout\\" + rm.GetROMName() + ".sml");
+                            LoadLayoutNoInvalidate(exePath + "\\layout\\" + rm.GetROMName() + ".jsml");
                         }
                         catch (IOException)
                         {
                             try
                             {
-                                dm = new DownloadManager(rm.GetROMName() + ".sml");
+                                dm = new DownloadManager(rm.GetROMName() + ".jsml");
                             }
                             catch(Exception) { }
                             LoadDefaultLayoutNoInvalidate();
@@ -851,12 +851,28 @@ namespace StarDisplay
 
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
+#if DEBUG != false
+            foreach (var layoutPath in Directory.EnumerateFiles("C:\\Data\\layouts"))
+            {
+                var ext = Path.GetExtension(layoutPath);
+                if (ext != ".sml")
+                    continue;
+
+                var jsmlPath = Path.ChangeExtension(layoutPath, ".jsml");
+                if (File.Exists(jsmlPath))
+                    continue;
+
+                LoadLayout(layoutPath);
+                SaveLayout(jsmlPath);
+            }
+#endif
+
             try
             {
                 do
                 {
                     string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                    LoadLayout(exePath + "\\layout\\" + rm.GetROMName() + ".sml");
+                    LoadLayout(exePath + "\\layout\\" + rm.GetROMName() + ".jsml");
                 } while (false);
             }
             catch (IOException){

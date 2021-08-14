@@ -36,6 +36,9 @@ namespace StarDisplay
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
+            if (reader.TokenType == JsonToken.Null)
+                return null;
+
             JObject jo = JObject.Load(reader);
             switch (jo["Type"].Value<int>())
             {
@@ -91,6 +94,7 @@ namespace StarDisplay
     {
         public abstract void DrawBase(GraphicsManager gm, int lineNumber, bool isSecret);
         public abstract bool IsEmpty();
+        public abstract void FixType();
     }
 
     [Serializable]
@@ -99,6 +103,11 @@ namespace StarDisplay
         public string text;
         
         public int Type = 2;
+
+        public override void FixType()
+        {
+            Type = 2;
+        }
 
         public TextOnlyLineDescription(string text)
         {
@@ -139,6 +148,11 @@ namespace StarDisplay
         public int highlightOffset;
 
         public int Type = 1;
+
+        public override void FixType()
+        {
+            Type = 1;
+        }
 
         public StarsLineDescription(string text, byte starMask, int offset, byte highlightStarMask, int highlightOffset)
         {
@@ -526,6 +540,17 @@ namespace StarDisplay
                     secretDescription.RemoveAt(secretDescription.Count() - 1);
                 else
                     break;
+            }
+
+            foreach (var ld in courseDescription)
+            {
+                if (ld is object)
+                    ld.FixType();
+            }
+            foreach (var ld in secretDescription)
+            {
+                if (ld is object)
+                    ld.FixType();
             }
         }
 
