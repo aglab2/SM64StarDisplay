@@ -177,7 +177,6 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Managers\GraphicsManager.cs" />
     <Compile Include="ViewHelper\ImageProcessing.cs" />
-    <Compile Include="ViewHelper\LayoutDescription.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
     </Compile>

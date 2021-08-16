@@ -771,9 +771,7 @@ namespace StarDisplay
                 object layout = formatter.Deserialize(stream);
                 string layoutClassName = layout.GetType().Name;
 
-                if (layoutClassName == "LayoutDescription")
-                    ld = new LayoutDescriptionEx((LayoutDescription)layout);
-                else if (layoutClassName == "LayoutDescriptionEx")
+                if (layoutClassName == "LayoutDescriptionEx")
                     ld = (LayoutDescriptionEx)layout;
                 else
                     MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -995,6 +993,7 @@ namespace StarDisplay
             cp.ShowDialog();
             ld.goldStar = cp.newImg;
             ld.GenerateDarkStar();
+            ld.GenerateInvertedStar();
             InvalidateCache();
         }
 

@@ -212,252 +212,6 @@ namespace StarDisplay
         {
         }
 
-        // Method for converting from old to new Layouts
-        public LayoutDescriptionEx(LayoutDescription ld)
-        {
-            starsShown = 7;
-
-            courseDescription = new List<LineDescriptionEx>();
-            secretDescription = new List<LineDescriptionEx>();
-
-            foreach (LineDescription lined in ld.courseDescription)
-            {
-                LineDescriptionEx lde = null;
-
-                if (lined != null)
-                {
-                    if (lined.isTextOnly)
-                    {
-                        lde = new TextOnlyLineDescription(lined.text);
-                    }
-                    else
-                    {
-                        byte highlightStarMask = 0;
-                        int highlightStarOffset = 0;
-
-                        if (lined.text == "WC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 1;
-                        }
-
-                        if (lined.text == "MC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 2;
-                        }
-
-                        if (lined.text == "VC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 3;
-                        }
-
-                        if (lined.text == "B1")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 4 | 1 << 6;
-                        }
-
-                        if (lined.text == "B2")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 5 | 1 << 7;
-                        }
-
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1 | (1 << 7)), lined.offset + 8, highlightStarMask, highlightStarOffset);
-                    }
-                }
-
-                courseDescription.Add(lde);
-            }
-
-            foreach (LineDescription lined in ld.secretDescription)
-            {
-                LineDescriptionEx lde = null;
-
-                if (lined != null)
-                {
-                    if (lined.isTextOnly)
-                    {
-                        lde = new TextOnlyLineDescription(lined.text);
-                    }
-                    else
-                    {
-                        byte highlightStarMask = 0;
-                        int highlightStarOffset = 0;
-
-                        if (lined.text == "WC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 1;
-                        }
-
-                        if (lined.text == "MC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 2;
-                        }
-
-                        if (lined.text == "VC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 3;
-                        }
-
-                        if (lined.text == "B1")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 4 | 1 << 6;
-                        }
-
-                        if (lined.text == "B2")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 5 | 1 << 7;
-                        }
-
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1 | (1 << 7)), lined.offset + 8, highlightStarMask, highlightStarOffset);
-                    }
-                }
-
-                secretDescription.Add(lde);
-            }
-
-            this.goldStar = ld.goldStar;
-            this.darkStar = ld.darkStar;
-            this.redOutline = ld.redOutline;
-            this.greenOutline = ld.greenOutline;
-            this.starAmount = ld.starAmount;
-
-            Trim();
-        }
-
-        public LayoutDescriptionEx(LineDescription[] courseDescriptionOut, LineDescription[] secretDescriptionOut, Bitmap star, string starAmount)
-        {
-            starsShown = 7;
-
-            courseDescription = new List<LineDescriptionEx>();
-            secretDescription = new List<LineDescriptionEx>();
-
-            foreach (LineDescription lined in courseDescriptionOut)
-            {
-                LineDescriptionEx lde = null;
-
-                if (lined != null)
-                {
-                    if (lined.isTextOnly)
-                    {
-                        lde = new TextOnlyLineDescription(lined.text);
-                    }
-                    else
-                    {
-                        byte highlightStarMask = 0;
-                        int highlightStarOffset = 0;
-
-                        if (lined.text == "WC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 1;
-                        }
-
-                        if (lined.text == "MC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 2;
-                        }
-
-                        if (lined.text == "VC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 3;
-                        }
-
-                        if (lined.text == "B1")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 4 | 1 << 6;
-                        }
-
-                        if (lined.text == "B2")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 5 | 1 << 7;
-                        }
-
-                        lde = new StarsLineDescription(lined.text, (byte)((lined.starMask >> 1) | 1 << 7), lined.offset + 8, highlightStarMask, highlightStarOffset);
-                    }
-                }
-
-                courseDescription.Add(lde);
-            }
-
-            foreach (LineDescription lined in secretDescriptionOut)
-            {
-                LineDescriptionEx lde = null;
-
-                if (lined != null)
-                {
-                    if (lined.isTextOnly)
-                    {
-                        lde = new TextOnlyLineDescription(lined.text);
-                    }
-                    else
-                    {
-                        byte highlightStarMask = 0;
-                        int highlightStarOffset = 0;
-
-                        if (lined.text == "WC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 1;
-                        }
-
-                        if (lined.text == "MC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 2;
-                        }
-
-                        if (lined.text == "VC")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 3;
-                        }
-
-                        if (lined.text == "B1")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 4 | 1 << 6;
-                        }
-
-                        if (lined.text == "B2")
-                        {
-                            highlightStarOffset = 0xB;
-                            highlightStarMask = 1 << 5 | 1 << 7;
-                        }
-
-                        lde = new StarsLineDescription(lined.text, (byte)(lined.starMask >> 1 | (1 << 7)), lined.offset + 8, highlightStarMask, highlightStarOffset);
-                    }
-                }
-
-                secretDescription.Add(lde);
-            }
-            
-            this.starAmount = starAmount;
-
-            Trim();
-
-            goldStar = star;
-            darkStar = new Bitmap(goldStar.Width, goldStar.Height);
-            if (goldStar.Width != 20 || goldStar.Height != 20)
-                Compress();
-
-            GenerateInvertedStar();
-            GenerateDarkStar();
-            GenerateOutline();
-        }
-
         public LayoutDescriptionEx(List<LineDescriptionEx> courseDescription, List<LineDescriptionEx> secretDescription, Bitmap star, string starAmount, int starsShown)
         {
             this.starsShown = starsShown;
@@ -699,32 +453,34 @@ namespace StarDisplay
         //TODO: Store in file
         static public LayoutDescriptionEx GenerateDefault()
         {
-            LineDescription[] courseLD = new LineDescription[16];
-            LineDescription[] secretLD = new LineDescription[16];
+            List<LineDescriptionEx> courseLD = new LineDescriptionEx[16].ToList();
+            List<LineDescriptionEx> secretLD = new LineDescriptionEx[16].ToList();
 
             int[] linesForSecrets = { 0, 1, 2, 3, 9, 5, 6, 7, 13, 14, 15, 11 };
-            string[] namesForSecrets = { "--", "B1", "B2", "B3", "Sl", "MC", "WC", "VC", "S1", "S2", "S3", "OW" };
+            byte[] highlightForSecrets = { 0, 0xb, 0xb, 0, 0, 0xb, 0xb, 0xb, 0, 0, 0, 0 };
+            int[] offsetForSecrets    = { 0, 1 << 4 | 1 << 6, 1 << 5 | 1 << 7, 0, 0, 1 << 1, 1 << 2, 1 << 3, 0, 0, 0, 0 };
+            string[] namesForSecrets  = { "--", "B1", "B2", "B3", "Sl", "MC", "WC", "VC", "S1", "S2", "S3", "OW" };
 
-            courseLD[0] = new LineDescription("Main Courses", true, 0, 0);
+            courseLD[0] = new TextOnlyLineDescription("Main Courses");
             for (int course = 1; course <= 15; course++)
             {
                 string drawString = course.ToString("D2");
-                courseLD[course] = new LineDescription(drawString, false, 255, course + 3);
+                courseLD[course] = new StarsLineDescription(drawString, 255, course + 3, 0, 0);
             }
 
             for (int course = 1; course <= 10; course++) //Secret course
             {
-                secretLD[linesForSecrets[course]] = new LineDescription(namesForSecrets[course], false, 255, course + 18);
+                secretLD[linesForSecrets[course]] = new StarsLineDescription(namesForSecrets[course], 255, course + 18, highlightForSecrets[course], offsetForSecrets[course]);
             }
-            secretLD[linesForSecrets[11]] = new LineDescription(namesForSecrets[11], false, 255, 0);
+            secretLD[linesForSecrets[11]] = new StarsLineDescription(namesForSecrets[11], 255, 0, 0, 0);
 
-            secretLD[0] = new LineDescription("Bowser Courses", true, 0, 0);
-            secretLD[4] = new LineDescription("Cap Levels", true, 0, 0);
-            secretLD[8] = new LineDescription("Slide", true, 0, 0);
-            secretLD[10] = new LineDescription("Overworld Stars", true, 0, 0);
-            secretLD[12] = new LineDescription("Secret Stars", true, 0, 0);
+            secretLD[0] = new TextOnlyLineDescription("Bowser Courses");
+            secretLD[4] = new TextOnlyLineDescription("Cap Levels");
+            secretLD[8] = new TextOnlyLineDescription("Slide");
+            secretLD[10] = new TextOnlyLineDescription("Overworld Stars");
+            secretLD[12] = new TextOnlyLineDescription("Secret Stars");
 
-            return new LayoutDescriptionEx(courseLD, secretLD, Resource.gold_star, "182");
+            return new LayoutDescriptionEx(courseLD, secretLD, Resource.gold_star, "182", 7);
         }
     }
 }
