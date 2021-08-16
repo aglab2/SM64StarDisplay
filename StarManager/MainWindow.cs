@@ -786,12 +786,12 @@ namespace StarDisplay
 
             ld.RecountStars();
 
-            this.SafeInvoke((MethodInvoker)delegate { this.Width = TotalWidth * ld.starsShown; });
-
             if (ld.darkStar == null) ld.GenerateDarkStar();
             if (ld.redOutline == null) ld.GenerateOutline();
             if (ld.invertedStar == null) ld.GenerateInvertedStar();
             ld.Trim();
+
+            this.SafeInvoke((MethodInvoker)delegate { this.Width = TotalWidth * ld.starsShown; });
         }
 
         private void LoadDefaultLayoutNoInvalidate()

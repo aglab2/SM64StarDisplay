@@ -77,7 +77,7 @@ namespace StarDisplay
         {
             Image obj = (Image)value;
             MemoryStream memoryStream = new MemoryStream();
-            obj.Save(memoryStream, ImageFormat.Bmp);
+            obj.Save(memoryStream, ImageFormat.Png);
             byte[] value2 = memoryStream.ToArray();
             writer.WriteValue(value2);
         }
