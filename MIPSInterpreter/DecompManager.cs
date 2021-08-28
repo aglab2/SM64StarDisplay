@@ -150,6 +150,10 @@ namespace MIPSInterpreter
                     {
                         eepSize = 0x400;
                     }
+                    if (!eepSize.HasValue && bzerodInfo.TryGetValue(0x1f0, out bzeroJmpVAddr))
+                    {
+                        eepSize = 0x1f0;
+                    }
 
                     if (!eepSize.HasValue)
                         continue;

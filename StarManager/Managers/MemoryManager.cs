@@ -60,10 +60,6 @@ namespace StarDisplay
 
         public bool isStarsInvalidated = false;
 
-        int[] courseLevels = { 0, 9, 24, 12, 5, 4, 7, 22, 8, 23, 10, 11, 36, 13, 14, 15 };
-        int[] secretLevels = { 0, 17, 19, 21, 27, 28, 29, 18, 31, 20, 25 };
-        int[] overworldLevels = { 6, 26, 16 };
-
         private int selectedFile;
 
         public int SelectedFile { get => selectedFile; set { if (selectedFile != value) isInvalidated = true; selectedFile = value; } }
@@ -225,15 +221,6 @@ namespace StarDisplay
             netStatesOff = BitConverter.ToUInt32(data, 8) - 0x80000000;
 
             bool wasSet = false;
-            if (!wasSet)
-            {
-                try
-                {
-                    Process.PriorityClass = ProcessPriorityClass.RealTime;
-                    wasSet = true;
-                }
-                catch (Exception) { }
-            }
             if (!wasSet)
             {
                 try
