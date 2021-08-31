@@ -22,6 +22,10 @@ namespace StarDisplay
 
         public readonly bool isDecomp;
         public readonly int saveBufferOffset = 0;
+        public readonly int saveBufferSize = 0;
+        public readonly int saveFileSize = 0;
+        public readonly byte[] verificationBytes = null;
+        public readonly uint verificationOffset = 0;
 
         [DllImport("kernel32.dll")]
         static extern int VirtualQueryEx(IntPtr hProcess, UIntPtr lpAddress, out MEMORY_BASIC_INFORMATION lpBuffer, uint dwLength);
@@ -74,7 +78,6 @@ namespace StarDisplay
 
             bool isRomFound = false;
             bool isRamFound = false;
-            int ramSize = 0;
 
             foreach(uint romPtrBaseSuggestion in romPtrBaseSuggestions)
             {
@@ -116,7 +119,6 @@ namespace StarDisplay
                         if (!isRamFound && ((value & ramMagicMask) == ramMagic))
                         {
                             ramPtrBase = (uint)(address + offset);
-                            ramSize = (int) m.RegionSize - offset;
                             isRamFound = true;
                         }
 
@@ -137,7 +139,7 @@ namespace StarDisplay
 
             uint[] mem;
             {
-                byte[] bytes = process.ReadBytes(new IntPtr(ramPtrBase), ramSize);
+                byte[] bytes = process.ReadBytes(new IntPtr(ramPtrBase), 0x400000);
                 int size = bytes.Count() / 4;
                 mem = new uint[size];
                 for (int idx = 0; idx < size; idx++)
@@ -151,6 +153,10 @@ namespace StarDisplay
                 throw new ArgumentException("Failed to gSaveBuffer!");
 
             saveBufferOffset = dm.gSaveBuffer.Value & 0xffffff;
+            saveFileSize = dm.gSaveFileSize.Value;
+            verificationBytes = dm.VerificationBytes;
+            verificationOffset = dm.VerificationOffset.Value;
+
             isDecomp = saveBufferOffset != 0x207700; // TODO: This is inaccurate
         }
 

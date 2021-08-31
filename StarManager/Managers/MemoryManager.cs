@@ -7,11 +7,22 @@ using LiveSplit.ComponentUtil;
 using System.IO;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 namespace StarDisplay
 {
     public class MemoryManager : CachedManager
     {
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        static extern int memcmp(byte[] b1, byte[] b2, long count);
+
+        static bool ByteArrayCompare(byte[] b1, byte[] b2)
+        {
+            // Validate buffers are the same length.
+            // This also ensures that the count does not exceed the length of either buffer.  
+            return b1.Length == b2.Length && memcmp(b1, b2, b1.Length) == 0;
+        }
+
         public const int FileLength = 0x70;
         private const int MarioStateOff = 0x18;
         private const int MarioStateLength = 0x34;
@@ -25,6 +36,7 @@ namespace StarDisplay
         private byte[] oldStars;
 
         bool isDecomp;
+        IntPtr verificationPtr; byte[] verificationData;
         IntPtr igtPtr; int igt;
         IntPtr[] filesPtr; IntPtr filePtr; byte[] stars;
 
@@ -110,7 +122,7 @@ namespace StarDisplay
 
             var name = Process.ProcessName.ToLower();
 
-            if (name.Contains("Project64"))
+            if (name.Contains("project64"))
             {
                 DeepPointer[] ramPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A1C),     //1.6
                     new DeepPointer("RSP 1.7.dll", 0x4C054), new DeepPointer("RSP 1.7.dll", 0x44B5C),        //2.3.2; 2.4
@@ -177,20 +189,23 @@ namespace StarDisplay
                 { "mupen64-RTZ", 0x20 },
                 { "mupen64-rrv8-avisplit", 0x20 },
                 { "mupen64-rerecording-v2-reset", 0x20 },
+                { "retroarch", 0x40 },
             };
 
             // Process.ProcessName;
             mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offsets[Process.ProcessName]);
 
             isDecomp = mm.isDecomp;
+            verificationPtr = new IntPtr(mm.ramPtrBase + mm.verificationOffset);
+            verificationData = mm.verificationBytes;
             igtPtr = new IntPtr(mm.ramPtrBase + 0x32D580);
 
             // Can be found using bzero
             filesPtr = new IntPtr[4];
-            filesPtr[0] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + 0x70 * 0);
-            filesPtr[1] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + 0x70 * 1);
-            filesPtr[2] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + 0x70 * 2);
-            filesPtr[3] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + 0x70 * 3);
+            filesPtr[0] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 0);
+            filesPtr[1] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 1);
+            filesPtr[2] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 2);
+            filesPtr[3] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 3);
 
             levelPtr = new IntPtr(mm.ramPtrBase + 0x32DDFA);
             areaPtr = new IntPtr(mm.ramPtrBase + 0x33B249);
@@ -240,6 +255,10 @@ namespace StarDisplay
 
         public void PerformRead()
         {
+            var curVerificationBytes = Process.ReadBytes(verificationPtr, verificationData.Length);
+            if (!ByteArrayCompare(curVerificationBytes, verificationData))
+                throw new ArgumentException("Verification failed");
+
             Igt = Process.ReadValue<int>(igtPtr);
             
             filePtr = filesPtr[SelectedFile];
@@ -394,7 +413,7 @@ namespace StarDisplay
 
         public byte[] GetROM()
         {
-            int[] romSizesMB = new int[] { 64, 48, 32, 24, 16, 8 };
+            int[] romSizesMB = new int[] { 64, 48, 32, 24, 16, 8, 1 };
             byte[] rom = null;
             int romSize = 0;
             foreach (int sizeMB in romSizesMB)

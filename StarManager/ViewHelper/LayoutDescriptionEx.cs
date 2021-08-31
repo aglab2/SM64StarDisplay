@@ -465,14 +465,14 @@ namespace StarDisplay
             for (int course = 1; course <= 15; course++)
             {
                 string drawString = course.ToString("D2");
-                courseLD[course] = new StarsLineDescription(drawString, 255, course + 3, 0, 0);
+                courseLD[course] = new StarsLineDescription(drawString, 255, course + 11, 0, 0);
             }
 
             for (int course = 1; course <= 10; course++) //Secret course
             {
-                secretLD[linesForSecrets[course]] = new StarsLineDescription(namesForSecrets[course], 255, course + 18, highlightForSecrets[course], offsetForSecrets[course]);
+                secretLD[linesForSecrets[course]] = new StarsLineDescription(namesForSecrets[course], 255, course + 26, highlightForSecrets[course], offsetForSecrets[course]);
             }
-            secretLD[linesForSecrets[11]] = new StarsLineDescription(namesForSecrets[11], 255, 0, 0, 0);
+            secretLD[linesForSecrets[11]] = new StarsLineDescription(namesForSecrets[11], 255, 8, 0, 0);
 
             secretLD[0] = new TextOnlyLineDescription("Bowser Courses");
             secretLD[4] = new TextOnlyLineDescription("Cap Levels");

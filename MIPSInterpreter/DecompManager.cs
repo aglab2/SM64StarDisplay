@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,9 +10,23 @@ namespace MIPSInterpreter
 {
     public class DecompManager
     {
-        public uint? gSaveBufferBZeroJmpVAddr = null;
+        public uint? VerificationOffset = null;
+        public byte[] VerificationBytes = null;
+        
         public int? gSaveBuffer = null;
         public int? gSaveBufferSize = null;
+        public int? gSaveFileSize = null;
+
+        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
+        private static extern unsafe int memcmp(byte* b1, byte* b2, int count);
+
+        public static unsafe int CompareBuffers(byte[] buffer1, int offset1, byte[] buffer2, int offset2, int count)
+        {
+            fixed (byte* b1 = buffer1, b2 = buffer2)
+            {
+                return memcmp(b1 + offset1, b2 + offset2, count);
+            }
+        }
 
         // Magic regarding RAM dynamic decompiling
         static List<int> IndicesOf(uint[] arrayToSearchThrough, uint[] patternToFind)
@@ -80,6 +95,7 @@ namespace MIPSInterpreter
 
         public DecompManager(uint[] mem)
         {
+            uint instructionsToInterpretCount = 16;
             List<int> bzeroPositions = IndicesOf(mem, BZero);
             if (bzeroPositions.Count() == 0)
                 throw new ArgumentException("Failed to find bzero!");
@@ -94,7 +110,7 @@ namespace MIPSInterpreter
                 uint jmpInstVal = Converter.ToUInt(jmpInst);
                 var bzeroJmpOffsets = FindAll(mem, jmpInstVal);
 
-                SortedList<int /*bzerodVAddr*/, Dictionary<int /*bzerodSize*/, uint /*bzeroJmpVAddr*/>> bzerodAddresses = new SortedList<int, Dictionary<int, uint>>();
+                SortedList<int /*bzerodVAddr*/, SortedDictionary<int /*bzerodSize*/, uint /*off*/>> bzerodAddresses = new SortedList<int, SortedDictionary<int, uint>>();
 
                 foreach (uint bzeroJmpOffset in bzeroJmpOffsets)
                 {
@@ -102,7 +118,6 @@ namespace MIPSInterpreter
                     {
                         uint bzeroJmpVAddr = 0x80000000 | (bzeroJmpOffset << 2);
                         Interpreter interpreter = new Interpreter(mem);
-                        uint instructionsToInterpretCount = 16;
                         uint bytesToInterpretCount = instructionsToInterpretCount << 2;
                         interpreter.pc = bzeroJmpVAddr - bytesToInterpretCount;
 
@@ -118,13 +133,14 @@ namespace MIPSInterpreter
                         int size = interpreter.gpr[(int)Register.A1];
                         if (IsVAddr((uint)addr) && IsBZeroSize(size))
                         {
+                            uint interpretedBytesOffset = bzeroJmpOffset - instructionsToInterpretCount;
                             if (bzerodAddresses.TryGetValue(addr, out var descs))
                             {
-                                descs[size] = bzeroJmpVAddr;
+                                descs[size] = interpretedBytesOffset;
                             }
                             else
                             {
-                                Dictionary<int, uint> newDescs = new Dictionary<int, uint>() { { size, bzeroJmpVAddr } };
+                                SortedDictionary<int, uint> newDescs = new SortedDictionary<int, uint>() { { size, interpretedBytesOffset } };
                                 bzerodAddresses[addr] = newDescs;
                             }
                         }
@@ -140,32 +156,25 @@ namespace MIPSInterpreter
                     int bzerodVAddr = bzerodPair.Key;
                     var bzerodInfo = bzerodPair.Value;
 
-                    uint bzeroJmpVAddr = 0;
-                    int? eepSize = null;
-                    if (!eepSize.HasValue && bzerodInfo.TryGetValue(0x200, out bzeroJmpVAddr))
-                    {
-                        eepSize = 0x200;
-                    }
-                    if (!eepSize.HasValue && bzerodInfo.TryGetValue(0x400, out bzeroJmpVAddr))
-                    {
-                        eepSize = 0x400;
-                    }
-                    if (!eepSize.HasValue && bzerodInfo.TryGetValue(0x1f0, out bzeroJmpVAddr))
-                    {
-                        eepSize = 0x1f0;
-                    }
-
-                    if (!eepSize.HasValue)
+                    if (bzerodInfo.Count != 2)
                         continue;
 
-                    int bzerodVAddrIdx = bzerodAddresses.IndexOfKey(bzerodVAddr);
-                    int bzerodNextVAddr = bzerodAddresses.ElementAt(bzerodVAddrIdx + 1).Key;
-                    //if (bzerodNextVAddr - bzerodVAddr > eepSize)
-                    //    continue;
+                    gSaveFileSize = bzerodInfo.Keys.ElementAt(0);
+                    gSaveBufferSize = bzerodInfo.Keys.ElementAt(1);
+                    var interpretedOffset = bzerodInfo.Values.First();
 
                     gSaveBuffer = bzerodVAddr;
-                    gSaveBufferBZeroJmpVAddr = bzeroJmpVAddr;
-                    gSaveBufferSize = eepSize;
+                    VerificationOffset = interpretedOffset << 2;
+
+                    var interpetedSegment = new ArraySegment<uint>(mem, (int)interpretedOffset, (int)instructionsToInterpretCount);
+                    VerificationBytes = new byte[instructionsToInterpretCount << 2];
+                    var interpretedInstructionsIdx = 0;
+                    foreach (uint num in interpetedSegment)
+                    {
+                        Array.Copy(BitConverter.GetBytes(num), 0, VerificationBytes, interpretedInstructionsIdx, 4);
+                        interpretedInstructionsIdx += 4;
+                    }
+
                     break;
                 }
 

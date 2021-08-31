@@ -171,7 +171,9 @@ namespace StarDisplay
             "mupen64-RTZ",
             "mupen64-rerecording-v2-reset",
             "mupen64-rrv8-avisplit",
-            "mupen64-rerecording-v2-reset" };
+            "mupen64-rerecording-v2-reset",
+            // "retroarch" 
+        };
 
         private Process FindEmulatorProcess()
         {

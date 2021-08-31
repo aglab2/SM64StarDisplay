@@ -28,7 +28,7 @@ namespace MIPSInterpreter
             }
 
             DecompManager dm = new DecompManager(mem);
-            Console.WriteLine($"gSaveBuffer={dm.gSaveBuffer:X} gSaveBufferSize={dm.gSaveBufferSize:X} gSaveBufferBZeroCallVAddr={dm.gSaveBufferBZeroJmpVAddr:X}");
+            Console.WriteLine($"gSaveBuffer={dm.gSaveBuffer:X} gSaveBufferSize={dm.gSaveBufferSize:X}");
         }
     }
 }
