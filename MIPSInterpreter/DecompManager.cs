@@ -17,38 +17,30 @@ namespace MIPSInterpreter
         public int? gSaveBufferSize = null;
         public int? gSaveFileSize = null;
 
-        [DllImport("msvcrt.dll", CallingConvention = CallingConvention.Cdecl)]
-        private static extern unsafe int memcmp(byte* b1, byte* b2, int count);
-
-        public static unsafe int CompareBuffers(byte[] buffer1, int offset1, byte[] buffer2, int offset2, int count)
-        {
-            fixed (byte* b1 = buffer1, b2 = buffer2)
-            {
-                return memcmp(b1 + offset1, b2 + offset2, count);
-            }
-        }
-
         // Magic regarding RAM dynamic decompiling
-        static List<int> IndicesOf(uint[] arrayToSearchThrough, uint[] patternToFind)
+        static unsafe List<int> IndicesOf(uint[] arrayToSearchThrough, uint[] patternToFind)
         {
             List<int> ret = new List<int>();
             if (patternToFind.Length > arrayToSearchThrough.Length)
                 return ret;
 
-            for (int i = 0; i <= arrayToSearchThrough.Length - patternToFind.Length; i++)
+            fixed (uint* arrayToSearchThroughPtr = arrayToSearchThrough, patternToFindPtr = patternToFind)
             {
-                bool found = true;
-                for (int j = 0; j < patternToFind.Length; j++)
+                for (int i = 0; i <= arrayToSearchThrough.Length - patternToFind.Length; i++)
                 {
-                    if (arrayToSearchThrough[i + j] != patternToFind[j])
+                    bool found = true;
+                    for (int j = 0; j < patternToFind.Length; j++)
                     {
-                        found = false;
-                        break;
+                        if (arrayToSearchThroughPtr[i + j] != patternToFindPtr[j])
+                        {
+                            found = false;
+                            break;
+                        }
                     }
-                }
-                if (found)
-                {
-                    ret.Add(i);
+                    if (found)
+                    {
+                        ret.Add(i);
+                    }
                 }
             }
             
