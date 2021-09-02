@@ -47,13 +47,16 @@ namespace MIPSInterpreter
             return ret;
         }
 
-        static List<int> FindAll(uint[] arrayToSearchThrough, uint val)
+        static unsafe List<int> FindAll(uint[] arrayToSearchThrough, uint val)
         {
             List<int> list = new List<int>();
-            for (int i = 0; i < arrayToSearchThrough.Length; i++)
+            fixed(uint* ptr = arrayToSearchThrough)
             {
-                if (arrayToSearchThrough[i] == val)
-                    list.Add(i);
+                for (int i = 0; i < arrayToSearchThrough.Length; i++)
+                {
+                    if (ptr[i] == val)
+                        list.Add(i);
+                }
             }
 
             return list;

@@ -458,7 +458,7 @@ namespace StarDisplay
 
             int[] linesForSecrets = { 0, 1, 2, 3, 9, 5, 6, 7, 13, 14, 15, 11 };
             int[] offsetForSecrets = { 0, 0xb, 0xb, 0, 0, 0xb, 0xb, 0xb, 0, 0, 0, 0 };
-            byte[] highlightForSecrets = { 0, 1 << 4 | 1 << 6, 1 << 5 | 1 << 7, 0, 0, 1 << 1, 1 << 2, 1 << 3, 0, 0, 0, 0 };
+            byte[] highlightForSecrets = { 0, 1 << 4 | 1 << 6, 1 << 5 | 1 << 7, 0, 0, 1 << 2, 1 << 1, 1 << 3, 0, 0, 0, 0 };
             string[] namesForSecrets  = { "--", "B1", "B2", "B3", "Sl", "MC", "WC", "VC", "S1", "S2", "S3", "OW" };
 
             courseLD[0] = new TextOnlyLineDescription("Main Courses");
