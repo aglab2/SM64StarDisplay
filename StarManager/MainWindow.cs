@@ -460,7 +460,7 @@ namespace StarDisplay
                             }
 
                             string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                            LoadLayoutNoInvalidate(exePath + "\\layout\\" + rm.GetROMName() + ".jsml");
+                            LoadLayoutNoInvalidate(exePath + "\\layout\\" + rm.GetROMName() + ".jsml", false);
                         }
                         catch (IOException)
                         {
@@ -754,34 +754,45 @@ namespace StarDisplay
             picX = e.X; picY = e.Y;
         }
 
-        private void LoadLayout(string name)
+        private void LoadLayout(string name, bool showFail)
         {
-            LoadLayoutNoInvalidate(name);
+            LoadLayoutNoInvalidate(name, showFail);
             InvalidateCache();
         }
 
-        private void LoadLayoutNoInvalidate(string name)
+        private void LoadLayoutNoInvalidate(string name, bool showFail)
         {
-
             int TotalWidth = this.Width / ld.starsShown;
 
-            string ext = Path.GetExtension(name);
-            if (ext == ".sml")
+            try
             {
-                Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
-                IFormatter formatter = new BinaryFormatter();
-                object layout = formatter.Deserialize(stream);
-                string layoutClassName = layout.GetType().Name;
+                string ext = Path.GetExtension(name);
+                if (ext == ".sml")
+                {
+                    Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
+                    IFormatter formatter = new BinaryFormatter();
+                    object layout = formatter.Deserialize(stream);
+                    string layoutClassName = layout.GetType().Name;
 
-                if (layoutClassName == "LayoutDescriptionEx")
-                    ld = (LayoutDescriptionEx)layout;
+                    if (layoutClassName == "LayoutDescriptionEx")
+                        ld = (LayoutDescriptionEx)layout;
+                    else
+                        MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
                 else
-                    MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                {
+                    var json = File.ReadAllText(name);
+                    ld = JsonConvert.DeserializeObject<LayoutDescriptionEx>(json);
+                }
             }
-            else if (ext == ".jsml")
+            catch(Exception e)
             {
-                var json = File.ReadAllText(name);
-                ld = JsonConvert.DeserializeObject<LayoutDescriptionEx>(json);
+                if (showFail)
+                    MessageBox.Show($"Failed to load the layout {name}!");
+                else
+                    throw e;
+
+                return;
             }
 
             ld.RecountStars();
@@ -818,40 +829,9 @@ namespace StarDisplay
             File.WriteAllText(name, json);
         }
         
-        public void LoadExternal(string name)
-        {
-            throw new NotImplementedException();
-            //byte[] data = File.ReadAllBytes(name);
-            //ld = LayoutDescriptionEx.DeserializeExternal(data, mm.GetImage());
-            //InvalidateCache();
-        }
-
-        public void SaveExternal(string name)
-        {
-            throw new NotImplementedException();
-            //byte[] data = ld.SerializeExternal();
-            //File.WriteAllBytes(name, data);
-        }
-
-        private Exception LoadLayoutExc(string path)
-        {
-            Exception ret = null;
-
-            try
-            {
-                LoadLayout(path);
-            }
-            catch (Exception e)
-            {
-                ret = e;
-            }
-
-            return ret;
-        }
-
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-#if DEBUG != false
+#if XD
             foreach (var layoutPath in Directory.EnumerateFiles("C:\\Data\\layouts"))
             {
                 var ext = Path.GetExtension(layoutPath);
@@ -872,7 +852,7 @@ namespace StarDisplay
                 do
                 {
                     string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-                    LoadLayout(exePath + "\\layout\\" + rm.GetROMName() + ".jsml");
+                    LoadLayout(exePath + "\\layout\\" + rm.GetROMName() + ".jsml", true);
                 } while (false);
             }
             catch (IOException){
@@ -900,7 +880,7 @@ namespace StarDisplay
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Star Manager Layout (*.sml,*.jsml)|*.sml;*.jsml|All files (*.*)|*.*",
+                Filter = "Star Manager Layout (*.sml,*.jsml,*.txt)|*.sml;*.jsml;*.txt|All files (*.*)|*.*",
                 FilterIndex = 1,
                 RestoreDirectory = false,
                 InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"
@@ -910,10 +890,7 @@ namespace StarDisplay
             {
                 try
                 {
-                    if (openFileDialog.FilterIndex == 2)
-                        LoadExternal(openFileDialog.FileName);
-                    else
-                        LoadLayout(openFileDialog.FileName);
+                    LoadLayout(openFileDialog.FileName, true);
                 }
                 catch (IOException)
                 {
@@ -937,11 +914,7 @@ namespace StarDisplay
             {
                 try
                 {
-
-                    if (saveFileDialog.FilterIndex == 2)
-                        SaveExternal(saveFileDialog.FileName);
-                    else
-                        SaveLayout(saveFileDialog.FileName);
+                    SaveLayout(saveFileDialog.FileName);
                 }
                 catch (IOException)
                 {

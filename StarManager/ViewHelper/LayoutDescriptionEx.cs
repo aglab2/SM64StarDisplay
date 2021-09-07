@@ -374,59 +374,6 @@ namespace StarDisplay
             darkStar = darkCompressedImage;
         }
 
-        /*
-        public byte[] SerializeExternal()
-        {
-            Trim();
-            MemoryStream ms = new MemoryStream();
-
-            foreach (LineDescriptionEx lind in courseDescription)
-            {
-                if (lind == null) continue;
-                byte[] data = lind.Serialize(0); //control&2==0 -> course
-                ms.Write(data, 0, data.Length);
-            }
-
-            foreach (LineDescriptionEx lind in secretDescription)
-            {
-                if (lind == null) continue;
-                byte[] data = lind.Serialize(2); //control&2!=0 -> secret
-                ms.Write(data, 0, data.Length);
-            }
-
-            return ms.ToArray();
-        }
-
-        static public LayoutDescriptionEx DeserializeExternal(byte[] data, Bitmap img)
-        {
-            List<LineDescription> courseLD = new List<LineDescription>();
-            List<LineDescription> secretLD = new List<LineDescription>();
-
-            int courseCounter = 0;
-            int secretCounter = 0;
-
-            BinaryReader ms = new BinaryReader(new MemoryStream(data));
-            int stars = 0;
-
-            while (ms.BaseStream.Position != ms.BaseStream.Length)
-            {
-                LineDescription lind = LineDescription.Deserialize(ms, out bool isSecret);
-                if (!lind.isTextOnly) stars += MemoryManager.countStars((byte)(lind.starMask));
-
-                if (isSecret)
-                {
-                    secretLD[secretCounter++] = lind;
-                }
-                else
-                {
-                    courseLD[courseCounter++] = lind;
-                }
-            }
-
-            return new LayoutDescriptionEx(courseLD, secretLD, img, stars.ToString());
-        }
-        */
-
         public void RecountStars()
         {
             int stars = 0;
