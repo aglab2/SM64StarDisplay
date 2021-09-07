@@ -117,7 +117,7 @@ namespace StarDisplay
         public RedsSecretsDrawAction(int currentRedsCount, int totalRedsCount, int currentSecretsCount, int totalSecretsCount, int activePanelsCount, int totalPanelsCount)
         {
             this.CurrentRedsCount = currentRedsCount < 0 ? 0 : currentRedsCount;
-            this.TotalRedsCount = totalRedsCount;
+            this.TotalRedsCount = totalRedsCount < 0 ? 0 : totalRedsCount;
             this.CurrentSecretsCount = currentSecretsCount < 0 ? 0 : currentSecretsCount;
             this.TotalSecretsCount = totalSecretsCount;
             this.ActivePanelsCount = activePanelsCount;

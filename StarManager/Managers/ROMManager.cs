@@ -320,7 +320,7 @@ namespace StarDisplay
                             newEnd = temporaryBankEEnd;
                         }
 
-                        counter += GetAmountOfObjectsInternal(newStart, newEnd, jumpOffset, searchBehaviour, currentArea, currentArea, ref area);
+                        counter += GetAmountOfObjectsInternal(newStart, newEnd, jumpOffset, searchBehaviour, currentStar, currentArea, ref area);
                         if (command == jumpDescriptor)
                             return counter;
                     }
