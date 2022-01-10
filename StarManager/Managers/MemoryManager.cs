@@ -201,7 +201,6 @@ namespace StarDisplay
                     //{ "mupen64-RTZ", 0x00901920 },
                     //{ "mupen64-rrv8-avisplit", 0x008ECBB0 },
                     //{ "mupen64-rerecording-v2-reset", 0x008ECA90 },
-                    { "mupen64", 0x004FC700 }, // 1.0.8
                     { "mupen64", 0x00505CB0 }, // 1.0.9
                 };
 
