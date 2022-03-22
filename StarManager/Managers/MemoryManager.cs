@@ -201,7 +201,9 @@ namespace StarDisplay
                     //{ "mupen64-RTZ", 0x00901920 },
                     //{ "mupen64-rrv8-avisplit", 0x008ECBB0 },
                     //{ "mupen64-rerecording-v2-reset", 0x008ECA90 },
-                    { "mupen64", 0x00505CB0 }, // 1.0.9
+                    //{ "mupen64", 0x00505CB0 }, // 1.0.9
+                    //{ "mupen64", 0x00505D80 }, // 1.0.9.1
+                    { "mupen64", 0x0050B110 }, // 1.0.10
                 };
 
                 ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
