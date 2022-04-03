@@ -201,8 +201,6 @@ namespace StarDisplay
                         ramPtrBaseSuggestions.Add(0x00505D80); // 1.0.9.1
                         ramPtrBaseSuggestions.Add(0x0050B110); // 1.0.10
                     }
-
-                    offset = 0x20;
                 }
                 else
                 {
@@ -219,6 +217,8 @@ namespace StarDisplay
                     };
                     ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
                 }
+
+                offset = 0x20;
             }
 
             if (name.Contains("retroarch"))
