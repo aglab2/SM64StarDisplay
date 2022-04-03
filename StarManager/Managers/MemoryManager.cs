@@ -149,6 +149,7 @@ namespace StarDisplay
             List<long> ramPtrBaseSuggestions = new List<long>();
 
             var name = Process.ProcessName.ToLower();
+            int offset = 0;
 
             if (name.Contains("project64"))
             {
@@ -190,8 +191,9 @@ namespace StarDisplay
                 }
             }
 
-            if (name.Contains("mupen"))
+            if (name.Contains("mupen64"))
             {
+                // Legacy mupen versions
                 Dictionary<string, int> mupenRAMSuggestions = new Dictionary<string, int>
                 {
                     { "mupen64-rerecording", 0x008EBA80 },
@@ -202,32 +204,28 @@ namespace StarDisplay
                     { "mupen64-rrv8-avisplit", 0x008ECBB0 },
                     { "mupen64-rerecording-v2-reset", 0x008ECA90 },
                 };
-
                 ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
+                
+                // Current mupen releases
+                if (name == "mupen64")
+                {
+                    ramPtrBaseSuggestions.Add(0x00505CB0); // 1.0.9
+                    ramPtrBaseSuggestions.Add(0x00505D80); // 1.0.9.1
+                    ramPtrBaseSuggestions.Add(0x0050B110); // 1.0.10
+                }
+
+                offset = 0x20;
             }
 
             if (name.Contains("retroarch"))
             {
                 ramPtrBaseSuggestions.Add(0x80000000);
                 romPtrBaseSuggestions.Add(0x90000000);
+                offset = 0x40;
             }
 
-            Dictionary<string, int> offsets = new Dictionary<string, int>
-            {
-                { "Project64", 0 },
-                { "Project64d", 0 },
-                { "mupen64-rerecording", 0x20 },
-                { "mupen64-pucrash", 0x20 },
-                { "mupen64_lua", 0x20 },
-                { "mupen64-wiivc", 0x20 },
-                { "mupen64-RTZ", 0x20 },
-                { "mupen64-rrv8-avisplit", 0x20 },
-                { "mupen64-rerecording-v2-reset", 0x20 },
-                { "retroarch", 0x40 }, // only useful for parallel core
-            };
-
             // Process.ProcessName;
-            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offsets[Process.ProcessName], name.Contains("retroarch"));
+            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offset, name.Contains("retroarch"));
 
             isDecomp = mm.isDecomp;
             verificationPtr = new IntPtr((long) (mm.ramPtrBase + mm.verificationOffset));
