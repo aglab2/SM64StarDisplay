@@ -61,33 +61,6 @@ namespace StarDisplay
         }
     }
 
-    public class ImageConverter : JsonConverter
-    {
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            string text = (string)reader.Value;
-            if (string.IsNullOrWhiteSpace(text))
-            {
-                return Resource.gold_star;
-            }
-            return Image.FromStream(new MemoryStream(Convert.FromBase64String(text)));
-        }
-
-        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            Image obj = (Image)value;
-            MemoryStream memoryStream = new MemoryStream();
-            obj.Save(memoryStream, ImageFormat.Png);
-            byte[] value2 = memoryStream.ToArray();
-            writer.WriteValue(value2);
-        }
-
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(Image);
-        }
-    }
-
     [Serializable]
     [JsonConverter(typeof(LineDescriptionExConverter))]
     public abstract class LineDescriptionEx
@@ -224,6 +197,57 @@ namespace StarDisplay
             this.darkStar = new Bitmap(goldStar.Width, goldStar.Height);
             if (goldStar.Width != 20 || goldStar.Height != 20)
                 Compress();
+
+            GenerateInvertedStar();
+            GenerateDarkStar();
+            GenerateOutline();
+
+            Trim();
+        }
+
+        public LayoutDescriptionEx(LayoutAdvanced la)
+        {
+            courseDescription = new List<LineDescriptionEx>();
+            secretDescription = new List<LineDescriptionEx>();
+            starsShown = 7;
+
+            // Unpack advanced layout to a trivialized ex description
+            foreach (var group in la.groups)
+            {
+                List<LineDescriptionEx> descriptions = null;
+                switch (group.side)
+                {
+                    case Side.left:
+                        descriptions = courseDescription;
+                        break;
+                    case Side.right:
+                        descriptions = secretDescription;
+                        break;
+                }
+
+                if (null == descriptions)
+                    continue;
+
+                TextOnlyLineDescription ld = new TextOnlyLineDescription(group.name);
+                descriptions.Add(ld);
+
+                foreach (var course in group.courses)
+                {
+                    // TODO: Hack - restriction of current ex layouts
+                    var data = course.data.FirstOrDefault();
+                    if (data == null)
+                        continue;
+
+                    StarsLineDescription sld = new StarsLineDescription(course.name, (byte)data.mask, data.offset, 0, 0);
+                    if (sld.starMask > 127)
+                        starsShown = 8;
+
+                    descriptions.Add(sld);
+                }
+            }
+
+            goldStar = la.collectedStarIcon;
+            darkStar = la.missingStarIcon;
 
             GenerateInvertedStar();
             GenerateDarkStar();

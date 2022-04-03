@@ -765,35 +765,56 @@ namespace StarDisplay
         {
             int TotalWidth = this.Width / ld.starsShown;
 
+            bool layoutOk = false;
             try
             {
-                string ext = Path.GetExtension(name);
-                if (ext == ".sml")
+                var json = File.ReadAllText(name);
+                if (json.Contains("https://parallel-launcher.ca/layout/"))
                 {
-                    Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
-                    IFormatter formatter = new BinaryFormatter();
-                    object layout = formatter.Deserialize(stream);
-                    string layoutClassName = layout.GetType().Name;
-
-                    if (layoutClassName == "LayoutDescriptionEx")
-                        ld = (LayoutDescriptionEx)layout;
-                    else
-                        MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    var la = JsonConvert.DeserializeObject<LayoutAdvanced>(json);
+                    ld = new LayoutDescriptionEx(la);
                 }
                 else
                 {
-                    var json = File.ReadAllText(name);
                     ld = JsonConvert.DeserializeObject<LayoutDescriptionEx>(json);
                 }
-            }
-            catch(Exception e)
-            {
-                if (showFail)
-                    MessageBox.Show($"Failed to load the layout {name}!");
-                else
-                    throw e;
 
-                return;
+                layoutOk = true;
+            }
+            catch (Exception)
+            { }
+
+            if (!layoutOk)
+            {
+                try
+                {
+                    string ext = Path.GetExtension(name);
+                    if (ext == ".sml")
+                    {
+                        Stream stream = new FileStream(name, FileMode.Open, FileAccess.Read, FileShare.Read);
+                        IFormatter formatter = new BinaryFormatter();
+                        object layout = formatter.Deserialize(stream);
+                        string layoutClassName = layout.GetType().Name;
+
+                        if (layoutClassName == "LayoutDescriptionEx")
+                            ld = (LayoutDescriptionEx)layout;
+                        else
+                            MessageBox.Show("Failed to load layout, unknown extension", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        throw new ArgumentException("Bad layout");
+                    }
+                }
+                catch (Exception e)
+                {
+                    if (showFail)
+                        MessageBox.Show($"Failed to load the layout {name}!");
+                    else
+                        throw e;
+
+                    return;
+                }
             }
 
             ld.RecountStars();
@@ -881,7 +902,7 @@ namespace StarDisplay
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
-                Filter = "Star Manager Layout (*.sml,*.jsml,*.txt)|*.sml;*.jsml;*.txt|All files (*.*)|*.*",
+                Filter = "Star Manager Layout (*.sml,*.jsml,*.txt,*.json)|*.sml;*.jsml;*.txt;*.json|All files (*.*)|*.*",
                 FilterIndex = 1,
                 RestoreDirectory = false,
                 InitialDirectory = Path.GetDirectoryName(Application.ExecutablePath) + "\\layout"

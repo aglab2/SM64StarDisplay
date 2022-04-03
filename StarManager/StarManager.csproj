@@ -178,6 +178,7 @@
     </Compile>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Managers\GraphicsManager.cs" />
+    <Compile Include="ViewHelper\ImageConverter.cs" />
     <Compile Include="ViewHelper\ImageProcessing.cs" />
     <Compile Include="MainWindow.cs">
       <SubType>Form</SubType>
@@ -204,6 +205,7 @@
     </Compile>
     <Compile Include="Managers\UpdateManager.cs" />
     <Compile Include="Process\WinAPI.cs" />
+    <Compile Include="ViewHelper\LayoutAdvanced.cs" />
     <Compile Include="ViewHelper\LayoutDescriptionEx.cs" />
     <None Include="bin\Release\gold_star.png" />
     <None Include="bin\Release\Newtonsoft.Json.dll" />
