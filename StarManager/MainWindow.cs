@@ -172,7 +172,8 @@ namespace StarDisplay
             "mupen64-rrv8-avisplit",
             "mupen64-rerecording-v2-reset",
             "mupen64",
-            "retroarch" 
+            "retroarch",
+            "wine-preloader"
         };
 
         private Process FindEmulatorProcess()

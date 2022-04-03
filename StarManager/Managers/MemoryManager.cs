@@ -151,7 +151,7 @@ namespace StarDisplay
             var name = Process.ProcessName.ToLower();
             int offset = 0;
 
-            if (name.Contains("project64"))
+            if (name.Contains("project64") || name.Contains("wine-preloader"))
             {
                 DeepPointer[] ramPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A1C),     //1.6
                     new DeepPointer("RSP 1.7.dll", 0x4C054), new DeepPointer("RSP 1.7.dll", 0x44B5C),        //2.3.2; 2.4
