@@ -122,8 +122,7 @@ namespace StarDisplay
 
         private void doMagicThread()
         {
-            bool isActive = !mm.ProcessActive();
-            while (mm != null && isActive && !mm.isMagicDone())
+            while (mm != null && !mm.ProcessActive() && !mm.isMagicDone())
             {
                 try
                 {
