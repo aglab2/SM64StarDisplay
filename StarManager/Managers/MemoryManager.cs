@@ -145,8 +145,8 @@ namespace StarDisplay
 
         public void doMagic()
         {
-            List<int> romPtrBaseSuggestions = new List<int>();
-            List<int> ramPtrBaseSuggestions = new List<int>();
+            List<long> romPtrBaseSuggestions = new List<long>();
+            List<long> ramPtrBaseSuggestions = new List<long>();
 
             var name = Process.ProcessName.ToLower();
 
@@ -206,6 +206,12 @@ namespace StarDisplay
                 ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
             }
 
+            if (name.Contains("retroarch"))
+            {
+                ramPtrBaseSuggestions.Add(0x80000000);
+                romPtrBaseSuggestions.Add(0x90000000);
+            }
+
             Dictionary<string, int> offsets = new Dictionary<string, int>
             {
                 { "Project64", 0 },
@@ -217,50 +223,50 @@ namespace StarDisplay
                 { "mupen64-RTZ", 0x20 },
                 { "mupen64-rrv8-avisplit", 0x20 },
                 { "mupen64-rerecording-v2-reset", 0x20 },
-                { "retroarch", 0x40 },
+                { "retroarch", 0x40 }, // only useful for parallel core
             };
 
             // Process.ProcessName;
-            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offsets[Process.ProcessName]);
+            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offsets[Process.ProcessName], name.Contains("retroarch"));
 
             isDecomp = mm.isDecomp;
-            verificationPtr = new IntPtr(mm.ramPtrBase + mm.verificationOffset);
+            verificationPtr = new IntPtr((long) (mm.ramPtrBase + mm.verificationOffset));
             verificationData = mm.verificationBytes;
-            igtPtr = new IntPtr(mm.ramPtrBase + 0x32D580);
+            igtPtr = new IntPtr((long)(mm.ramPtrBase + 0x32D580));
 
             // Can be found using bzero
             filesPtr = new IntPtr[4];
-            filesPtr[0] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 0);
-            filesPtr[1] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 1);
-            filesPtr[2] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 2);
-            filesPtr[3] = new IntPtr(mm.ramPtrBase + mm.saveBufferOffset + mm.saveFileSize * 2 * 3);
+            filesPtr[0] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 0));
+            filesPtr[1] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 1));
+            filesPtr[2] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 2));
+            filesPtr[3] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 3));
 
-            levelPtr = new IntPtr(mm.ramPtrBase + 0x32DDFA);
-            areaPtr = new IntPtr(mm.ramPtrBase + 0x33B249);
-            starImagePtr = new IntPtr(mm.ramPtrBase + 0x064F80 + 0x04800);
-            redsPtr = new IntPtr(mm.ramPtrBase + 0x3613FD);
+            levelPtr = new IntPtr((long)(mm.ramPtrBase + 0x32DDFA));
+            areaPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B249));
+            starImagePtr = new IntPtr((long)(mm.ramPtrBase + 0x064F80 + 0x04800));
+            redsPtr = new IntPtr((long)(mm.ramPtrBase + 0x3613FD));
 
-            selectedStarPtr = new IntPtr(mm.ramPtrBase + 0x1A81A3);
+            selectedStarPtr = new IntPtr((long)(mm.ramPtrBase + 0x1A81A3));
 
-            romPtr = new IntPtr(mm.romPtrBase + 0);
-            romCRCPtr = new IntPtr(mm.romPtrBase + 0x10);
+            romPtr = new IntPtr((long)(mm.romPtrBase + 0));
+            romCRCPtr = new IntPtr((long)(mm.romPtrBase + 0x10));
 
-            spawnPointPtr = new IntPtr(mm.ramPtrBase + 0x33B248);
-            hpPtr = new IntPtr(mm.ramPtrBase + 0x33B21C);
-            menuModifierPtr = new IntPtr(mm.ramPtrBase + 0x33B23A);
-            spawnStatusPtr = new IntPtr(mm.ramPtrBase + 0x33B24B);
-            igtigtPtr = new IntPtr(mm.ramPtrBase + 0x33B26A);
-            levelSpawnPtr = new IntPtr(mm.ramPtrBase + 0x33B24A);
+            spawnPointPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B248));
+            hpPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B21C));
+            menuModifierPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B23A));
+            spawnStatusPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B24B));
+            igtigtPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B26A));
+            levelSpawnPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B24A));
 
-            starsCountPtr = new IntPtr(mm.ramPtrBase + 0x33B218);
-            bank13RamStartPtr = new IntPtr(mm.ramPtrBase + 0x33B400 + 4 * 0x13);
+            starsCountPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B218));
+            bank13RamStartPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B400 + 4 * 0x13));
 
-            marioObjectPtr = new IntPtr(mm.ramPtrBase + 0x361158);
+            marioObjectPtr = new IntPtr((long)(mm.ramPtrBase + 0x361158));
 
             var data = Resource.NetBin;
-            netMagicPtr = new IntPtr(mm.ramPtrBase + 0x26004);
-            netCodePtr = new IntPtr(mm.ramPtrBase + 0x26000);
-            netHookPtr = new IntPtr(mm.ramPtrBase + 0x38a3c + 0x245000); // 0x5840c
+            netMagicPtr = new IntPtr((long)(mm.ramPtrBase + 0x26004));
+            netCodePtr = new IntPtr((long)(mm.ramPtrBase + 0x26000));
+            netHookPtr = new IntPtr((long)(mm.ramPtrBase + 0x38a3c + 0x245000)); // 0x5840c
             netStatesOff = BitConverter.ToUInt32(data, 8) - 0x80000000;
 
             bool wasSet = false;
@@ -475,7 +481,7 @@ namespace StarDisplay
             if (0 == objPtr)
                 return null;
 
-            var statePtr = new IntPtr(mm.ramPtrBase + (objPtr & 0xffffff) + MarioStateOff);
+            var statePtr = new IntPtr((long)(mm.ramPtrBase +  (ulong)(objPtr & 0xffffff) + (ulong)MarioStateOff));
             var bytes = Process.ReadBytes(statePtr, MarioStateLength);
             var afterObjPtr = Process.ReadValue<int>(marioObjectPtr);
             if (objPtr != afterObjPtr)
@@ -619,7 +625,7 @@ namespace StarDisplay
 
             for (int i = 0; i < 300 /*obj limit*/; i++)
             {
-                IntPtr currentObjectPtr = new IntPtr(mm.ramPtrBase + (int)address);
+                IntPtr currentObjectPtr = new IntPtr((long) (mm.ramPtrBase + address));
                 byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
                 if (data is null)
                     break;
@@ -652,7 +658,7 @@ namespace StarDisplay
 
             for (int i = 0; i < 300 /*obj limit*/; i++)
             {
-                IntPtr currentObjectPtr = new IntPtr(mm.ramPtrBase + (int)address);
+                IntPtr currentObjectPtr = new IntPtr((long)(mm.ramPtrBase + address));
                 byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
                 if (data is null)
                     break;
@@ -776,15 +782,15 @@ namespace StarDisplay
                 var netStatesPtrPostAnim = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + MarioStateOff + 0x28);
                 Process.WriteBytes(netStatesPtrPostAnim, dataPostAnim);
                 */
-                var netStatesPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + MarioStateOff);
+                var netStatesPtr = new IntPtr((long) (mm.ramPtrBase + netStatesOff + (ulong) (id * NetStateCtlLength) + MarioStateOff));
                 Process.WriteBytes(netStatesPtr, data);
 
-                var netEnabledPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + NetEnabledOff);
+                var netEnabledPtr = new IntPtr((long)(mm.ramPtrBase + netStatesOff + (ulong)(id * NetStateCtlLength) + NetEnabledOff));
                 Process.WriteBytes(netEnabledPtr, new byte[] { 1 });
             }
             else
             {
-                var netEnabledPtr = new IntPtr(mm.ramPtrBase + netStatesOff + id * NetStateCtlLength + NetEnabledOff);
+                var netEnabledPtr = new IntPtr((long)(mm.ramPtrBase + netStatesOff + (ulong)(id * NetStateCtlLength) + NetEnabledOff));
                 Process.WriteBytes(netEnabledPtr, new byte[] { 0 });
             }
         }

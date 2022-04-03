@@ -17,8 +17,8 @@ namespace StarDisplay
         const uint romMagic = 0x80371240;
 
         private Process process;
-        public readonly uint romPtrBase;
-        public readonly uint ramPtrBase;
+        public readonly ulong romPtrBase;
+        public readonly ulong ramPtrBase;
 
         public readonly bool isDecomp;
         public readonly int saveBufferOffset = 0;
@@ -66,12 +66,9 @@ namespace StarDisplay
             PAGE_READONLY = 0x00000002,
             PAGE_READWRITE = 0x00000004,
             PAGE_WRITECOPY = 0x00000008,
-            PAGE_GUARD = 0x00000100,
-            PAGE_NOCACHE = 0x00000200,
-            PAGE_WRITECOMBINE = 0x00000400
         }
 
-        public MagicManager(Process process, int[] romPtrBaseSuggestions, int[] ramPtrBaseSuggestions, int offset)
+        public MagicManager(Process process, long[] romPtrBaseSuggestions, long[] ramPtrBaseSuggestions, int offset, bool exScan)
         {
             GC.Collect();
             this.process = process;
@@ -99,38 +96,62 @@ namespace StarDisplay
                 }
             }
 
-            long MaxAddress = 0xffffffff;
-            long address = 0;
+            ulong MaxAddress = process.Is64Bit() ? 0x800000000000U : 0xffffffffU;
+            ulong address = 0;
             do
             {
                 if (isRomFound && isRamFound)
                     break;
 
                 MEMORY_BASIC_INFORMATION m;
-                int result = VirtualQueryEx(process.Handle, new UIntPtr((uint) address), out m, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
-                if (address == (long)m.BaseAddress + (long)m.RegionSize || result == 0)
+                int result = VirtualQueryEx(process.Handle, new UIntPtr(address), out m, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
+                if (address == (ulong)m.BaseAddress + (ulong)m.RegionSize || result == 0)
                     break;
 
-                if (m.AllocationProtect != 0)
+                AllocationProtect prot = (AllocationProtect) (m.AllocationProtect & 0xff);
+                if (prot == AllocationProtect.PAGE_EXECUTE_READWRITE || prot == AllocationProtect.PAGE_EXECUTE_WRITECOPY || prot == AllocationProtect.PAGE_READWRITE || prot == AllocationProtect.PAGE_WRITECOPY)
                 {
-                    bool readSuccess = process.ReadValue(new IntPtr(address + offset), out uint value);
+                    uint value;
+                    bool readSuccess = process.ReadValue(new IntPtr((long) (address + (ulong) offset)), out value);
                     if (readSuccess)
                     {
                         if (!isRamFound && ((value & ramMagicMask) == ramMagic))
                         {
-                            ramPtrBase = (uint)(address + offset);
+                            ramPtrBase = address + (ulong)offset;
                             isRamFound = true;
                         }
 
                         if (!isRomFound && value == romMagic)
                         {
-                            romPtrBase = (uint)(address + offset);
+                            romPtrBase = address + (ulong)offset;
                             isRomFound = true;
+                        }
+                    }
+
+                    // scan only large regions - we want to find g_rdram
+                    if (exScan && (ulong) m.RegionSize >= 0x800000)
+                    {
+                        // g_rdram is aligned to 0x1000
+                        ulong maxCnt = (ulong) m.RegionSize / 0x1000;
+                        for (ulong num = 0; num < maxCnt; num++)
+                        {
+                            readSuccess = process.ReadValue(new IntPtr((long)(address + num * 0x1000)), out value);
+                            if (readSuccess)
+                            {
+                                if (!isRamFound && ((value & ramMagicMask) == ramMagic))
+                                {
+                                    ramPtrBase = address + num * 0x1000;
+                                    isRamFound = true;
+                                }
+                            }
+
+                            if (isRamFound)
+                                break;
                         }
                     }
                 }
 
-                address = (long)m.BaseAddress + (long)m.RegionSize;
+                address = (ulong)m.BaseAddress + (ulong)m.RegionSize;
             }
             while (address <= MaxAddress);
 
@@ -139,7 +160,7 @@ namespace StarDisplay
 
             uint[] mem;
             {
-                byte[] bytes = process.ReadBytes(new IntPtr(ramPtrBase), 0x400000);
+                byte[] bytes = process.ReadBytes(new IntPtr((long) ramPtrBase), 0x400000);
                 int size = bytes.Count() / 4;
                 mem = new uint[size];
                 for (int idx = 0; idx < size; idx++)
@@ -163,14 +184,14 @@ namespace StarDisplay
         bool IsRamBaseValid()
         {
             uint value = 0;
-            bool readSuccess = process.ReadValue(new IntPtr(ramPtrBase), out value);
+            bool readSuccess = process.ReadValue(new IntPtr((long)ramPtrBase), out value);
             return readSuccess && ((value & ramMagicMask) == ramMagic);
         }
 
         bool IsRomBaseValid()
         {
             uint value = 0;
-            bool readSuccess = process.ReadValue(new IntPtr(romPtrBase), out value);
+            bool readSuccess = process.ReadValue(new IntPtr((long)romPtrBase), out value);
             return readSuccess && (value == romMagic);
         }
 
