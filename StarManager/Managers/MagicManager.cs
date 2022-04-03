@@ -96,6 +96,17 @@ namespace StarDisplay
                 }
             }
 
+            ulong parallelStart = 0;
+            ulong parallelEnd = 0;
+            foreach (ProcessModule module in process.Modules)
+            {
+                if (module.ModuleName.Contains("parallel_n64"))
+                {
+                    parallelStart = (ulong)module.BaseAddress;
+                    parallelEnd = parallelStart + (ulong) module.ModuleMemorySize;
+                }
+            }
+
             ulong MaxAddress = process.Is64Bit() ? 0x800000000000U : 0xffffffffU;
             ulong address = 0;
             do
@@ -129,7 +140,8 @@ namespace StarDisplay
                     }
 
                     // scan only large regions - we want to find g_rdram
-                    if (exScan && (ulong) m.RegionSize >= 0x800000)
+                    ulong regionSize = (ulong)m.RegionSize;
+                    if (parallelStart <= address && address <= parallelEnd && regionSize >= 0x800000)
                     {
                         // g_rdram is aligned to 0x1000
                         ulong maxCnt = (ulong) m.RegionSize / 0x1000;
