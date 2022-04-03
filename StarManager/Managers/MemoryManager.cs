@@ -193,28 +193,32 @@ namespace StarDisplay
 
             if (name.Contains("mupen64"))
             {
-                // Legacy mupen versions
-                Dictionary<string, int> mupenRAMSuggestions = new Dictionary<string, int>
-                {
-                    { "mupen64-rerecording", 0x008EBA80 },
-                    { "mupen64-pucrash", 0x00912300 },
-                    { "mupen64_lua", 0x00888F60 },
-                    { "mupen64-wiivc", 0x00901920 },
-                    { "mupen64-RTZ", 0x00901920 },
-                    { "mupen64-rrv8-avisplit", 0x008ECBB0 },
-                    { "mupen64-rerecording-v2-reset", 0x008ECA90 },
-                };
-                ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
-                
-                // Current mupen releases
                 if (name == "mupen64")
                 {
-                    ramPtrBaseSuggestions.Add(0x00505CB0); // 1.0.9
-                    ramPtrBaseSuggestions.Add(0x00505D80); // 1.0.9.1
-                    ramPtrBaseSuggestions.Add(0x0050B110); // 1.0.10
-                }
+                    // Current mupen releases
+                    {
+                        ramPtrBaseSuggestions.Add(0x00505CB0); // 1.0.9
+                        ramPtrBaseSuggestions.Add(0x00505D80); // 1.0.9.1
+                        ramPtrBaseSuggestions.Add(0x0050B110); // 1.0.10
+                    }
 
-                offset = 0x20;
+                    offset = 0x20;
+                }
+                else
+                {
+                    // Legacy mupen versions
+                    Dictionary<string, int> mupenRAMSuggestions = new Dictionary<string, int>
+                    {
+                        { "mupen64-rerecording", 0x008EBA80 },
+                        { "mupen64-pucrash", 0x00912300 },
+                        { "mupen64_lua", 0x00888F60 },
+                        { "mupen64-wiivc", 0x00901920 },
+                        { "mupen64-RTZ", 0x00901920 },
+                        { "mupen64-rrv8-avisplit", 0x008ECBB0 },
+                        { "mupen64-rerecording-v2-reset", 0x008ECA90 },
+                    };
+                    ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
+                }
             }
 
             if (name.Contains("retroarch"))
