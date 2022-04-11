@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using Newtonsoft.Json;
+using System.Drawing.Imaging;
 
 namespace StarDisplay
 {
@@ -1285,6 +1286,56 @@ namespace StarDisplay
         {
             editFileToolStripMenuItem.Checked = false;
             configureLayoutToolStripMenuItem.Checked = false;
+        }
+        private static void UseDefaultExtAsFilterIndex(FileDialog dialog)
+        {
+            var ext = "*." + dialog.DefaultExt;
+            var filter = dialog.Filter;
+            var filters = filter.Split('|');
+            for (int i = 1; i < filters.Length; i += 2)
+            {
+                if (filters[i].ToLower() == ext)
+                {
+                    dialog.FilterIndex = 1 + (i - 1) / 2;
+                    return;
+                }
+            }
+        }
+
+        private void importFromImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                RestoreDirectory = true
+            };
+
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
+            string sep = string.Empty;
+
+            foreach (var c in codecs)
+            {
+                string codecName = c.CodecName.Substring(8).Replace("Codec", "Files").Trim();
+                openFileDialog.Filter = string.Format("{0}{1}{2} ({3})|{3}", openFileDialog.Filter, sep, codecName, c.FilenameExtension);
+                sep = "|";
+            }
+
+            openFileDialog.Filter = String.Format("{0}{1}{2} ({3})|{3}", openFileDialog.Filter, sep, "All Files", "*.*");
+            openFileDialog.DefaultExt = "png"; // Default file extension
+            UseDefaultExtAsFilterIndex(openFileDialog);
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    var image = new Bitmap(openFileDialog.FileName);
+                    ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
+                    InvalidateCache();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to load image!", "Image Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
         }
 
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
