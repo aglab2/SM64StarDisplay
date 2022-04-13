@@ -119,8 +119,12 @@ namespace StarDisplay
                 if (address == (ulong)m.BaseAddress + (ulong)m.RegionSize || result == 0)
                     break;
 
-                AllocationProtect prot = (AllocationProtect) (m.AllocationProtect & 0xff);
-                if (prot == AllocationProtect.PAGE_EXECUTE_READWRITE || prot == AllocationProtect.PAGE_EXECUTE_WRITECOPY || prot == AllocationProtect.PAGE_READWRITE || prot == AllocationProtect.PAGE_WRITECOPY)
+                AllocationProtect prot = (AllocationProtect) (m.Protect & 0xff);
+                if (prot == AllocationProtect.PAGE_EXECUTE_READWRITE
+                 || prot == AllocationProtect.PAGE_EXECUTE_WRITECOPY
+                 || prot == AllocationProtect.PAGE_READWRITE
+                 || prot == AllocationProtect.PAGE_WRITECOPY
+                 || prot == AllocationProtect.PAGE_READONLY)
                 {
                     uint value;
                     bool readSuccess = process.ReadValue(new IntPtr((long) (address + (ulong) offset)), out value);

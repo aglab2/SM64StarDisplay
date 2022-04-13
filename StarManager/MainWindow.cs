@@ -129,7 +129,10 @@ namespace StarDisplay
                 {
                     mm.doMagic();
                 }
-                catch (Exception) { }
+                catch (Exception) 
+                {
+                    Thread.Sleep(100);
+                }
             }
         }
         
