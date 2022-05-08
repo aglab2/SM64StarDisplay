@@ -467,7 +467,7 @@ namespace StarDisplay
                             string exePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
                             LoadLayoutNoInvalidate(exePath + "\\layout\\" + rm.GetROMName() + ".jsml", false);
                         }
-                        catch (IOException)
+                        catch (Exception)
                         {
                             try
                             {
