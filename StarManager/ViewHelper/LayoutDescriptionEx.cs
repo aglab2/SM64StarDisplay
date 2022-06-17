@@ -233,16 +233,27 @@ namespace StarDisplay
 
                 foreach (var course in group.courses)
                 {
-                    // TODO: Hack - restriction of current ex layouts
-                    var data = course.data.FirstOrDefault();
-                    if (data == null)
-                        continue;
+                    if (course.data is object)
+                    {
+                        // TODO: Hack - restriction of current ex layouts
+                        var data = course.data.FirstOrDefault();
+                        if (data == null)
+                            continue;
 
-                    StarsLineDescription sld = new StarsLineDescription(course.name, (byte)data.mask, data.offset, 0, 0);
-                    if (sld.starMask > 127)
-                        starsShown = 8;
+                        StarsLineDescription sld = new StarsLineDescription(course.name, (byte)data.mask, data.offset, 0, 0);
+                        if (sld.starMask > 127)
+                            starsShown = 8;
 
-                    descriptions.Add(sld);
+                        descriptions.Add(sld);
+                    }
+                    else
+                    {
+                        StarsLineDescription sld = new StarsLineDescription(course.name, (byte)course.starMask, course.courseId == 0 ? 0 : (course.courseId + 11), 0, 0);
+                        if (sld.starMask > 127)
+                            starsShown = 8;
+
+                        descriptions.Add(sld);
+                    }
                 }
             }
 

@@ -27,6 +27,8 @@ namespace StarDisplay
     {
         public string name;
         public List<LayoutAdvancedData> data;
+        public int courseId;
+        public int starMask;
     }
 
     [Serializable]
