@@ -257,8 +257,10 @@ namespace StarDisplay
                 }
             }
 
-            goldStar = la.collectedStarIcon;
+            goldStar = la.collectedStarIcon == null ? Resource.gold_star : la.collectedStarIcon;
             darkStar = la.missingStarIcon;
+            if (null == darkStar)
+                GenerateDarkStar();
 
             GenerateInvertedStar();
             GenerateDarkStar();
