@@ -785,6 +785,79 @@ namespace StarDisplay
         }
     }
 
+    public class FontAction : Action
+    {
+        static string configureReadableName = "Use custom font";
+        public static string configureName = "Font_isEnabled";
+        public static string pathConfigureName = "font_path";
+
+        public static int DrawConfigs(int height, ActionMaskForm amf)
+        {
+            CheckBox cb = new CheckBox
+            {
+                Name = configureName,
+                Text = configureReadableName,
+                Location = new Point(10, height),
+                Checked = amf.sm.GetConfig(configureName, false),
+                AutoSize = true
+            };
+            height += cb.Height;
+
+            TextBox tb = new TextBox
+            {
+                Name = pathConfigureName,
+                Text = amf.sm.GetConfig(pathConfigureName, ""),
+                Location = new Point(30, height),
+                AutoSize = true,
+                Width = 120
+            };
+
+            Button b = new Button
+            {
+                Name = "fontPathButton",
+                Text = ".",
+                Location = new Point(160, height - 1),
+                AutoSize = true,
+                Width = 20,
+                Height = tb.Height
+            };
+
+            cb.CheckedChanged += (sender, e) => {
+                CheckBox cb_local = sender as CheckBox;
+                amf.sm.SetConfig(cb_local.Name, cb_local.Checked);
+            };
+            tb.TextChanged += (sender, e) => {
+                TextBox tb_local = sender as TextBox;
+                amf.sm.SetConfig(tb_local.Name, tb_local.Text);
+            };
+            b.Click += (sender, e) =>
+            {
+                OpenFileDialog openFileDialog = new OpenFileDialog
+                {
+                    Filter = "Font file (*.ttf)|*.ttf",
+                    FilterIndex = 1,
+                    RestoreDirectory = true
+                };
+
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    tb.Text = openFileDialog.FileName;
+                }
+            };
+
+            amf.Controls.Add(cb);
+            amf.Controls.Add(tb);
+            amf.Controls.Add(b);
+
+            return cb.Height + tb.Height + 10;
+        }
+
+        public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
     public class DrawActions : IEnumerable<Action>
     {
         LayoutDescriptionEx ld;

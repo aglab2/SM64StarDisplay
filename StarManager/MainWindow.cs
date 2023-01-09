@@ -551,6 +551,7 @@ namespace StarDisplay
         }
 
         string prevBackgroundPath = "";
+        string prevFontPath = "";
         private void InvalidateCache()
         {
             Console.WriteLine("invalidated");
@@ -560,7 +561,6 @@ namespace StarDisplay
 
             if (sm.GetConfig(BackgroundSettingsAction.configureName, false))
             {
-
                 string backgroundPath = sm.GetConfig(BackgroundSettingsAction.pathConfigureName, "");
                 if (prevBackgroundPath != backgroundPath)
                 {
@@ -576,6 +576,33 @@ namespace StarDisplay
                     catch (Exception)
                     {
                         sm.SetConfig(BackgroundSettingsAction.configureName, false);
+                        prevBackgroundPath = "";
+                    }
+                }
+            }
+
+            if (sm.GetConfig(FontAction.configureName, false))
+            {
+                string fontPath = sm.GetConfig(FontAction.pathConfigureName, "");
+                if (prevFontPath != fontPath)
+                {
+                    prevFontPath = fontPath;
+                    try
+                    {
+                        PrivateFontCollection collection = new PrivateFontCollection();
+                        collection.AddFontFile(fontPath);
+                        FontFamily[] fontFamilies = collection.Families;
+                        FontFamily fontFamily = fontFamilies.First();
+                        if (fontFamily != null)
+                        {
+                            gm.Collection = collection;
+                            gm.FontFamily = fontFamily;
+                            gm.FontName = fontFamily.Name;
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        sm.SetConfig(FontAction.configureName, false);
                         prevBackgroundPath = "";
                     }
                 }
@@ -1001,39 +1028,6 @@ namespace StarDisplay
         private void resetHighlightToolStripMenuItem_Click(object sender, EventArgs e)
         {
             gm.IsFirstCall = true;
-            InvalidateCache();
-        }
-
-        private void loadCustomFontToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            OpenFileDialog openFileDialog = new OpenFileDialog
-            {
-                Filter = "Font file (*.ttf)|*.ttf",
-                FilterIndex = 1,
-                RestoreDirectory = true
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    PrivateFontCollection collection = new PrivateFontCollection();
-                    collection.AddFontFile(openFileDialog.FileName);
-                    FontFamily[] fontFamilies = collection.Families;
-                    FontFamily fontFamily = fontFamilies.First();
-                    if (fontFamily == null) return;
-
-                    gm.Collection = collection;
-                    gm.FontFamily = fontFamily;
-                    gm.FontName = fontFamily.Name;
-                }
-                catch (IOException)
-                {
-                    MessageBox.Show("Failed to load layout!", "Layour Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-            }
-
             InvalidateCache();
         }
 
