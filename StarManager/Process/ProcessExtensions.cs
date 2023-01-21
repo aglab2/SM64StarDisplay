@@ -21,10 +21,6 @@ namespace LiveSplit.ComponentUtil
         public string FileName { get; set; }
         public int ModuleMemorySize { get; set; }
         public string ModuleName { get; set; }
-        public FileVersionInfo FileVersionInfo
-        {
-            get { return FileVersionInfo.GetVersionInfo(FileName); }
-        }
         public override string ToString()
         {
             return ModuleName ?? base.ToString();
@@ -102,39 +98,6 @@ namespace LiveSplit.ComponentUtil
             ModuleCache.Add(hash, ret.ToArray());
 
             return ret.ToArray();
-        }
-
-        public static IEnumerable<MemoryBasicInformation> MemoryPages(this Process process, bool all = false)
-        {
-            // hardcoded values because GetSystemInfo / GetNativeSystemInfo can't return info for remote process
-            var min = 0x10000L;
-            var max = process.Is64Bit() ? 0x00007FFFFFFEFFFFL : 0x7FFEFFFFL;
-
-            var mbiSize = (SizeT)Marshal.SizeOf(typeof(MemoryBasicInformation));
-
-            var addr = min;
-            do
-            {
-                MemoryBasicInformation mbi;
-                if (WinAPI.VirtualQueryEx(process.Handle, (IntPtr)addr, out mbi, mbiSize) == (SizeT)0)
-                    break;
-                addr += (long)mbi.RegionSize;
-
-                // don't care about reserved/free pages
-                if (mbi.State != MemPageState.MEM_COMMIT)
-                    continue;
-
-                // probably don't care about guarded pages
-                if (!all && (mbi.Protect & MemPageProtect.PAGE_GUARD) != 0)
-                    continue;
-
-                // probably don't care about image/file maps
-                if (!all && mbi.Type != MemPageType.MEM_PRIVATE)
-                    continue;
-
-                yield return mbi;
-
-            } while (addr < max);
         }
 
         public static bool Is64Bit(this Process process)
@@ -318,99 +281,6 @@ namespace LiveSplit.ComponentUtil
             return true;
         }
 
-        private static bool WriteJumpOrCall(Process process, IntPtr addr, IntPtr dest, bool call)
-        {
-            var x64 = process.Is64Bit();
-
-            int jmpLen = x64 ? 12 : 5;
-
-            var instruction = new List<byte>(jmpLen);
-            if (x64)
-            {
-                instruction.AddRange(new byte[] { 0x48, 0xB8 }); // mov rax immediate
-                instruction.AddRange(BitConverter.GetBytes((long)dest));
-                instruction.AddRange(new byte[] { 0xFF, call ? (byte)0xD0 : (byte)0xE0 }); // jmp/call rax
-            }
-            else
-            {
-                int offset = unchecked((int)dest - (int)(addr + jmpLen));
-                instruction.AddRange(new byte[] { call ? (byte)0xE8 : (byte)0xE9 }); // jmp/call immediate
-                instruction.AddRange(BitConverter.GetBytes(offset));
-            }
-
-            MemPageProtect oldProtect;
-            process.VirtualProtect(addr, jmpLen, MemPageProtect.PAGE_EXECUTE_READWRITE, out oldProtect);
-            bool success = process.WriteBytes(addr, instruction.ToArray());
-            process.VirtualProtect(addr, jmpLen, oldProtect);
-
-            return success;
-        }
-
-        public static bool WriteJumpInstruction(this Process process, IntPtr addr, IntPtr dest)
-        {
-            return WriteJumpOrCall(process, addr, dest, false);
-        }
-
-        public static bool WriteCallInstruction(this Process process, IntPtr addr, IntPtr dest)
-        {
-            return WriteJumpOrCall(process, addr, dest, true);
-        }
-
-        public static IntPtr WriteDetour(this Process process, IntPtr src, int overwrittenBytes, IntPtr dest)
-        {
-            int jmpLen = process.Is64Bit() ? 12 : 5;
-            if (overwrittenBytes < jmpLen)
-                throw new ArgumentOutOfRangeException(nameof(overwrittenBytes),
-                    $"must be >= length of jmp instruction ({jmpLen})");
-
-            // allocate memory to store the original src prologue bytes we overwrite with jump to dest
-            // along with the jump back to src
-            IntPtr gate;
-            if ((gate = process.AllocateMemory(jmpLen + overwrittenBytes)) == IntPtr.Zero)
-                throw new Win32Exception();
-
-            try
-            {
-                // read the original bytes from the prologue of src
-                var origSrcBytes = process.ReadBytes(src, overwrittenBytes);
-                if (origSrcBytes == null)
-                    throw new Win32Exception();
-
-                // write the original prologue of src into the start of gate
-                if (!process.WriteBytes(gate, origSrcBytes))
-                    throw new Win32Exception();
-
-                // write the jump from the end of the gate back to src
-                if (!process.WriteJumpInstruction(gate + overwrittenBytes, src + overwrittenBytes))
-                    throw new Win32Exception();
-
-                // finally write the jump from src to dest
-                if (!process.WriteJumpInstruction(src, dest))
-                    throw new Win32Exception();
-
-                // nop the leftover bytes in the src prologue
-                int extraBytes = overwrittenBytes - jmpLen;
-                if (extraBytes > 0)
-                {
-                    var nops = Enumerable.Repeat((byte) 0x90, extraBytes).ToArray();
-                    MemPageProtect oldProtect;
-                    if (!process.VirtualProtect(src + jmpLen, nops.Length, MemPageProtect.PAGE_EXECUTE_READWRITE,
-                        out oldProtect))
-                        throw new Win32Exception();
-                    if (!process.WriteBytes(src + jmpLen, nops))
-                        throw new Win32Exception();
-                    process.VirtualProtect(src + jmpLen, nops.Length, oldProtect);
-                }
-            }
-            catch
-            {
-                process.FreeMemory(gate);
-                throw;
-            }
-
-            return gate;
-        }
-
         static object ResolveToType(byte[] bytes, Type type)
         {
             object val;
@@ -460,52 +330,6 @@ namespace LiveSplit.ComponentUtil
             }
 
             return val;
-        }
-
-        public static IntPtr AllocateMemory(this Process process, int size)
-        {
-            return WinAPI.VirtualAllocEx(process.Handle, IntPtr.Zero, (SizeT)size, (uint)MemPageState.MEM_COMMIT,
-                MemPageProtect.PAGE_EXECUTE_READWRITE);
-        }
-
-        public static bool FreeMemory(this Process process, IntPtr addr)
-        {
-            const uint MEM_RELEASE = 0x8000;
-            return WinAPI.VirtualFreeEx(process.Handle, addr, SizeT.Zero, MEM_RELEASE);
-        }
-
-        public static bool VirtualProtect(this Process process, IntPtr addr, int size, MemPageProtect protect,
-            out MemPageProtect oldProtect)
-        {
-            return WinAPI.VirtualProtectEx(process.Handle, addr, (SizeT)size, protect, out oldProtect);
-        }
-
-        public static bool VirtualProtect(this Process process, IntPtr addr, int size, MemPageProtect protect)
-        {
-            MemPageProtect oldProtect;
-            return WinAPI.VirtualProtectEx(process.Handle, addr, (SizeT)size, protect, out oldProtect);
-        }
-
-        public static IntPtr CreateThread(this Process process, IntPtr startAddress, IntPtr parameter)
-        {
-            IntPtr threadId;
-            return WinAPI.CreateRemoteThread(process.Handle, IntPtr.Zero, (SizeT)0, startAddress, parameter, 0,
-                out threadId);
-        }
-
-        public static IntPtr CreateThread(this Process process, IntPtr startAddress)
-        {
-            return CreateThread(process, startAddress, IntPtr.Zero);
-        }
-
-        public static void Suspend(this Process process)
-        {
-            WinAPI.NtSuspendProcess(process.Handle);
-        }
-
-        public static void Resume(this Process process)
-        {
-            WinAPI.NtResumeProcess(process.Handle);
         }
 
         public static float ToFloatBits(this uint i)

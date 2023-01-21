@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29806.167
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarManager", "StarManager\StarManager.csproj", "{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}"
 EndProject
@@ -13,20 +13,27 @@ Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
+		ReleaseExternal|Any CPU = ReleaseExternal|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}.ReleaseExternal|Any CPU.ActiveCfg = ReleaseExternal|Any CPU
+		{35EC9AD6-73A3-4AEA-8877-0875BA5C4699}.ReleaseExternal|Any CPU.Build.0 = ReleaseExternal|Any CPU
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.ReleaseExternal|Any CPU.ActiveCfg = ReleaseExternal|Any CPU
+		{6A6C0223-4658-4790-82B5-28D6C5B074F8}.ReleaseExternal|Any CPU.Build.0 = ReleaseExternal|Any CPU
 		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.ReleaseExternal|Any CPU.ActiveCfg = ReleaseExternal|Any CPU
+		{144EE1B2-EFFB-4014-AD15-4DC8BAE367A0}.ReleaseExternal|Any CPU.Build.0 = ReleaseExternal|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

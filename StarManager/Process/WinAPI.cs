@@ -85,33 +85,6 @@ namespace LiveSplit.ComponentUtil
         public static extern bool IsWow64Process(IntPtr hProcess,
             [Out, MarshalAs(UnmanagedType.Bool)] out bool wow64Process);
 
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern SizeT VirtualQueryEx(IntPtr hProcess, IntPtr lpAddress,
-            [Out] out MemoryBasicInformation lpBuffer, SizeT dwLength);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr VirtualAllocEx(IntPtr hProcess, IntPtr lpAddress, SizeT dwSize, uint flAllocationType,
-            MemPageProtect flProtect);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool VirtualFreeEx(IntPtr hProcess, IntPtr lpAddress, SizeT dwSize, uint dwFreeType);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        public static extern bool VirtualProtectEx(IntPtr hProcess, IntPtr lpAddress, SizeT dwSize,
-            MemPageProtect flNewProtect, [Out] out MemPageProtect lpflOldProtect);
-
-        [DllImport("ntdll.dll", SetLastError = true)]
-        public static extern IntPtr NtSuspendProcess(IntPtr hProcess);
-
-        [DllImport("ntdll.dll", SetLastError = true)]
-        public static extern IntPtr NtResumeProcess(IntPtr hProcess);
-
-        [DllImport("kernel32.dll", SetLastError = true)]
-        public static extern IntPtr CreateRemoteThread(IntPtr hProcess, IntPtr lpThreadAttributes, SizeT dwStackSize,
-            IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, out IntPtr lpThreadId);
-
         [StructLayout(LayoutKind.Sequential)]
         public struct MODULEINFO
         {

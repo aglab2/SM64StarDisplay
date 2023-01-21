@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // набора атрибутов. Измените значения этих атрибутов, чтобы изменить сведения,
 // связанные со сборкой.
 [assembly: AssemblyTitle("StarDisplay")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Tool to view and edit stars for SM64")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("StarDisplay")]
-[assembly: AssemblyCopyright("Copyright ©  2022")]
+[assembly: AssemblyCompany("https://github.com/aglab2/hacktice")]
+[assembly: AssemblyProduct("https://github.com/aglab2/SM64StarDisplay")]
+[assembly: AssemblyCopyright("Copyright © aglab2 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
