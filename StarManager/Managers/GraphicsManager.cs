@@ -264,7 +264,7 @@ namespace StarDisplay
 
             // Setup draw font: 20 symbols in max 170 width
             float l = 0, r = 40, m = -1;
-            String measureString = new string('W', 2);
+            String measureString = new string('V', 2);
 
             // 10 iterations is enough
             for (int iter = 0; iter < 10; iter++)
@@ -274,8 +274,7 @@ namespace StarDisplay
                 Font drawFont = new Font(FontFamily, m);
 
                 // Measure string.
-                SizeF stringSize = new SizeF();
-                stringSize = g.MeasureString(measureString, drawFont);
+                var stringSize = g.MeasureString(measureString, drawFont);
 
                 float width = stringSize.Width; //should take 170
                 if (width < SWidth)
@@ -288,7 +287,7 @@ namespace StarDisplay
 
             // Setup med font: 1 symbols in max 20 height
             l = 0; r = 40; m = -1;
-            measureString = "W";
+            measureString = "V";
 
             // 10 iterations is enough
             for (int iter = 0; iter < 10; iter++)
@@ -298,8 +297,7 @@ namespace StarDisplay
                 Font drawFont = new Font(FontFamily, m);
                 
                 // Measure string.
-                SizeF stringSize = new SizeF();
-                stringSize = g.MeasureString(measureString, drawFont);
+                var stringSize = g.MeasureString(measureString, drawFont);
 
                 float height = stringSize.Height; //should take HalfWidth
                 if (height < SWidth)
@@ -312,7 +310,7 @@ namespace StarDisplay
 
             // Setup med font: 1 symbols in max 20 height
             l = 0; r = 40; m = -1;
-            measureString = new string('W', 27);
+            measureString = new string('V', 27);
 
             // 10 iterations is enough
             for (int iter = 0; iter < 10; iter++)
@@ -322,8 +320,7 @@ namespace StarDisplay
                 Font drawFont = new Font(FontFamily, m);
 
                 // Measure string.
-                SizeF stringSize = new SizeF();
-                stringSize = g.MeasureString(measureString, drawFont);
+                var stringSize = g.MeasureString(measureString, drawFont);
 
                 float width = stringSize.Width; //should take 170
                 float localScaleCoef = ld == null ? 1 : scaleCoef;
