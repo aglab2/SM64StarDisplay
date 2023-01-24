@@ -59,9 +59,9 @@
             this.checkBox8.AutoSize = true;
             this.checkBox8.Location = new System.Drawing.Point(12, 12);
             this.checkBox8.Name = "checkBox8";
-            this.checkBox8.Size = new System.Drawing.Size(138, 17);
+            this.checkBox8.Size = new System.Drawing.Size(63, 17);
             this.checkBox8.TabIndex = 0;
-            this.checkBox8.Text = "Cap stolen by snowman";
+            this.checkBox8.Text = "Unused";
             this.checkBox8.UseVisualStyleBackColor = true;
             this.checkBox8.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -70,9 +70,9 @@
             this.checkBox7.AutoSize = true;
             this.checkBox7.Location = new System.Drawing.Point(12, 35);
             this.checkBox7.Name = "checkBox7";
-            this.checkBox7.Size = new System.Drawing.Size(110, 17);
+            this.checkBox7.Size = new System.Drawing.Size(63, 17);
             this.checkBox7.TabIndex = 1;
-            this.checkBox7.Text = "Cap stolen by bird";
+            this.checkBox7.Text = "Unused";
             this.checkBox7.UseVisualStyleBackColor = true;
             this.checkBox7.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -81,9 +81,9 @@
             this.checkBox5.AutoSize = true;
             this.checkBox5.Location = new System.Drawing.Point(12, 81);
             this.checkBox5.Name = "checkBox5";
-            this.checkBox5.Size = new System.Drawing.Size(32, 17);
+            this.checkBox5.Size = new System.Drawing.Size(129, 17);
             this.checkBox5.TabIndex = 3;
-            this.checkBox5.Text = "?";
+            this.checkBox5.Text = "3rd floor (50 star) door";
             this.checkBox5.UseVisualStyleBackColor = true;
             this.checkBox5.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -92,9 +92,9 @@
             this.checkBox6.AutoSize = true;
             this.checkBox6.Location = new System.Drawing.Point(12, 58);
             this.checkBox6.Name = "checkBox6";
-            this.checkBox6.Size = new System.Drawing.Size(130, 17);
+            this.checkBox6.Size = new System.Drawing.Size(63, 17);
             this.checkBox6.TabIndex = 2;
-            this.checkBox6.Text = "Cap stolen by monkey";
+            this.checkBox6.Text = "Unused";
             this.checkBox6.UseVisualStyleBackColor = true;
             this.checkBox6.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -103,9 +103,9 @@
             this.checkBox1.AutoSize = true;
             this.checkBox1.Location = new System.Drawing.Point(12, 173);
             this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(32, 17);
+            this.checkBox1.Size = new System.Drawing.Size(138, 17);
             this.checkBox1.TabIndex = 7;
-            this.checkBox1.Text = "?";
+            this.checkBox1.Text = "Cap stolen by snowman";
             this.checkBox1.UseVisualStyleBackColor = true;
             this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -114,9 +114,9 @@
             this.checkBox2.AutoSize = true;
             this.checkBox2.Location = new System.Drawing.Point(12, 150);
             this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(32, 17);
+            this.checkBox2.Size = new System.Drawing.Size(123, 17);
             this.checkBox2.TabIndex = 6;
-            this.checkBox2.Text = "?";
+            this.checkBox2.Text = "Cap stolen by Klepto";
             this.checkBox2.UseVisualStyleBackColor = true;
             this.checkBox2.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -125,9 +125,9 @@
             this.checkBox3.AutoSize = true;
             this.checkBox3.Location = new System.Drawing.Point(12, 127);
             this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(32, 17);
+            this.checkBox3.Size = new System.Drawing.Size(117, 17);
             this.checkBox3.TabIndex = 5;
-            this.checkBox3.Text = "?";
+            this.checkBox3.Text = "Cap stolen by Ukiki";
             this.checkBox3.UseVisualStyleBackColor = true;
             this.checkBox3.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
@@ -136,9 +136,9 @@
             this.checkBox4.AutoSize = true;
             this.checkBox4.Location = new System.Drawing.Point(12, 104);
             this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(129, 17);
+            this.checkBox4.Size = new System.Drawing.Size(138, 17);
             this.checkBox4.TabIndex = 4;
-            this.checkBox4.Text = "3rd floor (50 star) door";
+            this.checkBox4.Text = "Cap stole by Mr Blizzard";
             this.checkBox4.UseVisualStyleBackColor = true;
             this.checkBox4.CheckedChanged += new System.EventHandler(this.checkBox_CheckedChanged);
             // 
