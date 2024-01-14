@@ -669,13 +669,56 @@ namespace StarDisplay
 
     public class StarLayoutInitAction : Action
     {
-        public StarLayoutInitAction()
+        int off;
+        int limit;
+
+        public StarLayoutInitAction(int off, int limit)
         {
+            this.off = off;
+            this.limit = limit;
+        }
+
+        static string configureReadableName = "Drawn rows limit";
+        static string configureName = "StarLayoutInitAction_limit";
+
+        public static int DrawConfigs(int height, ActionMaskForm amf)
+        {
+            Label lb = new Label
+            {
+                Name = "lbl" + configureReadableName,
+                Text = "Amount of rows drawn limit",
+                Location = new Point(30, height),
+                AutoSize = true,
+                Width = 150
+            };
+            height += lb.Height;
+
+            TextBox tb = new TextBox
+            {
+                Name = configureName,
+                Text = amf.sm.GetConfig(configureName, 30).ToString(),
+                Location = new Point(30, height),
+                AutoSize = true,
+                Width = 150
+            };
+
+            tb.TextChanged += (sender, e) => {
+                TextBox tb_local = sender as TextBox;
+                if (int.TryParse(tb_local.Text, out int res))
+                {
+                    amf.sm.SetConfig(tb_local.Name, res);
+                }
+            };
+
+            amf.Controls.Add(lb);
+            amf.Controls.Add(tb);
+
+            return lb.Height + tb.Height + 10;
         }
 
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
-            gm.PaintHUD(lineOffset);
+            gm.PaintHUD(lineOffset, off, limit);
             return 0;
         }
     }
@@ -870,10 +913,12 @@ namespace StarDisplay
         int totalSecrets;
         int activePanels;
         int totalPanels;
+        int layoutOff;
+        int layoutLimit;
 
         public DrawActions() { }
 
-        public DrawActions(LayoutDescriptionEx ld, byte[] stars, byte[] oldStars, byte[] otherStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels)
+        public DrawActions(LayoutDescriptionEx ld, byte[] stars, byte[] oldStars, byte[] otherStars, int reds, int totalReds, int secrets, int totalSecrets, int activePanels, int totalPanels, int layoutOff, int layoutLimit)
         {
             this.ld = ld;
             this.stars = stars;
@@ -885,21 +930,23 @@ namespace StarDisplay
             this.totalSecrets = totalSecrets;
             this.activePanels = activePanels;
             this.totalPanels = totalPanels;
+            this.layoutOff = layoutOff;
+            this.layoutLimit = layoutLimit;
         }
 
         virtual public IEnumerator<Action> GetEnumerator()
         {
-            yield return new StarLayoutInitAction();
+            yield return new StarLayoutInitAction(layoutOff, layoutLimit);
 
-            for (int line = 0; line < ld.courseDescription.Count; line++)
+            for (int line = 0; line < Math.Min(ld.courseDescription.Count - layoutOff, layoutLimit); line++)
             {
-                var descr = ld.courseDescription[line];
+                var descr = ld.courseDescription[line + layoutOff];
                 StarsLineDescription sld = descr as StarsLineDescription;
                 if (sld == null) continue;
 
                 byte oldStarByte = oldStars[sld.offset];
                 byte newStarByte = stars[sld.offset];
-                
+
                 if (oldStarByte != newStarByte)
                 {
                     byte diffbyteFromOld = (byte)(((oldStarByte) ^ (newStarByte)) & newStarByte);
@@ -912,9 +959,9 @@ namespace StarDisplay
                 }
             }
 
-            for (int line = 0; line < ld.secretDescription.Count; line++)
+            for (int line = 0; line < Math.Min(ld.secretDescription.Count - layoutOff, layoutLimit); line++)
             {
-                var descr = ld.secretDescription[line];
+                var descr = ld.secretDescription[line + layoutOff];
                 StarsLineDescription sld = descr as StarsLineDescription;
                 if (sld == null) continue;
 
@@ -941,34 +988,49 @@ namespace StarDisplay
                 var descr = ld.courseDescription[line];
                 StarsLineDescription sld = descr as StarsLineDescription;
                 if (sld == null) continue;
-                
-                byte oldStarByte = oldStars[sld.offset];
+
                 byte newStarByte = stars[sld.offset];
-
                 starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
-                
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask, ld.goldStar);
             }
-
             for (int line = 0; line < ld.secretDescription.Count; line++)
             {
                 var descr = ld.secretDescription[line];
                 StarsLineDescription sld = descr as StarsLineDescription;
                 if (sld == null) continue;
+
+                byte newStarByte = stars[sld.offset];
+                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
+            }
+
+            for (int line = 0; line < Math.Min(ld.courseDescription.Count - layoutOff, layoutLimit); line++)
+            {
+                var descr = ld.courseDescription[line + layoutOff];
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
                 
                 byte oldStarByte = oldStars[sld.offset];
                 byte newStarByte = stars[sld.offset];
+                
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask, ld.goldStar);
+            }
 
-                starCount += MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
+            for (int line = 0; line < Math.Min(ld.secretDescription.Count - layoutOff, layoutLimit); line++)
+            {
+                var descr = ld.secretDescription[line + layoutOff];
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
+                
+                byte oldStarByte = oldStars[sld.offset];
+                byte newStarByte = stars[sld.offset];
                 
                 yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask, ld.goldStar);
             }
 
             if (otherStars is object)
             {
-                for (int line = 0; line < ld.courseDescription.Count; line++)
+                for (int line = 0; line < Math.Min(ld.courseDescription.Count - layoutOff, layoutLimit); line++)
                 {
-                    var descr = ld.courseDescription[line];
+                    var descr = ld.courseDescription[line + layoutOff];
                     StarsLineDescription sld = descr as StarsLineDescription;
                     if (sld == null) continue;
 
@@ -976,9 +1038,9 @@ namespace StarDisplay
                     yield return new LineDrawAction(line, starByte, 0, false, sld.starMask, ld.invertedStar);
                 }
 
-                for (int line = 0; line < ld.secretDescription.Count; line++)
+                for (int line = 0; line < Math.Min(ld.secretDescription.Count - layoutOff, layoutLimit); line++)
                 {
-                    var descr = ld.secretDescription[line];
+                    var descr = ld.secretDescription[line + layoutOff];
                     StarsLineDescription sld = descr as StarsLineDescription;
                     if (sld == null) continue;
 
@@ -987,7 +1049,7 @@ namespace StarDisplay
                 }
             }
 
-            yield return new StarLayoutFiniAction(ld.GetLength());
+            yield return new StarLayoutFiniAction(Math.Min(Math.Max(ld.GetLength() - layoutOff, 0), layoutLimit));
             yield return new StarTextLineDrawAction();
             yield return new StringLineDrawAction(starCount.ToString().PadLeft(3) + "/" + ld.starAmount.PadRight(3));
             yield return new RedsSecretsDrawAction(reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);

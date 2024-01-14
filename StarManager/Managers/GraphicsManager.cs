@@ -121,27 +121,27 @@ namespace StarDisplay
             TestFont();
         }
 
-        public void PaintHUD(int lineOffset)
+        public void PaintHUD(int lineOffset, int off, int limit)
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
             
             int courseDescriptionLength = Ld.courseDescription.Count;
             int secretDescriptionLength = Ld.secretDescription.Count;
-            int lastLine = Math.Max(courseDescriptionLength, secretDescriptionLength);
+            int lastLine = Math.Min(Math.Max(courseDescriptionLength, secretDescriptionLength), limit);
 
             if (Background != null)
                 graphics.DrawImage(Background, new RectangleF(0, 0, Width, Width * 2));
 
-            for (int line = 0; line < courseDescriptionLength; line++)
+            for (int line = 0; line < Math.Min(courseDescriptionLength - off, limit); line++)
             {
-                if (Ld.courseDescription[line] == null) continue;
-                Ld.courseDescription[line].DrawBase(this, lineOffset + line, false);
+                if (Ld.courseDescription[line + off] == null) continue;
+                Ld.courseDescription[line + off].DrawBase(this, lineOffset + line, false);
             }
-            for (int line = 0; line < secretDescriptionLength; line++)
+            for (int line = 0; line < Math.Min(secretDescriptionLength - off, limit); line++)
             {
-                if (Ld.secretDescription[line] == null) continue;
-                Ld.secretDescription[line].DrawBase(this, lineOffset + line, true);
+                if (Ld.secretDescription[line + off] == null) continue;
+                Ld.secretDescription[line + off].DrawBase(this, lineOffset + line, true);
             }
             
             RectangleF drawRect = new RectangleF(0, (lineOffset + lastLine) * SHeight + 2, Width, SHeight);

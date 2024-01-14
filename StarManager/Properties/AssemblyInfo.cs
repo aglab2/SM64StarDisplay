@@ -8,9 +8,9 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyTitle("StarDisplay")]
 [assembly: AssemblyDescription("Tool to view and edit stars for SM64")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("https://github.com/aglab2/hacktice")]
+[assembly: AssemblyCompany("https://github.com/aglab2/hacktice")]
 [assembly: AssemblyProduct("https://github.com/aglab2/SM64StarDisplay")]
-[assembly: AssemblyCopyright("Copyright © aglab2 2023")]
+[assembly: AssemblyCopyright("Copyright © aglab2 2024")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.29.0")]
-[assembly: AssemblyFileVersion("1.29.0")]
+[assembly: AssemblyVersion("1.30.0")]
+[assembly: AssemblyFileVersion("1.30.0")]

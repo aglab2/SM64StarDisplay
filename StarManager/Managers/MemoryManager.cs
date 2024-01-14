@@ -127,6 +127,10 @@ namespace StarDisplay
 
         public bool isReadyToRead()
         {
+            var curVerificationBytes = Process.ReadBytes(verificationPtr, verificationData.Length);
+            if (!ByteArrayCompare(curVerificationBytes, verificationData))
+                throw new ArgumentException("Verification failed");
+
             if (isDecomp)
                 return true;
 
@@ -291,10 +295,6 @@ namespace StarDisplay
 
         public void PerformRead()
         {
-            var curVerificationBytes = Process.ReadBytes(verificationPtr, verificationData.Length);
-            if (!ByteArrayCompare(curVerificationBytes, verificationData))
-                throw new ArgumentException("Verification failed");
-
             Igt = Process.ReadValue<int>(igtPtr);
             
             filePtr = filesPtr[SelectedFile];
@@ -368,24 +368,24 @@ namespace StarDisplay
             return lod.EEPOffset;
         }
 
-        public TextHighlightAction GetCurrentLineAction(LayoutDescriptionEx ld)
+        public TextHighlightAction GetCurrentLineAction(LayoutDescriptionEx ld, int layoutOff, int layoutLimit)
         {
             if (isDecomp)
                 return null;
 
             int offset = GetCurrentOffset();
 
-            int courseIndex = ld.courseDescription.FindIndex(lind => (lind is StarsLineDescription sld) ? sld.offset == offset : false);
+            int courseIndex = ld.courseDescription.Skip(layoutOff).Take(layoutLimit).ToList().FindIndex(lind => (lind is StarsLineDescription sld) ? sld.offset == offset : false);
             if (courseIndex != -1)
             {
-                StarsLineDescription sld = (StarsLineDescription)ld.courseDescription[courseIndex];
+                StarsLineDescription sld = (StarsLineDescription)ld.courseDescription[courseIndex + layoutOff];
                 return new TextHighlightAction(courseIndex, false, sld.text);
             }
 
-            int secretIndex = ld.secretDescription.FindIndex(lind => (lind is StarsLineDescription sld) ? sld.offset == offset : false);
+            int secretIndex = ld.secretDescription.Skip(layoutOff).Take(layoutLimit).ToList().FindIndex(lind => (lind is StarsLineDescription sld) ? sld.offset == offset : false);
             if (secretIndex != -1)
             {
-                StarsLineDescription sld = (StarsLineDescription)ld.secretDescription[secretIndex];
+                StarsLineDescription sld = (StarsLineDescription)ld.secretDescription[secretIndex + layoutOff];
                 return new TextHighlightAction(secretIndex, true, sld.text);
             }
 
@@ -518,7 +518,7 @@ namespace StarDisplay
             return picture;
         }
 
-        public DrawActions GetDrawActions(LayoutDescriptionEx ld, ROMManager rm, byte[] otherStars)
+        public DrawActions GetDrawActions(LayoutDescriptionEx ld, ROMManager rm, byte[] otherStars, int layoutOff, int layoutLimit)
         {
             int totalReds = 0, reds = 0;
             if (!isDecomp)
@@ -560,7 +560,7 @@ namespace StarDisplay
                 catch (Exception) { }
             }
 
-            DrawActions da = new DrawActions(ld, Stars, oldStars, otherStars, reds, totalReds, secrets, totalSecrets, activePanels, totalPanels);
+            DrawActions da = new DrawActions(ld, Stars, oldStars, otherStars, reds, totalReds, secrets, totalSecrets, activePanels, totalPanels, layoutOff, layoutLimit);
             oldStars = Stars;
             return da;
         }

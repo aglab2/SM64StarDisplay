@@ -51,6 +51,8 @@ namespace StarDisplay
         const int scanPeriod = 1000;
         const int updatePeriod = 30;
 
+        int layoutOff = 0;
+
         byte[] otherStars = new byte[MemoryManager.FileLength];
         
         public MainWindow()
@@ -121,6 +123,29 @@ namespace StarDisplay
             handle.WaitOne();
         }
 
+        protected override void WndProc(ref Message m)
+        {
+            base.WndProc(ref m);
+            // 0x115 and 0x20a both tell the control to scroll. If either one comes 
+            // through, you can handle the scrolling before any repaints take place
+            if (m.Msg == 0x115 || m.Msg == 0x20a)
+            {
+                long filtered = (m.WParam.ToInt64() & 0xffff0000) >> 16;
+                if (filtered < 0x8000)
+                {
+                    if (layoutOff > 0)
+                        layoutOff--;
+                }
+                else
+                {
+                    if (layoutOff < ld.GetLength() - sm.GetConfig("StarLayoutInitAction_limit", 30))
+                       layoutOff++;
+                }
+                gm.InvalidateCache();
+                //Do you scroll processing
+            }
+        }
+
         private void doMagicThread()
         {
             while (mm != null && !mm.ProcessActive() && !mm.isMagicDone())
@@ -148,6 +173,7 @@ namespace StarDisplay
             gm.graphics = Graphics.FromImage(baseImage);
 
             gm.DrawIntro(isEmulatorStarted, isHackLoaded, isOffsetsFound);
+            gm.InvalidateCache();
             baseGraphics.Dispose();
             starPicture.Image = baseImage;
         }
@@ -443,7 +469,7 @@ namespace StarDisplay
 
                 if (!sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false))
                 {
-                    TextHighlightAction act = mm.GetCurrentLineAction(ld);
+                    TextHighlightAction act = mm.GetCurrentLineAction(ld, layoutOff, sm.GetConfig("StarLayoutInitAction_limit", 30));
                     if (act != null)
                     {
                         gm.AddLineHighlight(act);
@@ -490,7 +516,7 @@ namespace StarDisplay
                 int lineOffset = 0;
                 var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ?
                     mm.GetCollectablesOnlyDrawActions(ld, rm) : 
-                    mm.GetDrawActions(ld, rm, enableLockoutToolStripMenuItem.Checked ? otherStars : null);
+                    mm.GetDrawActions(ld, rm, enableLockoutToolStripMenuItem.Checked ? otherStars : null, layoutOff, sm.GetConfig("StarLayoutInitAction_limit", 30));
 
                 if (actions == null) return;
 
@@ -612,7 +638,7 @@ namespace StarDisplay
         private void EditDisplay()
         {
             int X = picX; int Y = picY;
-            int line = (int) Math.Floor(Y / gm.SHeight);
+            int line = layoutOff + (int) Math.Floor(Y / gm.SHeight);
             bool isSecret = ((int) Math.Floor(X / (gm.Width / 2))) == 1;
             int star = (int) Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
             if (star > ld.starsShown) return;
@@ -675,10 +701,10 @@ namespace StarDisplay
             }
 
             int X = picX; int Y = picY;
-            int line = (int)Math.Floor(Y / gm.SHeight);
+            int line = layoutOff + (int)Math.Floor(Y / gm.SHeight);
             bool isSecret = ((int)Math.Floor(X / (gm.Width / 2))) == 1;
             int star = (int)Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
-            if (line > ld.GetLength()) return;
+            if (line > Math.Max(ld.GetLength(), sm.GetConfig("StarLayoutInitAction_limit", 30))) return;
 
             try
             {
@@ -688,7 +714,7 @@ namespace StarDisplay
 
                     curld = isSecret ? ld.secretDescription[line] : ld.courseDescription[line];
 
-                    if (line > ld.GetLength())
+                    if (line > Math.Max(ld.GetLength(), sm.GetConfig("StarLayoutInitAction_limit", 30))) 
                         return;
 
                     line++;
@@ -706,7 +732,7 @@ namespace StarDisplay
         private void EditFile()
         {
             int X = picX; int Y = picY;
-            int line = (int)Math.Floor(Y / gm.SHeight);
+            int line = layoutOff + (int)Math.Floor(Y / gm.SHeight);
             bool isSecret = ((int)Math.Floor(X / (gm.Width / 2))) == 1;
             int star = (int)Math.Floor((X - (isSecret ? (gm.Width / 2) : 0)) / gm.SWidth);
             if (star > ld.starsShown) return;
