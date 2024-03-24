@@ -105,7 +105,7 @@ namespace MIPSInterpreter
                 uint jmpInstVal = Converter.ToUInt(jmpInst);
                 var bzeroJmpOffsets = FindAll(mem, jmpInstVal);
 
-                SortedList<int /*bzerodVAddr*/, SortedDictionary<int /*bzerodSize*/, uint /*off*/>> bzerodAddresses = new SortedList<int, SortedDictionary<int, uint>>();
+                SortedDictionary<int /*bzerodVAddr*/, SortedDictionary<int /*bzerodSize*/, uint /*off*/>> bzerodAddresses = new SortedDictionary<int, SortedDictionary<int, uint>>();
 
                 foreach (uint bzeroJmpOffset in bzeroJmpOffsets)
                 {
@@ -156,6 +156,11 @@ namespace MIPSInterpreter
 
                     gSaveFileSize = bzerodInfo.Keys.ElementAt(0);
                     gSaveBufferSize = bzerodInfo.Keys.ElementAt(1);
+                    if (0x70 == gSaveFileSize && 0x000c915c == bzeroPos && 0x34064442 == mem[0x9E6C5])
+                    {
+                        // workaround for decades later and any other binary hack that uses double file patch
+                        gSaveFileSize = 0x38;
+                    }
                     var interpretedOffset = bzerodInfo.Values.First();
 
                     gSaveBuffer = bzerodVAddr;
@@ -171,6 +176,52 @@ namespace MIPSInterpreter
                     }
 
                     break;
+                }
+
+                if (gSaveBuffer.HasValue)
+                    break;
+
+                // workaround for Beyond The Cursed Mirror - start of the savefiles are a slightly offset
+                foreach (var bzerodPair in bzerodAddresses)
+                {
+                    int bzerodVAddr = bzerodPair.Key;
+                    var bzerodInfo = bzerodPair.Value;
+                    if (bzerodInfo.Count != 1)
+                        continue;
+
+                    var bzerodBufferSize = bzerodInfo.First().Key;
+                    for (int scanAmount = 0x4; scanAmount < 0x20; scanAmount += 4)
+                    {
+                        int bzerosFileVAddr = bzerodVAddr + scanAmount;
+                        if (!bzerodAddresses.TryGetValue(bzerosFileVAddr, out var bzerosFileDescs))
+                            continue;
+
+                        if (bzerosFileDescs.Count != 1)
+                            continue;
+
+                        var bzerosFileDesc = bzerosFileDescs.First();
+                        var bzerodFileSize = bzerosFileDesc.Key;
+
+                        // bzeros file size cannot be larger than all the files
+                        if (bzerodFileSize >= bzerodBufferSize)
+                            continue;
+
+                        gSaveFileSize = bzerodFileSize;
+                        gSaveBufferSize = bzerodBufferSize;
+                        var interpretedOffset = bzerodInfo.Values.First();
+
+                        gSaveBuffer = bzerosFileVAddr;
+                        VerificationOffset = interpretedOffset << 2;
+
+                        var interpetedSegment = new ArraySegment<uint>(mem, (int)interpretedOffset, (int)instructionsToInterpretCount);
+                        VerificationBytes = new byte[instructionsToInterpretCount << 2];
+                        var interpretedInstructionsIdx = 0;
+                        foreach (uint num in interpetedSegment)
+                        {
+                            Array.Copy(BitConverter.GetBytes(num), 0, VerificationBytes, interpretedInstructionsIdx, 4);
+                            interpretedInstructionsIdx += 4;
+                        }
+                    }
                 }
 
                 if (gSaveBuffer.HasValue)
