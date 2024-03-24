@@ -35,10 +35,14 @@ namespace StarDisplay
             if (lind is StarsLineDescription sld)
             {
                 stringTextBox.Text = sld.text;
-                if (sld.offset != 0)
+                try
+                {
                     offsetComboBox.SelectedIndex = sld.offset - 8;
-                else
-                    offsetComboBox.SelectedIndex = 0;
+                }
+                catch(Exception)
+                {
+                    textBoxOffset.Text = sld.offset.ToString();
+                }
 
                 byte mask = sld.highlightStarMask;
                 if ((mask & (1 << 0)) != 0) checkBox1.Checked = true;
@@ -79,7 +83,7 @@ namespace StarDisplay
                 if (checkBox7.Checked) mask |= (1 << 6);
                 if (checkBox8.Checked) mask |= (1 << 7);
 
-                offset = offsetComboBox.SelectedIndex + 8;
+                int.TryParse(textBoxOffset.Text, out offset);
                 int.TryParse(highlightOffsetTextBox.Text, out int highlightOffset);
 
                 lind = new StarsLineDescription(stringTextBox.Text, oldMask, offset, mask, highlightOffset);
@@ -168,6 +172,16 @@ namespace StarDisplay
                 checkBox7.Checked = false;
                 checkBox8.Checked = true;
             }
+        }
+
+        private void offsetComboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            textBoxOffset.Text = (offsetComboBox.SelectedIndex + 8).ToString();
+        }
+
+        private void textBoxOffset_TextChanged(object sender, EventArgs e)
+        {
+            // -
         }
     }
 }
