@@ -1011,7 +1011,7 @@ namespace StarDisplay
                 byte oldStarByte = oldStars[sld.offset];
                 byte newStarByte = stars[sld.offset];
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask, ld.goldStar);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), false, sld.starMask, sld.useExtraIcon ? ld.extraStar : ld.goldStar);
             }
 
             for (int line = 0; line < Math.Min(ld.secretDescription.Count - layoutOff, layoutLimit); line++)
@@ -1023,7 +1023,7 @@ namespace StarDisplay
                 byte oldStarByte = oldStars[sld.offset];
                 byte newStarByte = stars[sld.offset];
                 
-                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask, ld.goldStar);
+                yield return new LineDrawAction(line, newStarByte, MemoryManager.countStars((byte)(newStarByte & sld.starMask), ld.starsShown) - MemoryManager.countStars((byte)(oldStarByte & sld.starMask), ld.starsShown), true, sld.starMask, sld.useExtraIcon ? ld.extraStar : ld.goldStar);
             }
 
             if (otherStars is object)

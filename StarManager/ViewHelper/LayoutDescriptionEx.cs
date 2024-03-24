@@ -122,18 +122,21 @@ namespace StarDisplay
 
         public int Type = 1;
 
+        public bool useExtraIcon = false;
+
         public override void FixType()
         {
             Type = 1;
         }
 
-        public StarsLineDescription(string text, byte starMask, int offset, byte highlightStarMask, int highlightOffset)
+        public StarsLineDescription(string text, byte starMask, int offset, byte highlightStarMask, int highlightOffset, bool useExtraIcon)
         {
             this.text = text;
             this.starMask = starMask;
             this.offset = offset;
             this.highlightStarMask = highlightStarMask;
             this.highlightOffset = highlightOffset;
+            this.useExtraIcon = useExtraIcon;
         }
 
         public override void DrawBase(GraphicsManager gm, int lineNumber, bool isSecret)
@@ -146,7 +149,7 @@ namespace StarDisplay
                 LineAlignment = StringAlignment.Center
             };
             gm.graphics.DrawStringWithOutline(text, gm.FontFamily, gm.DrawFontSize, drawBrush, Pens.Black, drawRect, drawFormat);
-            gm.DrawByte(0, lineNumber, isSecret, starMask);
+            gm.DrawByte(0, lineNumber, isSecret, starMask, useExtraIcon);
 
             drawBrush.Dispose();
         }
@@ -173,6 +176,8 @@ namespace StarDisplay
         public Bitmap greenOutline;
         [JsonConverter(typeof(ImageConverter))]
         public Bitmap invertedStar;
+        [JsonConverter(typeof(ImageConverter))]
+        public Bitmap extraStar;
 
         public string starAmount;
 
@@ -194,6 +199,7 @@ namespace StarDisplay
             this.starAmount = starAmount;
 
             this.goldStar = star;
+            this.extraStar = star;
             this.darkStar = new Bitmap(goldStar.Width, goldStar.Height);
             if (goldStar.Width != 20 || goldStar.Height != 20)
                 Compress();
@@ -240,7 +246,7 @@ namespace StarDisplay
                         if (data == null)
                             continue;
 
-                        StarsLineDescription sld = new StarsLineDescription(course.name, (byte)data.mask, data.offset, 0, 0);
+                        StarsLineDescription sld = new StarsLineDescription(course.name, (byte)data.mask, data.offset, 0, 0, false);
                         if (sld.starMask > 127)
                             starsShown = 8;
 
@@ -248,7 +254,7 @@ namespace StarDisplay
                     }
                     else
                     {
-                        StarsLineDescription sld = new StarsLineDescription(course.name, (byte)course.starMask, course.courseId == 0 ? 0 : (course.courseId + 11), 0, 0);
+                        StarsLineDescription sld = new StarsLineDescription(course.name, (byte)course.starMask, course.courseId == 0 ? 0 : (course.courseId + 11), 0, 0, false);
                         if (sld.starMask > 127)
                             starsShown = 8;
 
@@ -258,6 +264,7 @@ namespace StarDisplay
             }
 
             goldStar = la.collectedStarIcon == null ? Resource.gold_star : la.collectedStarIcon;
+            extraStar = goldStar;
             darkStar = la.missingStarIcon;
             if (null == darkStar)
                 GenerateDarkStar();
@@ -449,14 +456,14 @@ namespace StarDisplay
             for (int course = 1; course <= 15; course++)
             {
                 string drawString = course.ToString("D2");
-                courseLD[course] = new StarsLineDescription(drawString, 255, course + 11, 0, 0);
+                courseLD[course] = new StarsLineDescription(drawString, 255, course + 11, 0, 0, false);
             }
 
             for (int course = 1; course <= 10; course++) //Secret course
             {
-                secretLD[linesForSecrets[course]] = new StarsLineDescription(namesForSecrets[course], 255, course + 26, highlightForSecrets[course], offsetForSecrets[course]);
+                secretLD[linesForSecrets[course]] = new StarsLineDescription(namesForSecrets[course], 255, course + 26, highlightForSecrets[course], offsetForSecrets[course], false);
             }
-            secretLD[linesForSecrets[11]] = new StarsLineDescription(namesForSecrets[11], 255, 8, 0, 0);
+            secretLD[linesForSecrets[11]] = new StarsLineDescription(namesForSecrets[11], 255, 8, 0, 0, false);
 
             secretLD[0] = new TextOnlyLineDescription("Bowser Courses");
             secretLD[4] = new TextOnlyLineDescription("Cap Levels");

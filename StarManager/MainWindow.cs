@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Threading;
 using Newtonsoft.Json;
 using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
 
 namespace StarDisplay
 {
@@ -879,6 +880,9 @@ namespace StarDisplay
             if (ld.darkStar == null) ld.GenerateDarkStar();
             if (ld.redOutline == null) ld.GenerateOutline();
             if (ld.invertedStar == null) ld.GenerateInvertedStar();
+            if (ld.extraStar == null)
+                ld.extraStar = ld.goldStar;
+
             ld.Trim();
 
             this.SafeInvoke((MethodInvoker)delegate { this.Width = TotalWidth * ld.starsShown; });
@@ -889,7 +893,7 @@ namespace StarDisplay
             ld = LayoutDescriptionEx.GenerateDefault();
             ld.Trim();
         }
-        
+
         private void SaveLayout(string name)
         {
             ld.Trim();
@@ -900,10 +904,18 @@ namespace StarDisplay
             ld.invertedStar = null;
             ld.greenOutline = null;
             ld.redOutline = null;
+            if (ld.goldStar == ld.extraStar)
+            {
+                ld.extraStar = null;
+            }
             var json = JsonConvert.SerializeObject(ld);
             ld.invertedStar = invertedStar;
             ld.greenOutline = greenOutline;
             ld.redOutline = redOutline;
+            if (ld.extraStar == null)
+            {
+                ld.extraStar = ld.goldStar;
+            }
 
             File.WriteAllText(name, json);
         }
@@ -1351,6 +1363,63 @@ namespace StarDisplay
                 {
                     var image = new Bitmap(openFileDialog.FileName);
                     ld = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, image, ld.starAmount, ld.starsShown);
+                    InvalidateCache();
+                }
+                catch (IOException)
+                {
+                    MessageBox.Show("Failed to load image!", "Image Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+        }
+
+        private void importExtraStarFromImageToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                RestoreDirectory = true
+            };
+
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageEncoders();
+            string sep = string.Empty;
+
+            foreach (var c in codecs)
+            {
+                string codecName = c.CodecName.Substring(8).Replace("Codec", "Files").Trim();
+                openFileDialog.Filter = string.Format("{0}{1}{2} ({3})|{3}", openFileDialog.Filter, sep, codecName, c.FilenameExtension);
+                sep = "|";
+            }
+
+            openFileDialog.Filter = String.Format("{0}{1}{2} ({3})|{3}", openFileDialog.Filter, sep, "All Files", "*.*");
+            openFileDialog.DefaultExt = "png"; // Default file extension
+            UseDefaultExtAsFilterIndex(openFileDialog);
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    var image = new Bitmap(openFileDialog.FileName);
+
+                    var compressedImage = new Bitmap(20, 20);
+                    var destRect = new Rectangle(0, 0, 20, 20);
+                    using (var graphics = Graphics.FromImage(compressedImage))
+                    {
+                        graphics.CompositingMode = CompositingMode.SourceCopy;
+                        graphics.CompositingQuality = CompositingQuality.HighQuality;
+                        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+                        graphics.SmoothingMode = SmoothingMode.HighQuality;
+                        graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+
+                        using (var wrapMode = new ImageAttributes())
+                        {
+                            wrapMode.SetWrapMode(WrapMode.TileFlipXY);
+                            graphics.DrawImage(image, destRect, 0, 0, image.Width, image.Height, GraphicsUnit.Pixel, wrapMode);
+                        }
+                    }
+                    image.Dispose();
+
+                    var layout = new LayoutDescriptionEx(ld.courseDescription, ld.secretDescription, ld.goldStar, ld.starAmount, ld.starsShown);
+                    layout.extraStar = compressedImage;
+                    ld = layout;
                     InvalidateCache();
                 }
                 catch (IOException)

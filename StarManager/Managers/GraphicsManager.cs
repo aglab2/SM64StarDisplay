@@ -155,7 +155,7 @@ namespace StarDisplay
             drawBrush.Dispose();
         }
 
-        public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask)
+        public void DrawByte(byte stars, int lineNumber, bool isSecret, byte mask, bool useExtraStar)
         {
             for (int i = 0; i < ld.starsShown; i++)
             {
@@ -163,7 +163,23 @@ namespace StarDisplay
                 float x = (isSecret ? Width / 2 : 0) + (i + 1) * SWidth;
                 float y = lineNumber * SHeight + SOffset;
                 bool isAcquired = (stars & (1 << i)) != 0;
-                Image img = isAcquired ? Ld.goldStar : Ld.darkStar;
+                Image img;
+
+                if (isAcquired)
+                {
+                    if (useExtraStar)
+                    {
+                        img = Ld.extraStar;
+                    }
+                    else
+                    {
+                        img = Ld.goldStar;
+                    }
+                }
+                else
+                {
+                    img = Ld.darkStar;
+                }
                 graphics.DrawImage(img, x, y, SWidth, SWidth);
             }
         }

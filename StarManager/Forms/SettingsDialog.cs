@@ -34,6 +34,7 @@ namespace StarDisplay
             }
             if (lind is StarsLineDescription sld)
             {
+                checkBoxExtraIcon.Checked = sld.useExtraIcon;
                 stringTextBox.Text = sld.text;
                 try
                 {
@@ -72,7 +73,6 @@ namespace StarDisplay
             else
             {
                 byte mask = 0;
-                int offset = 0;
 
                 if (checkBox1.Checked) mask |= (1 << 0);
                 if (checkBox2.Checked) mask |= (1 << 1);
@@ -83,10 +83,10 @@ namespace StarDisplay
                 if (checkBox7.Checked) mask |= (1 << 6);
                 if (checkBox8.Checked) mask |= (1 << 7);
 
-                int.TryParse(textBoxOffset.Text, out offset);
+                int.TryParse(textBoxOffset.Text, out int offset);
                 int.TryParse(highlightOffsetTextBox.Text, out int highlightOffset);
 
-                lind = new StarsLineDescription(stringTextBox.Text, oldMask, offset, mask, highlightOffset);
+                lind = new StarsLineDescription(stringTextBox.Text, oldMask, offset, mask, highlightOffset, checkBoxExtraIcon.Checked);
             }
 
             starsShown = is8StarsCheckbox.Checked ? 8 : 7;

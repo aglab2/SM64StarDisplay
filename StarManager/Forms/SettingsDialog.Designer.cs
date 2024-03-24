@@ -47,6 +47,7 @@
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.textBoxOffset = new System.Windows.Forms.TextBox();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.checkBoxExtraIcon = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.groupBox3.SuspendLayout();
@@ -54,7 +55,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(202, 138);
+            this.button1.Location = new System.Drawing.Point(202, 142);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(51, 40);
             this.button1.TabIndex = 2;
@@ -96,7 +97,7 @@
             "Rainbow",
             "Aquarium",
             "\"The End\""});
-            this.offsetComboBox.Location = new System.Drawing.Point(6, 42);
+            this.offsetComboBox.Location = new System.Drawing.Point(6, 19);
             this.offsetComboBox.Name = "offsetComboBox";
             this.offsetComboBox.Size = new System.Drawing.Size(89, 21);
             this.offsetComboBox.TabIndex = 3;
@@ -212,7 +213,7 @@
             // is8StarsCheckbox
             // 
             this.is8StarsCheckbox.AutoSize = true;
-            this.is8StarsCheckbox.Location = new System.Drawing.Point(6, 19);
+            this.is8StarsCheckbox.Location = new System.Drawing.Point(21, 97);
             this.is8StarsCheckbox.Name = "is8StarsCheckbox";
             this.is8StarsCheckbox.Size = new System.Drawing.Size(89, 17);
             this.is8StarsCheckbox.TabIndex = 23;
@@ -240,18 +241,17 @@
             // groupBox2
             // 
             this.groupBox2.Controls.Add(this.textBoxOffset);
-            this.groupBox2.Controls.Add(this.is8StarsCheckbox);
             this.groupBox2.Controls.Add(this.offsetComboBox);
             this.groupBox2.Location = new System.Drawing.Point(158, 12);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(104, 100);
+            this.groupBox2.Size = new System.Drawing.Size(104, 79);
             this.groupBox2.TabIndex = 26;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Level";
             // 
             // textBoxOffset
             // 
-            this.textBoxOffset.Location = new System.Drawing.Point(6, 69);
+            this.textBoxOffset.Location = new System.Drawing.Point(6, 46);
             this.textBoxOffset.Name = "textBoxOffset";
             this.textBoxOffset.Size = new System.Drawing.Size(89, 20);
             this.textBoxOffset.TabIndex = 1;
@@ -269,20 +269,32 @@
             this.groupBox3.Controls.Add(this.checkBox7);
             this.groupBox3.Controls.Add(this.checkBox4);
             this.groupBox3.Controls.Add(this.checkBox6);
-            this.groupBox3.Location = new System.Drawing.Point(12, 118);
+            this.groupBox3.Location = new System.Drawing.Point(12, 123);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(179, 73);
             this.groupBox3.TabIndex = 27;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "Highlight";
             // 
+            // checkBoxExtraIcon
+            // 
+            this.checkBoxExtraIcon.AutoSize = true;
+            this.checkBoxExtraIcon.Location = new System.Drawing.Point(116, 97);
+            this.checkBoxExtraIcon.Name = "checkBoxExtraIcon";
+            this.checkBoxExtraIcon.Size = new System.Drawing.Size(114, 17);
+            this.checkBoxExtraIcon.TabIndex = 28;
+            this.checkBoxExtraIcon.Text = "Use extra star icon";
+            this.checkBoxExtraIcon.UseVisualStyleBackColor = true;
+            // 
             // Settings
             // 
             this.AcceptButton = this.button1;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(271, 198);
+            this.ClientSize = new System.Drawing.Size(271, 203);
+            this.Controls.Add(this.checkBoxExtraIcon);
             this.Controls.Add(this.groupBox3);
+            this.Controls.Add(this.is8StarsCheckbox);
             this.Controls.Add(this.button1);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.groupBox1);
@@ -299,6 +311,7 @@
             this.groupBox3.ResumeLayout(false);
             this.groupBox3.PerformLayout();
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -322,5 +335,6 @@
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.GroupBox groupBox3;
         private System.Windows.Forms.TextBox textBoxOffset;
+        private System.Windows.Forms.CheckBox checkBoxExtraIcon;
     }
 }
