@@ -397,6 +397,10 @@ namespace StarDisplay
                     graphics.DrawImage(goldStar, destRect, 0, 0, goldStar.Width, goldStar.Height, GraphicsUnit.Pixel, wrapMode);
                 }
             }
+            if (goldStar == extraStar)
+            {
+                extraStar = goldCompressedImage;
+            }
             goldStar.Dispose();
             goldStar = goldCompressedImage;
 
