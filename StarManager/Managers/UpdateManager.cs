@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace StarDisplay
 {
@@ -83,6 +85,33 @@ namespace StarDisplay
         public string DownloadPath()
         {
             return assetTask.Result[0].BrowserDownloadUrl;
+        }
+
+        public void UpdateAndRestart()
+        {
+            // Windows does not allow to delete a running .exe file, but it does
+            // allow moving it.
+            var filename = Assembly.GetEntryAssembly().Location;
+            if (File.Exists(filename + ".old"))
+            {
+                File.Delete(filename + ".old");
+            }
+            File.Move(filename, filename + ".old");
+
+            try
+            {
+                var webClient = new WebClient();
+                webClient.Headers.Add(HttpRequestHeader.Accept, "application/octet-stream");
+                webClient.Headers.Add(HttpRequestHeader.UserAgent, "request");
+                webClient.DownloadFile(assetTask.Result[0].Url, filename);
+            }
+            catch (Exception e)
+            {
+                // Roll back
+                File.Move(filename + ".old", filename);
+                throw e;
+            }
+            System.Windows.Forms.Application.Restart();
         }
 
         public Version UpdateVersion()
