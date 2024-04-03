@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -15,6 +16,8 @@ namespace StarDisplay
         public AboutDialog()
         {
             InitializeComponent();
+            var version = Assembly.GetEntryAssembly().GetName().Version;
+            richTextBox1.Text = richTextBox1.Text.Replace("?.?.?.?", version.ToString());
         }
 
         private void pictureBox1_Click(object sender, EventArgs e)
