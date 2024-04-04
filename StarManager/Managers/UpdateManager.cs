@@ -22,6 +22,14 @@ namespace StarDisplay
 
         public UpdateManager()
         {
+            var filename = Assembly.GetEntryAssembly().Location;
+            string oldTempName = MakeTemporaryName(filename, "-old");
+            try
+            {
+                File.Delete(oldTempName);
+            }
+            catch (Exception) { }
+
             version = Assembly.GetEntryAssembly().GetName().Version;
             using (RegistryKey softwareKey = Registry.CurrentUser.CreateSubKey("Software"),
                    sdKey = softwareKey.CreateSubKey("StarDisplay"))
@@ -87,30 +95,41 @@ namespace StarDisplay
             return assetTask.Result[0].BrowserDownloadUrl;
         }
 
+        private string MakeTemporaryName(string path, string comb)
+        {
+            // add 'comb' to the end of the file name skipping '.exe'
+            string ext = Path.GetExtension(path);
+            string name = Path.GetFileNameWithoutExtension(path);
+            return Path.Combine(Path.GetDirectoryName(path), name + comb + ext);
+        }
+
         public void UpdateAndRestart()
         {
             // Windows does not allow to delete a running .exe file, but it does
             // allow moving it.
             var filename = Assembly.GetEntryAssembly().Location;
-            if (File.Exists(filename + ".old"))
-            {
-                File.Delete(filename + ".old");
-            }
-            File.Move(filename, filename + ".old");
+            string newTempName = MakeTemporaryName(filename, "-new");
+            string oldTempName = MakeTemporaryName(filename, "-old");
 
             try
             {
-                var webClient = new WebClient();
-                webClient.Headers.Add(HttpRequestHeader.Accept, "application/octet-stream");
-                webClient.Headers.Add(HttpRequestHeader.UserAgent, "request");
-                webClient.DownloadFile(assetTask.Result[0].Url, filename);
+                File.Delete(newTempName);
             }
-            catch (Exception e)
+            catch (Exception) { }
+            try
             {
-                // Roll back
-                File.Move(filename + ".old", filename);
-                throw e;
+                File.Delete(oldTempName);
             }
+            catch (Exception) { }
+
+            var webClient = new WebClient();
+            webClient.Headers.Add(HttpRequestHeader.Accept, "application/octet-stream");
+            webClient.Headers.Add(HttpRequestHeader.UserAgent, "request");
+            webClient.DownloadFile(assetTask.Result[0].Url, newTempName);
+
+            File.Move(filename, oldTempName);
+            File.Move(newTempName, filename);
+
             System.Windows.Forms.Application.Restart();
         }
 
