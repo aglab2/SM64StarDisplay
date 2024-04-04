@@ -272,7 +272,14 @@ namespace StarDisplay
                             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
                             if (result == DialogResult.Yes)
                             {
-                                Process.Start(um.DownloadPath());
+                                try
+                                {
+                                    um.UpdateAndRestart();
+                                }
+                                catch (Exception)
+                                {
+                                    Process.Start(um.DownloadPath());
+                                }
                             }
                             if (result == DialogResult.Cancel)
                             {
