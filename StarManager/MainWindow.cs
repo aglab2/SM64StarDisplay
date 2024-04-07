@@ -352,7 +352,7 @@ namespace StarDisplay
                 {
                     slf.sm.dropFile = false;
                     mm.Stars = new byte[MemoryManager.FileLength];
-                    mm.WriteToFile(ld.starsShown);
+                    mm.WriteToFile(ld);
                     mm.isStarsInvalidated = true;
                 }
 
@@ -394,7 +394,7 @@ namespace StarDisplay
                             slf.sm.SendData(mm.Stars);
                         }
 
-                        mm.WriteToFile(ld.starsShown);
+                        mm.WriteToFile(ld);
                     }
                     if (!mm.IsDecomp)
                     {
@@ -778,7 +778,7 @@ namespace StarDisplay
                             {
                                 if ((sld.starMask & (byte)(1 << i)) != 0)
                                 {
-                                    mm.WriteToFile(sld.offset, i, ld.starsShown);
+                                    mm.WriteToFile(sld.offset, i, ld);
                                 }
                             }
                             InvalidateCache();
@@ -788,7 +788,7 @@ namespace StarDisplay
                     {
                         if ((sld.starMask & (byte)(1 << (star - 1))) != 0)
                         {
-                            mm.WriteToFile(sld.offset, star - 1, ld.starsShown);
+                            mm.WriteToFile(sld.offset, star - 1, ld);
                             InvalidateCache();
                         }
                     }
@@ -1195,7 +1195,7 @@ namespace StarDisplay
         {
             FlagsEditForm fef = new FlagsEditForm(mm.GetStars());
             fef.ShowDialog();
-            mm.WriteToFile(fef.stars, ld.starsShown);
+            mm.WriteToFile(fef.stars, ld);
             InvalidateCache();
         }
 

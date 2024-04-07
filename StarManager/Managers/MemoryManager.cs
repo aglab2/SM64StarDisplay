@@ -694,29 +694,42 @@ namespace StarDisplay
             base.InvalidateCache();
         }
 
-        public void FixStarCount(byte[] data, int maxShown)
+        public void FixStarCount(byte[] data, LayoutDescriptionEx ld)
         {
             if (isDecomp)
                 return;
 
-            int starCounter = countStars((byte)(data[0x8]), maxShown);
-            // Fix star counter
-            for (int i = 0xC; i <= 0x24; i++)
+            int starCount = 0;
+            for (int line = 0; line < ld.courseDescription.Count; line++)
             {
-                starCounter += countStars((byte)(data[i]), maxShown);
+                var descr = ld.courseDescription[line];
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
+
+                byte newStarByte = data[sld.offset];
+                starCount += countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
+            }
+            for (int line = 0; line < ld.secretDescription.Count; line++)
+            {
+                var descr = ld.secretDescription[line];
+                StarsLineDescription sld = descr as StarsLineDescription;
+                if (sld == null) continue;
+
+                byte newStarByte = data[sld.offset];
+                starCount += countStars((byte)(newStarByte & sld.starMask), ld.starsShown);
             }
 
-            Process.WriteBytes(starsCountPtr, new byte[] { (byte)starCounter });
+            Process.WriteBytes(starsCountPtr, new byte[] { (byte)starCount, (byte) (starCount >> 8) });
         }
 
-        public void WriteToFile(int offset, int bit, int maxShown)
+        public void WriteToFile(int offset, int bit, LayoutDescriptionEx ld)
         {
             byte[] stars = new byte[FileLength];
             Stars.CopyTo(stars, 0);
             
             stars[offset] = (byte) (stars[offset] ^ (byte)(1 << bit));
 
-            FixStarCount(stars, maxShown);
+            FixStarCount(stars, ld);
 
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
@@ -732,12 +745,12 @@ namespace StarDisplay
             isInvalidated = true;
         }
 
-        public void WriteToFile(byte[] data, int maxShown)
+        public void WriteToFile(byte[] data, LayoutDescriptionEx ld)
         {
             byte[] stars = data;
             if (stars == null) return;
 
-            FixStarCount(data, maxShown);
+            FixStarCount(data, ld);
             
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
@@ -748,12 +761,12 @@ namespace StarDisplay
             isInvalidated = true;
         }
 
-        public void WriteToFile(int maxShown)
+        public void WriteToFile(LayoutDescriptionEx ld)
         {
             byte[] stars = (byte[]) Stars.Clone();
             if (stars == null) return;
 
-            FixStarCount(stars, maxShown);
+            FixStarCount(stars, ld);
 
             for (int i = 0; i < FileLength; i += 4)
                 Array.Reverse(stars, i, 4);
