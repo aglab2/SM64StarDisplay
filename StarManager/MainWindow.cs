@@ -14,6 +14,7 @@ using System.Threading;
 using Newtonsoft.Json;
 using System.Drawing.Imaging;
 using System.Drawing.Drawing2D;
+using System.Threading.Tasks;
 
 namespace StarDisplay
 {
@@ -272,14 +273,21 @@ namespace StarDisplay
                             MessageBoxButtons.YesNoCancel, MessageBoxIcon.Asterisk);
                             if (result == DialogResult.Yes)
                             {
-                                try
+                                Task.Run(() =>
                                 {
-                                    um.UpdateAndRestart();
-                                }
-                                catch (Exception)
-                                {
-                                    Process.Start(um.DownloadPath());
-                                }
+                                    try
+                                    {
+                                        um.UpdateAndRestart();
+                                        SafeInvoke(() =>
+                                        {
+                                            Application.Restart();
+                                        });
+                                    }
+                                    catch (Exception)
+                                    {
+                                        Process.Start(um.DownloadPath());
+                                    }
+                                });
                             }
                             if (result == DialogResult.Cancel)
                             {

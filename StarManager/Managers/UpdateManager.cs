@@ -129,8 +129,6 @@ namespace StarDisplay
 
             File.Move(filename, oldTempName);
             File.Move(newTempName, filename);
-
-            System.Windows.Forms.Application.Restart();
         }
 
         public Version UpdateVersion()
