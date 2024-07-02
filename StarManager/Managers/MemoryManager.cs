@@ -222,7 +222,7 @@ namespace StarDisplay
                     ramPtrBaseSuggestions.Add(mupenRAMSuggestions[name]);
                 }
 
-                offset = 0x20;
+                offset = 0;
             }
 
             if (name.Contains("retroarch"))
