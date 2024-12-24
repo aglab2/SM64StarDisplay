@@ -85,7 +85,7 @@ namespace MIPSInterpreter
 
         static bool IsBZeroSize(int size)
         {
-            return size > 0 && size < 0x1000;
+            return size > 0 && size <= 0x8000;
         }
 
         public DecompManager(uint[] mem)
