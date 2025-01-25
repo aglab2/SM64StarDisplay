@@ -205,7 +205,8 @@ namespace StarDisplay
             "mupen64-rerecording-v2-reset",
             "mupen64",
             "retroarch",
-            "wine-preloader"
+            "wine-preloader",
+            "RMG"
         };
 
         private Process FindEmulatorProcess()

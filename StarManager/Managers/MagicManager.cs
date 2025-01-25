@@ -1,9 +1,11 @@
 ﻿using LiveSplit.ComponentUtil;
 using MIPSInterpreter;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -66,6 +68,27 @@ namespace StarDisplay
             PAGE_READONLY = 0x00000002,
             PAGE_READWRITE = 0x00000004,
             PAGE_WRITECOPY = 0x00000008,
+        }
+
+        // This only works for emulators that support Parallel RDP because they want a very aligned RDRAM
+        void ScanForRAM(ulong address, ulong size, ref bool isRamFound, ref ulong ramPtrBase)
+        {
+            ulong maxCnt = (ulong)size / 0x1000;
+            for (ulong num = 0; num < maxCnt; num++)
+            {
+                bool readSuccess = process.ReadValue(new IntPtr((long)(address + num * 0x1000)), out uint value);
+                if (readSuccess)
+                {
+                    if (!isRamFound && ((value & ramMagicMask) == ramMagic))
+                    {
+                        ramPtrBase = address + num * 0x1000;
+                        isRamFound = true;
+                    }
+                }
+
+                if (isRamFound)
+                    break;
+            }
         }
 
         public MagicManager(Process process, long[] romPtrBaseSuggestions, long[] ramPtrBaseSuggestions, int offset, bool exScan)
@@ -143,26 +166,39 @@ namespace StarDisplay
                         }
                     }
 
-                    // scan only large regions - we want to find g_rdram
+                    // Parallel: scan only large regions - we want to find g_rdram
                     ulong regionSize = (ulong)m.RegionSize;
                     if (parallelStart <= address && address <= parallelEnd && regionSize >= 0x800000)
                     {
-                        // g_rdram is aligned to 0x1000
-                        ulong maxCnt = (ulong) m.RegionSize / 0x1000;
-                        for (ulong num = 0; num < maxCnt; num++)
+                        ScanForRAM(address, (ulong) m.RegionSize, ref isRamFound, ref ramPtrBase);
+                    }
+
+                    // Modern mupen allocates a gigantic array with very strict alignment
+                    if (regionSize >= 0x100000000)
+                    {
+                        ScanForRAM(address, 0x20000, ref isRamFound, ref ramPtrBase);
+
+                        if (isRamFound)
                         {
-                            readSuccess = process.ReadValue(new IntPtr((long)(address + num * 0x1000)), out value);
-                            if (readSuccess)
+                            // rom is shifted from ram at exactly MM_CART_ROM=UINT32_C(0x10000000)
+                            if (!isRomFound)
                             {
-                                if (!isRamFound && ((value & ramMagicMask) == ramMagic))
+                                // Uncompressed allocation
+                                romPtrBase = ramPtrBase + 0x10000000;
+                                if (IsRomBaseValid())
                                 {
-                                    ramPtrBase = address + num * 0x1000;
-                                    isRamFound = true;
+                                    isRomFound = true;
                                 }
                             }
-
-                            if (isRamFound)
-                                break;
+                            if (!isRomFound)
+                            {
+                                // Compressed allocation
+                                romPtrBase = ramPtrBase + 0x800000;
+                                if (IsRomBaseValid())
+                                {
+                                    isRomFound = true;
+                                }
+                            }
                         }
                     }
                 }

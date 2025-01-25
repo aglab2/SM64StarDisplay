@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("https://github.com/aglab2/hacktice")]
 [assembly: AssemblyProduct("https://github.com/aglab2/SM64StarDisplay")]
-[assembly: AssemblyCopyright("Copyright © aglab2 2024")]
+[assembly: AssemblyCopyright("Copyright © aglab2 2025")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -32,5 +32,5 @@ using System.Runtime.InteropServices;
 // Можно задать все значения или принять номера сборки и редакции по умолчанию 
 // используя "*", как показано ниже:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.34.0")]
-[assembly: AssemblyFileVersion("1.34.0")]
+[assembly: AssemblyVersion("1.36.0")]
+[assembly: AssemblyFileVersion("1.36.0")]
