@@ -414,7 +414,15 @@ namespace StarDisplay
 
         int GetSecrets()
         {
+            //int gotSecrets = SearchObjects(GetBehaviourRAMAddress(0x56F8));
+            //Console.WriteLine("SECRETS COUNT = " + gotSecrets);
+            // works, but does not DISPLAY - see ROMManager.cs for that, a separate behavior search happens there
+            //return gotSecrets;
             return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
+
+            //return SearchObjectsByBehavCalls(0x802F31BC, 0); // bhv_hidden_star_trigger_loop
+                // TODO: chokes on [80]/[00]401700, a non-bank 13 object for something special that exists in every level;
+                // we get a null from reading around there + in Quad64 no behav or geo or any script at all
         }
 
         int GetActivePanels()
@@ -685,6 +693,123 @@ namespace StarDisplay
                     break;
             }
             //Console.WriteLine();
+            return count;
+        }
+
+        public int SearchObjectsByBehavCalls(UInt32 searchBehavLikeCall, UInt32 state)
+        {
+            int count = 0;
+
+            UInt32 address = 0x33D488;
+
+            for (int i = 0; i < 300 /*obj limit*/; i++)
+            {
+                IntPtr currentObjectPtr = new IntPtr((long)(mm.ramPtrBase + address));
+                byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
+                if (data is null)
+                    break;
+
+                UInt32 active = BitConverter.ToUInt32(data, 0x74);
+                if (active != 0)
+                {
+                    UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
+                    IntPtr currentObjectBehavScriptStartPtr = new IntPtr(behaviour);
+                    //UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
+                    //UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
+
+                    // Read the behav script for the current object, 4 bytes at a time (all documented behav commands have lengths divisible by 4).
+                    // If it contains, in a loop, an ASM call to the specified function address, consider it valid for the searched purpose
+                    // (e.g. SS4 - secrets with a custom model and spin, but reusing the vanilla bhv_hidden_star_trigger_loop.)
+                    #region 20 million comments on reading behav scripts properly
+                    // (based on the vanilla list of behav scripts https://hack64.net/wiki/doku.php?id=sm64:list_of_behaviors)
+                    // 
+                    // How to know when to stop reading (script end)?
+                    // a) Consider a new script started when a line is read like: 00 XX 00 00 (XX >= 01 && XX <= 0C).
+                    // XX = 00 is Mario only, he's not a collectible, we don't care.
+                    // Lines 00 XX 00 00 with XX > 0C are likely to be parameters to earlier commands, so we should avoid them too.
+                    // (FIXME?: this also means that we "expect" 01-0C to never be used as valid parameters to legitimate commands...)
+                    // Have to react retroactively that this is a new line having started.
+                    // 
+                    // b) Account for all possible legitimate commands that end a script.
+                    // Naively: we should look for: 03 (weird return), 04 (jump script), 09 (loop end), 0A (end script), 1D (deactivate).
+                    // Assume for all of these that they are used as XX 00 00 00 and that nothing else will accidentally produce a 4-byte line like that
+                    // (see note about parameters in a).
+                    // NOT 02 (jump and link?); it is NEVER found at the end of a behavior.
+                    // 
+                    // c) Encode skipping of the appropriate number of bytes for commands with length 0x8 or 0xC instead of 0x4.
+                    // Then only check first byte for 08, then 0C (handle actual search here), until 09.
+                    // This assumes the list of commands to be fixed, complete and accurate.
+                    // 
+                    // MORE NOTES:
+                    // - Ignoring the few cases of bad lines/commands that don't make sense (such as scripts that are 4 lines of 0A 00 00 00)
+                    // as too specific or straight up invalid to use in game.
+                    // - 09 == end of script, ONLY EXCEPT FOR Breakable Box where 09 00 00 00 is followed with 0A 00 00 00 at the end.
+                    // Doesn't matter anyway - we don't need the actual script end after a 09,
+                    // because this function goes to next object via obj->0x8 anyway (see bottom of this function).
+                    #endregion
+                    int scriptLinePtr = 0x0;
+                    int loopLinePtr = 0x4;
+                    bool isDoneWithThisScript = false;
+                    while (true)
+                    {
+                        // via approach c) - for cmds with length > 4, ignore the extra bytes by jumping forward
+                        // length 8: 02, 04, 0C (inspect specially!), 13, 14, 15, 16, 17, 23, 27, 2A, 2E, 2F, 31, 33, 36, 37
+                        // length C: 1C, 29, 2B, 2C
+                        // length other: 30 (0x14)
+                        byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
+                        if (behavScriptLineBytes[0] == 0x02 || behavScriptLineBytes[0] == 0x04 ||
+                            behavScriptLineBytes[0] == 0x13 || behavScriptLineBytes[0] == 0x14 ||
+                            behavScriptLineBytes[0] == 0x15 || behavScriptLineBytes[0] == 0x16 ||
+                            behavScriptLineBytes[0] == 0x17 || behavScriptLineBytes[0] == 0x23 ||
+                            behavScriptLineBytes[0] == 0x27 || behavScriptLineBytes[0] == 0x2A ||
+                            behavScriptLineBytes[0] == 0x2E || behavScriptLineBytes[0] == 0x2F ||
+                            behavScriptLineBytes[0] == 0x31 || behavScriptLineBytes[0] == 0x33 ||
+                            behavScriptLineBytes[0] == 0x36 || behavScriptLineBytes[0] == 0x37)
+                            scriptLinePtr += 0x4;
+                        else if (behavScriptLineBytes[0] == 0x1C || behavScriptLineBytes[0] == 0x29 ||
+                            behavScriptLineBytes[0] == 0x2B || behavScriptLineBytes[0] == 0x2C)
+                            scriptLinePtr += 0x8;
+                        else if (behavScriptLineBytes[0] == 0x30)
+                            scriptLinePtr += 0x10;
+
+                        if (behavScriptLineBytes[0] == 0x08)
+                        {
+                            // read an unknown number of cmds before finding a 0x09, seek 0x0C and ignore the rest (keep reading)
+                            while (true)
+                            {
+                                byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
+                                if (loopedCmdBytes[0] == 0x09)
+                                {
+                                    isDoneWithThisScript = true;
+                                    break;
+                                }
+                                else if (loopedCmdBytes[0] == 0x0C)
+                                {
+                                    byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
+                                    if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall) count++;
+                                    // no break because there may be multiple 0C cmds in the same loop.
+                                    // still, 0C is of length 0x8, so don't forget to offset extra
+                                    loopLinePtr += 0x4;
+                                }
+
+                                // FIXME: assumes that all non-0xC calls used inside a 0x08 loop are of length 0x4.
+                                // dirtiest but most brainless fix would be to copy the huge ifs from above
+                                loopLinePtr += 0x4;
+                            }
+                        }
+                        else scriptLinePtr += 0x4;
+
+                        if (isDoneWithThisScript)
+                            break;
+                    }
+                    
+                    // && scriptParameter == state
+                }
+
+                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
+                if (address == 0x33D488 || address == 0)
+                    break;
+            }
             return count;
         }
 
