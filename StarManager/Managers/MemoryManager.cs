@@ -429,15 +429,15 @@ namespace StarDisplay
 
         int GetSecrets()
         {
+            // or now we SHOULD be able to do specifically SearchObjects(0x80000000 + SegmentedToAddress(0x13003F1C)) to the same effect... what a big win
+            //return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
             //int gotSecrets = SearchObjects(GetBehaviourRAMAddress(0x56F8));
-            //Console.WriteLine("SECRETS COUNT = " + gotSecrets);
-            // works, but does not DISPLAY - see ROMManager.cs for that, a separate behavior search happens there
-            //return gotSecrets;
-            return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
 
-            //return SearchObjectsByBehavCalls(0x802F31BC, 0); // bhv_hidden_star_trigger_loop
-                // TODO: chokes on [80]/[00]401700, a non-bank 13 object for something special that exists in every level;
-                // we get a null from reading around there + in Quad64 no behav or geo or any script at all
+            int gotSecrets = SearchObjectsByBehavCalls(0x802F31BC, 0); // bhv_hidden_star_trigger_loop
+
+            // works, but does not DISPLAY - see ROMManager.cs for that, a separate behavior search happens there
+            Console.WriteLine("SECRETS COUNT = " + gotSecrets);
+            return gotSecrets;
         }
 
         int GetActivePanels()
@@ -728,7 +728,9 @@ namespace StarDisplay
                 if (active != 0)
                 {
                     UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
-                    IntPtr currentObjectBehavScriptStartPtr = new IntPtr(behaviour);
+                    // behaviour: offset from ramPtrBase and not from 0x80000000 (credit aglab)
+                    // trimming the leading 80: after BitConverter we are somehow in big endian, so the following bit shifts are valid
+                    IntPtr currentObjectBehavScriptStartPtr = new IntPtr((long)(mm.ramPtrBase + (((behaviour << 8) >> 8) & 0x00FFFFFF)));
                     //UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
                     //UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
 
@@ -765,42 +767,50 @@ namespace StarDisplay
                     int scriptLinePtr = 0x0;
                     int loopLinePtr = 0x4;
                     bool isDoneWithThisScript = false;
+
                     while (true)
                     {
+                        // now start reading "line by line". !! reading in little endian, so for checking cmd byte check [3] instead of [0] !!
                         // via approach c) - for cmds with length > 4, ignore the extra bytes by jumping forward
-                        // length 8: 02, 04, 0C (inspect specially!), 13, 14, 15, 16, 17, 23, 27, 2A, 2E, 2F, 31, 33, 36, 37
+                        // length 8: 02, 04, 0C (do skip if not in loop!!), 13, 14, 15, 16, 17, 23, 27, 2A, 2E, 2F, 31, 33, 36, 37
                         // length C: 1C, 29, 2B, 2C
                         // length other: 30 (0x14)
+
                         byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
-                        if (behavScriptLineBytes[0] == 0x02 || behavScriptLineBytes[0] == 0x04 ||
-                            behavScriptLineBytes[0] == 0x13 || behavScriptLineBytes[0] == 0x14 ||
-                            behavScriptLineBytes[0] == 0x15 || behavScriptLineBytes[0] == 0x16 ||
-                            behavScriptLineBytes[0] == 0x17 || behavScriptLineBytes[0] == 0x23 ||
-                            behavScriptLineBytes[0] == 0x27 || behavScriptLineBytes[0] == 0x2A ||
-                            behavScriptLineBytes[0] == 0x2E || behavScriptLineBytes[0] == 0x2F ||
-                            behavScriptLineBytes[0] == 0x31 || behavScriptLineBytes[0] == 0x33 ||
-                            behavScriptLineBytes[0] == 0x36 || behavScriptLineBytes[0] == 0x37)
+                        //Console.WriteLine("{0:x}", BitConverter.ToUInt32(behavScriptLineBytes, 0x0));
+                        //if (behavScriptLineBytes == null) break;    // unsure if this fixes anything now
+
+                        if (behavScriptLineBytes[3] == 0x02 || behavScriptLineBytes[3] == 0x04 ||
+                            behavScriptLineBytes[3] == 0x13 || behavScriptLineBytes[3] == 0x14 ||
+                            behavScriptLineBytes[3] == 0x15 || behavScriptLineBytes[3] == 0x16 ||
+                            behavScriptLineBytes[3] == 0x17 || behavScriptLineBytes[3] == 0x23 ||
+                            behavScriptLineBytes[3] == 0x27 || behavScriptLineBytes[3] == 0x2A ||
+                            behavScriptLineBytes[3] == 0x2E || behavScriptLineBytes[3] == 0x2F ||
+                            behavScriptLineBytes[3] == 0x31 || behavScriptLineBytes[3] == 0x33 ||
+                            behavScriptLineBytes[3] == 0x36 || behavScriptLineBytes[3] == 0x37)
                             scriptLinePtr += 0x4;
-                        else if (behavScriptLineBytes[0] == 0x1C || behavScriptLineBytes[0] == 0x29 ||
-                            behavScriptLineBytes[0] == 0x2B || behavScriptLineBytes[0] == 0x2C)
+                        else if (behavScriptLineBytes[3] == 0x1C || behavScriptLineBytes[3] == 0x29 ||
+                            behavScriptLineBytes[3] == 0x2B || behavScriptLineBytes[3] == 0x2C)
                             scriptLinePtr += 0x8;
-                        else if (behavScriptLineBytes[0] == 0x30)
+                        else if (behavScriptLineBytes[3] == 0x30)
                             scriptLinePtr += 0x10;
 
-                        if (behavScriptLineBytes[0] == 0x08)
+                        if (behavScriptLineBytes[3] == 0x08)
                         {
                             // read an unknown number of cmds before finding a 0x09, seek 0x0C and ignore the rest (keep reading)
                             while (true)
                             {
                                 byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
-                                if (loopedCmdBytes[0] == 0x09)
+                                //Console.WriteLine("{0:x}", BitConverter.ToUInt32(loopedCmdBytes, 0x0));
+                                if (loopedCmdBytes[3] == 0x09)
                                 {
                                     isDoneWithThisScript = true;
                                     break;
                                 }
-                                else if (loopedCmdBytes[0] == 0x0C)
+                                else if (loopedCmdBytes[3] == 0x0C)
                                 {
                                     byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
+                                    //Console.WriteLine("{0:x}", BitConverter.ToUInt32(calledASMBytes, 0x0));
                                     if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall) count++;
                                     // no break because there may be multiple 0C cmds in the same loop.
                                     // still, 0C is of length 0x8, so don't forget to offset extra
