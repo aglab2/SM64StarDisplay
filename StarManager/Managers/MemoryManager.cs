@@ -781,6 +781,7 @@ namespace StarDisplay
                         //if (behavScriptLineBytes == null) break;    // unsure if this fixes anything now
 
                         if (behavScriptLineBytes[3] == 0x02 || behavScriptLineBytes[3] == 0x04 ||
+                            behavScriptLineBytes[3] == 0x0C ||
                             behavScriptLineBytes[3] == 0x13 || behavScriptLineBytes[3] == 0x14 ||
                             behavScriptLineBytes[3] == 0x15 || behavScriptLineBytes[3] == 0x16 ||
                             behavScriptLineBytes[3] == 0x17 || behavScriptLineBytes[3] == 0x23 ||
