@@ -293,6 +293,21 @@ namespace StarDisplay
             catch (Exception) { }
         }
 
+        public uint SegmentedToAddress(uint segmentedAddr)
+        {
+            // the following is sort of a mirror of decomp segmented_to_virtual from memory.c
+            uint segment = (segmentedAddr >> 24) & 0x000000FF;  // ensure the leading bytes are zeroes, compare C# operators >> vs >>>(from C# 11)
+            uint offset = segmentedAddr & 0x00FFFFFF;
+
+            // some custom behaviors (e.g. in SR3.5, SM64DL) appear with ID in 0x8040.... region.
+            // this can't be regular segmented... but is returning the raw address a sane response?
+            if (segment == 0x80) return segmentedAddr;
+
+            // 8033B400 = segment table in US binary rom; unsure if meaningful in decomp
+            // (namely, this function only applies there when #ifndef NO_SEGMENTED_MEMORY)
+            return Process.ReadValue<uint>(new IntPtr((long)(mm.ramPtrBase + 0x33B400 + 4 * segment))) + offset;
+        }
+
         public void PerformRead()
         {
             Igt = Process.ReadValue<int>(igtPtr);
