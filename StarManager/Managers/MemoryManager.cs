@@ -293,21 +293,6 @@ namespace StarDisplay
             catch (Exception) { }
         }
 
-        public uint SegmentedToAddress(uint segmentedAddr)
-        {
-            // the following is sort of a mirror of decomp segmented_to_virtual from memory.c
-            uint segment = (segmentedAddr >> 24) & 0x000000FF;  // ensure the leading bytes are zeroes, compare C# operators >> vs >>>(from C# 11)
-            uint offset = segmentedAddr & 0x00FFFFFF;
-
-            // some custom behaviors (e.g. in SR3.5, SM64DL) appear with ID in 0x8040.... region.
-            // this can't be regular segmented... but is returning the raw address a sane response?
-            if (segment == 0x80) return segmentedAddr;
-
-            // 8033B400 = segment table in US binary rom; unsure if meaningful in decomp
-            // (namely, this function only applies there when #ifndef NO_SEGMENTED_MEMORY)
-            return Process.ReadValue<uint>(new IntPtr((long)(mm.ramPtrBase + 0x33B400 + 4 * segment))) + offset;
-        }
-
         public void PerformRead()
         {
             Igt = Process.ReadValue<int>(igtPtr);
@@ -420,6 +405,23 @@ namespace StarDisplay
             return Reds;
         }
 
+        public uint SegmentedToVirtual(uint segmentedAddr)
+        {
+            // the following is a mirror of decomp segmented_to_virtual from memory.c
+            uint segment = (segmentedAddr >> 24) & 0x000000FF;  // ensure the leading bytes are zeroes, compare C# operators >> vs >>>(from C# 11)
+            uint offset = segmentedAddr & 0x00FFFFFF;
+
+            // don't bother parsing for invalid segments (for example, 0x80... address is not segmented)
+            if (segment > 0x1F) return segmentedAddr;
+
+            // 8033B400 = segment table in US binary rom; unsure if meaningful in decomp
+            // (namely, this function only applies there when #ifndef NO_SEGMENTED_MEMORY)
+            // 
+            // some custom behaviors (e.g. in SR3.5, SM64DL) appear to be written "segmented" as 0x0040.... region.
+            // those should be returned properly by this (0x8040... commonly used custom binary region)
+            return (Process.ReadValue<uint>(new IntPtr((long)(mm.ramPtrBase + 0x33B400 + 4 * segment))) + offset) | 0x80000000;
+        }
+
         public uint GetBehaviourRAMAddress(uint behav) // only bank 13 for now
         {
             uint bank13RamStart = Process.ReadValue<uint>(bank13RamStartPtr);
@@ -429,7 +431,7 @@ namespace StarDisplay
 
         int GetSecrets()
         {
-            // or now we SHOULD be able to do specifically SearchObjects(0x80000000 + SegmentedToAddress(0x13003F1C)) to the same effect... what a big win
+            // can do EITHER SearchObjects(SegmentedToAddress(0x13003F1C)) OR the below function, should be the same effect... big win
             //return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
             //int gotSecrets = SearchObjects(GetBehaviourRAMAddress(0x56F8));
 
