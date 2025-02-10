@@ -431,14 +431,7 @@ namespace StarDisplay
 
         int GetSecrets()
         {
-            // can do EITHER SearchObjects(SegmentedToAddress(0x13003F1C)) OR the below function, should be the same effect... big win
-            //return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
-            //int gotSecrets = SearchObjects(GetBehaviourRAMAddress(0x56F8));
-
             int gotSecrets = SearchObjectsByBehavCalls(0x802F31BC, 0); // bhv_hidden_star_trigger_loop
-
-            // works, but does not DISPLAY - see ROMManager.cs for that, a separate behavior search happens there
-            Console.WriteLine("SECRETS COUNT = " + gotSecrets);
             return gotSecrets;
         }
 
@@ -787,7 +780,6 @@ namespace StarDisplay
                             // via approach c) - for cmds with length > 4, ignore the extra bytes by jumping forward
 
                             byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
-                            //Console.WriteLine("{0:x}", BitConverter.ToUInt32(behavScriptLineBytes, 0x0));
                             //if (behavScriptLineBytes == null) break;    // unsure if this fixes anything now
 
                             // advance past the "parameter" bytes if the cmd is not of interest
@@ -800,7 +792,6 @@ namespace StarDisplay
                                 while (true)
                                 {
                                     byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
-                                    //Console.WriteLine("{0:x}", BitConverter.ToUInt32(loopedCmdBytes, 0x0));
                                     if (loopedCmdBytes[3] == 0x09)
                                     {
                                         isDoneWithThisScript = true;
@@ -809,7 +800,6 @@ namespace StarDisplay
                                     else if (loopedCmdBytes[3] == 0x0C)
                                     {
                                         byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
-                                        //Console.WriteLine("{0:x}", BitConverter.ToUInt32(calledASMBytes, 0x0));
                                         if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall)
                                         {
                                             isSearchedCall = true;
