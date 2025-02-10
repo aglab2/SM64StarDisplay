@@ -57,17 +57,6 @@ namespace StarDisplay
         private const int NetStateCtlLength = 0x60;
         private const int NetEnabledOff = 0x0;
 
-        Dictionary<uint, int> behavCmdLengths = new Dictionary<uint, int>()
-            { 
-                { 0x02, 0x8 }, { 0x04, 0x8 }, { 0x0C, 0x8 }, { 0x13, 0x8 },
-                { 0x14, 0x8 }, { 0x15, 0x8 }, { 0x16, 0x8 }, { 0x17, 0x8 },
-                { 0x23, 0x8 }, { 0x27, 0x8 }, { 0x2A, 0x8 }, { 0x2E, 0x8 },
-                { 0x2F, 0x8 }, { 0x31, 0x8 }, { 0x33, 0x8 }, { 0x36, 0x8 },
-                { 0x37, 0x8 },
-                { 0x1C, 0xC }, { 0x29, 0xC }, { 0x2B, 0xC }, { 0x2C, 0xC },
-                { 0x30, 0x14 }
-            };
-
         Process Process;
         MagicManager mm;
 
@@ -802,8 +791,8 @@ namespace StarDisplay
                             //if (behavScriptLineBytes == null) break;    // unsure if this fixes anything now
 
                             // advance past the "parameter" bytes if the cmd is not of interest
-                            if (behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
-                                scriptLinePtr += behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
+                            if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
+                                scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
 
                             if (behavScriptLineBytes[3] == 0x08)
                             {
@@ -829,8 +818,8 @@ namespace StarDisplay
                                     }
 
                                     // also advance past "parameter" bytes in looped commands (they MAY be longer than 0x4)
-                                    if (behavCmdLengths.ContainsKey(loopedCmdBytes[3]))
-                                        loopLinePtr += behavCmdLengths[loopedCmdBytes[3]] - 0x4;
+                                    if (SM64CmdHelpers.behavCmdLengths.ContainsKey(loopedCmdBytes[3]))
+                                        loopLinePtr += SM64CmdHelpers.behavCmdLengths[loopedCmdBytes[3]] - 0x4;
 
                                     loopLinePtr += 0x4;
                                 }
