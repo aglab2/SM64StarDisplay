@@ -171,6 +171,13 @@ namespace StarDisplay
             return reader.ReadBytes(3);
         }
 
+        // level cmd 24 18 ... [BS BS BS BS] - BS read in full. useful if you will pass it indiscriminately into a BitConverter 4-byte read.
+        private byte[] ReadBehaviourFullAddr(int offset)
+        {
+            reader.BaseStream.Position = offset + 0x14;
+            return reader.ReadBytes(4);
+        }
+
         private byte ReadBParam1(int offset)
         {
             reader.BaseStream.Position = offset + 0x10;
@@ -359,12 +366,8 @@ namespace StarDisplay
                                 continue;
                         }
 
-                        byte[] behaviourRead = ReadBehaviour(offset);   // read assumes bank 13 and skips the segment byte
-                        // HACK
-                        byte[] behaviour = new byte[4];
-                        Array.Copy(behaviourRead, 0, behaviour, 1, behaviourRead.Length);
-                        // HACK END -- BitConverter DOES NOT work with 3-byte arrays, it throws.
-                        // however, I have no idea why the exception only logged in VS debug output instead of throwing any violently.
+                        // BitConverter throws with a too small array, so just read the entire address.
+                        byte[] behaviour = ReadBehaviourFullAddr(offset);   // gets the segment byte for free (we assume 13 here anyway!)
                         uint behaviourPtr = SwapBytes(BitConverter.ToUInt32(behaviour, 0x0));
                         uint behaviourROMPtr = Bank13_BehavSegmentedToROM(behaviourPtr);
 
