@@ -95,5 +95,11 @@ namespace StarDisplay
                 { 0x1C, 0xC }, { 0x29, 0xC }, { 0x2B, 0xC }, { 0x2C, 0xC },
                 { 0x30, 0x14 }
             };
+
+        public static HashSet<uint> behavTerminatingCmds = new HashSet<uint>()
+            {
+                { 0x03 }, { 0x04 }, { 0x09 }, { 0x0A }, { 0x1D }
+                // NOT 02 (jump and link?); it is NEVER found at the end of a (vanilla) behavior.
+            };
     }
 }

@@ -782,6 +782,12 @@ namespace StarDisplay
                             byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
                             //if (behavScriptLineBytes == null) break;    // unsure if this fixes anything now
 
+                            // This catches behav scripts that end on a jump away, and "malformed" scripts
+                            // (such as the "WARPS" that are a bunch of 0A 00 00 00s).
+                            // The idea is to never "leak" into reading a different script than the one started.
+                            if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[3]))
+                                isDoneWithThisScript = true;
+
                             // advance past the "parameter" bytes if the cmd is not of interest
                             if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
                                 scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
