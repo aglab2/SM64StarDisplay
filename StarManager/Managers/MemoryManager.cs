@@ -828,67 +828,53 @@ namespace StarDisplay
                     UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
                     UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
 
-                    // "state", param exists for panels - if not requested OR not matching, don't bother reading the actual behavior
-                    if (state != 0 && scriptParameter != state)
-                        continue;
+                    // behavs here should not be cached because we are reading active state, so shouldn't read from "remembered" values.
+                    // for some reason, trying to short circuit through the states that definitely don't match
+                    // (if (scriptParameter != state) continue;) doesn't work.
 
-                    if (cachedBehaviours.ContainsKey(behaviour))
+                    IntPtr currentObjectBehavScriptStartPtr = new IntPtr((long)(mm.ramPtrBase + (((behaviour << 8) >> 8) & 0x00FFFFFF)));
+
+                    int scriptLinePtr = 0x0;
+                    int loopLinePtr = 0x4;
+                    bool isDoneWithThisScript = false;
+
+                    while (true)
                     {
-                        if (cachedBehaviours[behaviour] == true) count++;
-                    }
-                    else
-                    {
-                        IntPtr currentObjectBehavScriptStartPtr = new IntPtr((long)(mm.ramPtrBase + (((behaviour << 8) >> 8) & 0x00FFFFFF)));
+                        byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
 
-                        int scriptLinePtr = 0x0;
-                        int loopLinePtr = 0x4;
-                        bool isDoneWithThisScript = false;
-                        bool isSearchedCall = false;
+                        if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[3]))
+                            isDoneWithThisScript = true;
 
-                        while (true)
+                        if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
+                            scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
+
+                        if (behavScriptLineBytes[3] == 0x08)
                         {
-                            byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
-
-                            if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[3]))
-                                isDoneWithThisScript = true;
-
-                            if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
-                                scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
-
-                            if (behavScriptLineBytes[3] == 0x08)
+                            while (true)
                             {
-                                while (true)
+                                byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
+                                if (loopedCmdBytes[3] == 0x09)
                                 {
-                                    byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
-                                    if (loopedCmdBytes[3] == 0x09)
-                                    {
-                                        isDoneWithThisScript = true;
-                                        break;
-                                    }
-                                    else if (loopedCmdBytes[3] == 0x0C)
-                                    {
-                                        byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
-                                        if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall)
-                                        {
-                                            isSearchedCall = true;
-                                            count++;
-                                        }
-                                    }
-
-                                    if (SM64CmdHelpers.behavCmdLengths.ContainsKey(loopedCmdBytes[3]))
-                                        loopLinePtr += SM64CmdHelpers.behavCmdLengths[loopedCmdBytes[3]] - 0x4;
-
-                                    loopLinePtr += 0x4;
+                                    isDoneWithThisScript = true;
+                                    break;
                                 }
-                            }
-                            else scriptLinePtr += 0x4;
+                                else if (loopedCmdBytes[3] == 0x0C)
+                                {
+                                    byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
+                                    if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall && scriptParameter == state)
+                                        count++;
+                                }
 
-                            if (isDoneWithThisScript)
-                            {
-                                cachedBehaviours.Add(behaviour, isSearchedCall);
-                                break;
+                                if (SM64CmdHelpers.behavCmdLengths.ContainsKey(loopedCmdBytes[3]))
+                                    loopLinePtr += SM64CmdHelpers.behavCmdLengths[loopedCmdBytes[3]] - 0x4;
+
+                                loopLinePtr += 0x4;
                             }
                         }
+                        else scriptLinePtr += 0x4;
+
+                        if (isDoneWithThisScript)
+                            break;
                     }
                 }
 
