@@ -62,13 +62,22 @@ namespace MIPSInterpreter
             return list;
         }
 
-        static readonly uint[] BZero = new uint[]
+        static readonly uint[] BZero1 = new uint[]
         {
             0x28A1000C, 0x1420001D, 0x00041823, 0x30630003, 0x10600003, 0x00A32823, 0xA8800000, 0x00832021,
             0x2401FFE0, 0x00A13824, 0x10E0000C, 0x00A72823, 0x00E43821, 0x24840020, 0xAC80FFE0, 0xAC80FFE4,
             0xAC80FFE8, 0xAC80FFEC, 0xAC80FFF0, 0xAC80FFF4, 0xAC80FFF8, 0x1487FFF7, 0xAC80FFFC, 0x2401FFFC,
             0x00A13824, 0x10E00005, 0x00A72823, 0x00E43821, 0x24840004, 0x1487FFFE, 0xAC80FFFC, 0x18A00005,
             0x00000000, 0x00A42821, 0x24840001, 0x1485FFFE, 0xA080FFFF, 0x03E00008, 0x00000000,
+        };
+
+        static readonly uint[] BZero2 = new uint[]
+        {
+            0x00041823, 0x28A1000C, 0x1420001D, 0x00000000, 0x30630003, 0x10600003, 0x00A32823, 0xA8800000,
+            0x00832021, 0x2401FFE0, 0x00A13824, 0x10E0000C, 0x00A72823, 0x00E43821, 0xAC800000, 0xAC800004,
+            0xAC800008, 0xAC80000C, 0x24840020, 0xAC80FFF0, 0xAC80FFF4, 0xAC80FFF8, 0x1487FFF7, 0xAC80FFFC,
+            0x2401FFFC, 0x00A13824, 0x10E00005, 0x00A72823, 0x00E43821, 0x24840004, 0x1487FFFE, 0xAC80FFFC,
+            0x18A00005, 0x00000000, 0x00A42821, 0x24840001, 0x1485FFFE, 0xA080FFFF, 0x03E00008, 0x00000000,
         };
 
         static bool IsVAddr(uint addr)
@@ -91,7 +100,9 @@ namespace MIPSInterpreter
         public DecompManager(uint[] mem)
         {
             uint instructionsToInterpretCount = 16;
-            List<int> bzeroPositions = IndicesOf(mem, BZero);
+            List<int> bzero1Positions = IndicesOf(mem, BZero1);
+            List<int> bzero2Positions = IndicesOf(mem, BZero2);
+            List<int> bzeroPositions = bzero1Positions.Concat(bzero2Positions).ToList();
             if (bzeroPositions.Count() == 0)
                 throw new ArgumentException("Failed to find bzero!");
 
