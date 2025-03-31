@@ -55,7 +55,7 @@ namespace StarDisplay
 
         int layoutOff = 0;
 
-        byte[] otherStars = new byte[MemoryManager.FileLength];
+        byte[] otherStars = null;
         
         public MainWindow()
         {
@@ -360,7 +360,7 @@ namespace StarDisplay
                 if (smIsInvalidated && slf.sm.dropFile)
                 {
                     slf.sm.dropFile = false;
-                    mm.Stars = new byte[MemoryManager.FileLength];
+                    mm.Stars = new byte[mm.FileLength];
                     mm.WriteToFile(ld);
                     mm.isStarsInvalidated = true;
                 }
@@ -388,7 +388,7 @@ namespace StarDisplay
                         byte[] stars = slf.sm.AcquiredData;
 
                         bool shouldSendHelp = false;
-                        for (int i = 0; i < stars.Count(); i++)
+                        for (int i = 0; i < Math.Min(stars.Count(), mm.Stars.Count()); i++)
                         {
                             byte diff = (byte)(mm.Stars[i] ^ stars[i]);
                             if ((mm.Stars[i] & diff) != 0)
@@ -1316,7 +1316,7 @@ namespace StarDisplay
         {
             if (slf == null || slf.isClosed)
             {
-                slf = new SyncLoginForm();
+                slf = new SyncLoginForm(mm);
                 slf.Show();
             }
         }
@@ -1330,7 +1330,7 @@ namespace StarDisplay
 
         private void clearOtherPlayerScoreToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            otherStars = new byte[MemoryManager.FileLength];
+            otherStars = new byte[mm.FileLength];
         }
 
         private void enableClickToWarpToolStripMenuItem_Click(object sender, EventArgs e)

@@ -51,7 +51,7 @@ namespace StarDisplay
             }
         }
 
-        public const int FileLength = 0x70;
+        public int FileLength = 0x70;
         private const int MarioStateOff = 0x18;
         private const int MarioStateLength = 0x34;
         private const int NetStateCtlLength = 0x60;
@@ -246,6 +246,7 @@ namespace StarDisplay
             filesPtr[1] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 1));
             filesPtr[2] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 2));
             filesPtr[3] = new IntPtr((long)(mm.ramPtrBase + (ulong)mm.saveBufferOffset + (ulong)mm.saveFileSize * 2 * 3));
+            FileLength = mm.saveFileSize * 2;
 
             levelPtr = new IntPtr((long)(mm.ramPtrBase + 0x32DDFA));
             areaPtr = new IntPtr((long)(mm.ramPtrBase + 0x33B249));
