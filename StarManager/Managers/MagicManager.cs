@@ -71,17 +71,19 @@ namespace StarDisplay
         }
 
         // This only works for emulators that support Parallel RDP because they want a very aligned RDRAM
-        void ScanForRAM(ulong address, ulong size, ref bool isRamFound, ref ulong ramPtrBase)
+        void ScanForRAM(ulong address, ulong size, ulong delim, ref bool isRamFound, ref ulong ramPtrBase)
         {
-            ulong maxCnt = (ulong)size / 0x1000;
-            for (ulong num = 0; num < maxCnt; num++)
+            ulong addressAlignedStart = (address + delim - 1) / delim * delim;
+            ulong addressAlignedEnd   = (address + size) / delim * delim;
+
+            for (ulong probe = addressAlignedStart; probe <= addressAlignedEnd; probe += delim)
             {
-                bool readSuccess = process.ReadValue(new IntPtr((long)(address + num * 0x1000)), out uint value);
+                bool readSuccess = process.ReadValue(new IntPtr((long)probe), out uint value);
                 if (readSuccess)
                 {
                     if (!isRamFound && ((value & ramMagicMask) == ramMagic))
                     {
-                        ramPtrBase = address + num * 0x1000;
+                        ramPtrBase = probe;
                         isRamFound = true;
                     }
                 }
@@ -170,13 +172,18 @@ namespace StarDisplay
                     ulong regionSize = (ulong)m.RegionSize;
                     if (parallelStart <= address && address <= parallelEnd && regionSize >= 0x800000)
                     {
-                        ScanForRAM(address, (ulong) m.RegionSize, ref isRamFound, ref ramPtrBase);
+                        ScanForRAM(address, (ulong) m.RegionSize, 0x1000, ref isRamFound, ref ramPtrBase);
+                    }
+
+                    if (parallelStart != 0 && regionSize >= 0x800000)
+                    {
+                        ScanForRAM(address, (ulong)m.RegionSize, 0x4000000, ref isRamFound, ref ramPtrBase);
                     }
 
                     // Modern mupen allocates a gigantic array with very strict alignment
                     if (regionSize >= 0x100000000)
                     {
-                        ScanForRAM(address, 0x20000, ref isRamFound, ref ramPtrBase);
+                        ScanForRAM(address, 0x20000, 0x1000, ref isRamFound, ref ramPtrBase);
 
                         if (isRamFound)
                         {
