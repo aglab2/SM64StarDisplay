@@ -47,11 +47,13 @@ namespace StarDisplay
 
         static byte[] bossMIPSBehaviour = { 0x00, 0x44, 0xFC };
 
-        //static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
+        // default behav script addresses here; a hack (*cough* SS4 *cough*) may use others.
+        // loop call addrs here are only to search for those others
+        static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
         static uint redsBehavLoopCall = 0x802F2F2C;
-        //static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
+        static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
         static uint secretsBehavLoopCall = 0x802F31BC;
-        //static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
+        static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
         static uint flipswitchBehavLoopCall = 0x802A8238;
 
         Object[] boxObjects;
@@ -123,6 +125,7 @@ namespace StarDisplay
             boxObjects = ReadBoxBehaviours();
 
             seg13StartRomAddress = ReadSegmentROMStartAddress(0x13);
+            GetCollectablesBehavAddrs();
         }
 
         public ROMManager(byte[] data)
@@ -132,6 +135,95 @@ namespace StarDisplay
             boxObjects = ReadBoxBehaviours();
 
             seg13StartRomAddress = ReadSegmentROMStartAddress(0x13);
+            GetCollectablesBehavAddrs();
+        }
+
+        // Search for vanilla reds func call, vanilla secrets func call, and default panels func call to determine
+        // the behavior addresses that we can call "reds", "secrets", "flipswitches" for this application's counting.
+        // Always tries the entire bank 0x13 area, so if somehow multiple behavs use one of these calls, the LAST one will be "returned".
+        private void GetCollectablesBehavAddrs()
+        {
+            uint behavStartAddress = seg13StartRomAddress;
+            bool isInLoopBlock = false;
+            bool isInvalidScriptByte = false;
+            int scriptLinePtr = 0x0;
+
+            while (true)
+            {
+                reader.BaseStream.Position = behavStartAddress + scriptLinePtr;
+
+                byte[] behavScriptLineBytes = reader.ReadBytes(4);
+                scriptLinePtr += 0x4;
+
+                if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[0]))
+                {
+                    behavStartAddress = (uint)reader.BaseStream.Position;
+                    scriptLinePtr = 0x0;
+                }
+
+                // advance past the "parameter" bytes if the cmd is not of interest
+                if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[0]))
+                    scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[0]] - 0x4;
+
+                if (behavScriptLineBytes[0] == 0x08)
+                    isInLoopBlock = true;
+                else if (behavScriptLineBytes[0] == 0x01)
+                {
+                    // 0x01 is a legit behav cmd, but also 01 01 01 01... padding is common for extended roms.
+                    // the behav cmd is 01 00 XX XX, so if second byte is 01, assume padding (end of behav scripts).
+                    if (behavScriptLineBytes[1] == 0x01)
+                    {
+                        isInvalidScriptByte = true;
+                    }
+                }
+                // I don't know what's directly after the behav scripts area, but we're bound to read "obviously invalid" commands/bytes
+                // shortly, use that to indicate exit. (chance to read a "correct" sequence into a 0x08 then ASM address should be close to 0.)
+                else if (behavScriptLineBytes[0] > 0x37)
+                    isInvalidScriptByte = true;
+
+                while (isInLoopBlock)
+                {
+                    byte[] loopedCmdBytes = reader.ReadBytes(4);
+
+                    if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[0]))
+                        scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[0]] - 0x4;
+
+                    if (loopedCmdBytes[0] == 0x09)
+                    {
+                        // technically it would be better to update address on start(0x00), but this is good enough.
+                        // it would only betray us if a behavior of interest is right after a poorly terminated behavior
+                        // (see vanilla (not of interest): 130035B0-13003628), and it would only lead to 0 detected collectables, not crashes.
+                        behavStartAddress = (uint)reader.BaseStream.Position;
+                        isInLoopBlock = false;
+                        scriptLinePtr = -0x4;
+                    }
+                    else if (loopedCmdBytes[0] == 0x0C)
+                    {
+                        uint calledASMAddr = SwapBytes(BitConverter.ToUInt32(reader.ReadBytes(4), 0x0));
+                        if (calledASMAddr == redsBehavLoopCall)
+                        {
+                            // FIXME?: aglab, why did you invent this representation for behav addresses instead of directly using an address(uint)
+                            byte[] behavAsArray = BitConverter.GetBytes(behavStartAddress - seg13StartRomAddress);
+                            redsBehaviour = new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+                        }
+                        else if (calledASMAddr == secretsBehavLoopCall)
+                        {
+                            byte[] behavAsArray = BitConverter.GetBytes(behavStartAddress - seg13StartRomAddress);
+                            secretsBehaviour = new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+                        }
+                        else if (calledASMAddr == flipswitchBehavLoopCall)
+                        {
+                            byte[] behavAsArray = BitConverter.GetBytes(behavStartAddress - seg13StartRomAddress);
+                            flipswitchBehaviour = new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+                        }
+                    }
+
+                    scriptLinePtr += 0x4;
+                }
+
+                if (isInvalidScriptByte)    // done with behav scripts area
+                    break;
+            }
         }
 
         public void Dispose()
@@ -256,7 +348,7 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, redsBehavLoopCall, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, redsBehaviour, currentStar, currentArea);
         }
 
         public int ParseSecrets(int level, int currentStar, int currentArea)
@@ -264,7 +356,7 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, secretsBehavLoopCall, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, secretsBehaviour, currentStar, currentArea);
         }
     
         public int ParseFlipswitches(int level, int currentStar, int currentArea)
@@ -272,13 +364,13 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, flipswitchBehavLoopCall, currentStar, currentArea);
+            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, flipswitchBehaviour, currentStar, currentArea);
         }
 
-        private int GetAmountOfObjects(int start, int end, int offset, uint searchBehavCall, int currentStar, int currentArea)
+        private int GetAmountOfObjects(int start, int end, int offset, byte[] searchBehaviour, int currentStar, int currentArea)
         {
             int area = 0;
-            return GetAmountOfObjectsInternal(start, end, offset, searchBehavCall, currentStar, currentArea, ref area);
+            return GetAmountOfObjectsInternal(start, end, offset, searchBehaviour, currentStar, currentArea, ref area);
         }
 
         public int SwapBytes(int x)
@@ -298,7 +390,7 @@ namespace StarDisplay
         }
 
 
-        private int GetAmountOfObjectsInternal (int start, int end, int Loffset, uint searchBehavCall, int currentStar, int currentArea, ref int area)
+        private int GetAmountOfObjectsInternal (int start, int end, int Loffset, byte[] searchBehaviour, int currentStar, int currentArea, ref int area)
         {
             if (currentArea == 0) currentArea = 1;
             byte currentStarMask = (byte) (1 << currentStar);
@@ -344,7 +436,7 @@ namespace StarDisplay
                             newEnd = temporaryBankEEnd;
                         }
 
-                        counter += GetAmountOfObjectsInternal(newStart, newEnd, jumpOffset, searchBehavCall, currentStar, currentArea, ref area);
+                        counter += GetAmountOfObjectsInternal(newStart, newEnd, jumpOffset, searchBehaviour, currentStar, currentArea, ref area);
                         if (command == jumpDescriptor)
                             return counter;
                     }
@@ -366,71 +458,10 @@ namespace StarDisplay
                                 continue;
                         }
 
-                        // BitConverter throws with a too small array, so just read the entire address.
-                        byte[] behaviour = ReadBehaviourFullAddr(offset);   // gets the segment byte for free (we assume 13 here anyway!)
-                        uint behaviourPtr = SwapBytes(BitConverter.ToUInt32(behaviour, 0x0));
-                        uint behaviourROMPtr = Bank13_BehavSegmentedToROM(behaviourPtr);
-
-                        Dictionary<uint, bool> cachedBehaviours = new Dictionary<uint, bool>(64);
-
-                        // Read the behav script for the current object - same algorithm as in MemoryManager, SearchObjectsByBehavCalls()
-                        if (cachedBehaviours.ContainsKey(behaviourROMPtr))
+                        byte[] behaviour = ReadBehaviour(offset);
+                        if (behaviour.SequenceEqual(searchBehaviour))
                         {
-                            if (cachedBehaviours[behaviourROMPtr] == true) counter++;
-                        }
-                        else
-                        {
-                            int scriptLinePtr = 0x0;
-                            int loopLinePtr = 0x4;
-                            bool isDoneWithThisScript = false;
-                            bool isSearchedCall = false;
-
-                            while (true)
-                            {
-                                reader.BaseStream.Position = behaviourROMPtr + scriptLinePtr;
-
-                                byte[] behavScriptLineBytes = reader.ReadBytes(4);
-
-                                // advance past the "parameter" bytes if the cmd is not of interest
-                                if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[0]))
-                                    scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[0]] - 0x4;
-
-                                if (behavScriptLineBytes[0] == 0x08)
-                                {
-                                    while (true)
-                                    {
-                                        reader.BaseStream.Position = behaviourROMPtr + scriptLinePtr + loopLinePtr;
-
-                                        byte[] loopedCmdBytes = reader.ReadBytes(4);
-                                        if (loopedCmdBytes[0] == 0x09)
-                                        {
-                                            isDoneWithThisScript = true;
-                                            break;
-                                        }
-                                        else if (loopedCmdBytes[0] == 0x0C)
-                                        {
-                                            byte[] calledASMBytes = reader.ReadBytes(4);
-                                            if (SwapBytes(BitConverter.ToUInt32(calledASMBytes, 0x0)) == searchBehavCall)
-                                            {
-                                                isSearchedCall = true;
-                                                counter++;
-                                            }
-                                        }
-
-                                        if (SM64CmdHelpers.behavCmdLengths.ContainsKey(loopedCmdBytes[0]))
-                                            loopLinePtr += SM64CmdHelpers.behavCmdLengths[loopedCmdBytes[0]] - 0x4;
-
-                                        loopLinePtr += 0x4;
-                                    }
-                                }
-                                else scriptLinePtr += 0x4;
-
-                                if (isDoneWithThisScript)
-                                {
-                                    cachedBehaviours.Add(behaviourROMPtr, isSearchedCall);
-                                    break;
-                                }
-                            }
+                            counter++;
                         }
                     }
                     else if (command == loadSegmentDescriptor)
