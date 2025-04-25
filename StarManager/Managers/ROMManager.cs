@@ -56,6 +56,21 @@ namespace StarDisplay
         static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
         static uint flipswitchBehavLoopCall = 0x802A8238;
 
+        // TODO?: if changing byte[]s above to proper addresses(uints), remove this helper
+        private UInt32 ConstructAddrFromBytes(byte[] bytes)
+        {
+            UInt32 addr = 0x0;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                addr |= (UInt32)(bytes[i] << (8 * (bytes.Length - 1 - i)));
+            }
+            return addr;
+        }
+        public uint GetRedsBehavAddress() { return ConstructAddrFromBytes(redsBehaviour); }
+        public uint GetSecretsBehavAddress() { return ConstructAddrFromBytes(secretsBehaviour); }
+        public uint GetPanelsBehavAddress() { return ConstructAddrFromBytes(flipswitchBehaviour); }
+
+
         Object[] boxObjects;
 
         public ROMManager(string fileName)

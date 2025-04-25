@@ -293,7 +293,7 @@ namespace StarDisplay
             catch (Exception) { }
         }
 
-        public void PerformRead()
+        public void PerformRead(ROMManager rm)
         {
             Igt = Process.ReadValue<int>(igtPtr);
             
@@ -309,8 +309,8 @@ namespace StarDisplay
                 Area = Process.ReadValue<byte>(areaPtr);
                 Reds = Process.ReadValue<sbyte>(redsPtr);
 
-                RestSecrets = GetSecrets();
-                ActivePanels = GetActivePanels();
+                RestSecrets = GetSecrets(rm);
+                ActivePanels = GetActivePanels(rm);
 
                 SelectedStar = Process.ReadValue<byte>(selectedStarPtr);
             }
@@ -405,23 +405,6 @@ namespace StarDisplay
             return Reds;
         }
 
-        public uint SegmentedToVirtual(uint segmentedAddr)
-        {
-            // the following is a mirror of decomp segmented_to_virtual from memory.c
-            uint segment = (segmentedAddr >> 24) & 0x000000FF;  // ensure the leading bytes are zeroes, compare C# operators >> vs >>>(from C# 11)
-            uint offset = segmentedAddr & 0x00FFFFFF;
-
-            // don't bother parsing for invalid segments (for example, 0x80... address is not segmented)
-            if (segment > 0x1F) return segmentedAddr;
-
-            // 8033B400 = segment table in US binary rom; unsure if meaningful in decomp
-            // (namely, this function only applies there when #ifndef NO_SEGMENTED_MEMORY)
-            // 
-            // some custom behaviors (e.g. in SR3.5, SM64DL) appear to be written "segmented" as 0x0040.... region.
-            // those should be returned properly by this (0x8040... commonly used custom binary region)
-            return (Process.ReadValue<uint>(new IntPtr((long)(mm.ramPtrBase + 0x33B400 + 4 * segment))) + offset) | 0x80000000;
-        }
-
         public uint GetBehaviourRAMAddress(uint behav) // only bank 13 for now
         {
             uint bank13RamStart = Process.ReadValue<uint>(bank13RamStartPtr);
@@ -429,19 +412,20 @@ namespace StarDisplay
             return request;
         }
 
-        int GetSecrets()
+        int GetSecrets(ROMManager rm)
         {
-            return SearchObjectsByBehavCalls(0x802F31BC); // bhv_hidden_star_trigger_loop
+            return SearchObjects(rm == null ? GetBehaviourRAMAddress(0x3F1C) : GetBehaviourRAMAddress(rm.GetSecretsBehavAddress()));
         }
 
-        int GetActivePanels()
+        int GetActivePanels(ROMManager rm)
         {
-            return SearchObjectsByBehavCalls(0x802A8238, 1) + SearchObjectsByBehavCalls(0x802A8238, 2); //1 - active, 2 - finalized
+            uint panelsBehav = rm == null ? GetBehaviourRAMAddress(0x5D8) : GetBehaviourRAMAddress(rm.GetPanelsBehavAddress());
+            return SearchObjects(panelsBehav, 1) + SearchObjects(panelsBehav, 2); //1 - active, 2 - finalized
         }
 
-        int GetAllPanels()
+        int GetAllPanels(ROMManager rm)
         {
-            return SearchObjectsByBehavCalls(0x802A8238);
+            return SearchObjects(rm == null ? GetBehaviourRAMAddress(0x5D8) : GetBehaviourRAMAddress(rm.GetPanelsBehavAddress()));
         }
 
         public Bitmap GetImage()
@@ -700,188 +684,6 @@ namespace StarDisplay
                     break;
             }
             //Console.WriteLine();
-            return count;
-        }
-
-        public int SearchObjectsByBehavCalls(UInt32 searchBehavLikeCall)
-        {
-            int count = 0;
-
-            UInt32 address = 0x33D488;
-
-            Dictionary<uint, bool> cachedBehaviours = new Dictionary<uint, bool>(64);
-
-            for (int i = 0; i < 300 /*obj limit*/; i++)
-            {
-                IntPtr currentObjectPtr = new IntPtr((long)(mm.ramPtrBase + address));
-                byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
-                if (data is null)
-                    break;
-
-                UInt32 active = BitConverter.ToUInt32(data, 0x74);
-                if (active != 0)
-                {
-                    UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
-
-                    if (cachedBehaviours.ContainsKey(behaviour)) 
-                    {
-                        if (cachedBehaviours[behaviour] == true) count++;
-                        // else the behaviour has already been read, but not what we're searching for
-                    }
-                    else
-                    {
-                        // behaviour: offset from ramPtrBase and not from 0x80000000 (credit aglab)
-                        // trimming the leading 80: after BitConverter we are somehow in big endian, so the following bit shifts are valid
-                        IntPtr currentObjectBehavScriptStartPtr = new IntPtr((long)(mm.ramPtrBase + (((behaviour << 8) >> 8) & 0x00FFFFFF)));
-
-                        // (based on the vanilla list of behav scripts https://hack64.net/wiki/doku.php?id=sm64:list_of_behaviors)
-                        // Read the behav script for the current object, 4 bytes at a time (all documented behav commands have lengths divisible by 4).
-                        // If it contains, in a loop, an ASM call to the specified function address, consider it valid for the searched purpose
-                        // (e.g. SS4 - secrets with a custom model and spin, but reusing the vanilla bhv_hidden_star_trigger_loop.)
-                        
-                        int scriptLinePtr = 0x0;
-                        int loopLinePtr = 0x4;
-                        bool isDoneWithThisScript = false;
-                        bool isSearchedCall = false;
-
-                        while (true)
-                        {
-                            // !! reading in little endian, so for raw checking cmd byte check [3] instead of [0] !!
-
-                            byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
-
-                            // This catches behav scripts that end on a jump away, and "malformed" scripts
-                            // (such as the "WARPS" that are a bunch of 0A 00 00 00s).
-                            // The idea is to never "leak" into reading a different script than the one started.
-                            if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[3]))
-                                isDoneWithThisScript = true;
-
-                            // advance past the "parameter" bytes if the cmd is not of interest
-                            if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
-                                scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
-
-                            if (behavScriptLineBytes[3] == 0x08)
-                            {
-                                // read an unknown number of cmds before finding a 0x09, seek 0x0C and ignore the rest (keep reading)
-                                while (true)
-                                {
-                                    byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
-                                    if (loopedCmdBytes[3] == 0x09)
-                                    {
-                                        isDoneWithThisScript = true;
-                                        break;
-                                    }
-                                    else if (loopedCmdBytes[3] == 0x0C)
-                                    {
-                                        byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
-                                        if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall)
-                                        {
-                                            isSearchedCall = true;
-                                            count++;
-                                        }
-                                    }
-
-                                    // also advance past "parameter" bytes in looped commands (they MAY be longer than 0x4)
-                                    if (SM64CmdHelpers.behavCmdLengths.ContainsKey(loopedCmdBytes[3]))
-                                        loopLinePtr += SM64CmdHelpers.behavCmdLengths[loopedCmdBytes[3]] - 0x4;
-
-                                    loopLinePtr += 0x4;
-                                }
-                            }
-                            else scriptLinePtr += 0x4;
-
-                            if (isDoneWithThisScript)
-                            {
-                                cachedBehaviours.Add(behaviour, isSearchedCall);
-                                break;
-                            }
-                        }
-                    }
-                }
-
-                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
-                if (address == 0x33D488 || address == 0)
-                    break;
-            }
-            return count;
-        }
-
-        // same as main one above, but intended for panels (they have inactive/active/completed states)
-        public int SearchObjectsByBehavCalls(UInt32 searchBehavLikeCall, UInt32 state)
-        {
-            int count = 0;
-
-            UInt32 address = 0x33D488;
-
-            Dictionary<uint, bool> cachedBehaviours = new Dictionary<uint, bool>(64);
-
-            for (int i = 0; i < 300 /*obj limit*/; i++)
-            {
-                IntPtr currentObjectPtr = new IntPtr((long)(mm.ramPtrBase + address));
-                byte[] data = Process.ReadBytes(currentObjectPtr, 0x260);
-                if (data is null)
-                    break;
-
-                UInt32 active = BitConverter.ToUInt32(data, 0x74);
-                if (active != 0)
-                {
-                    UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
-                    UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
-
-                    // behavs here should not be cached because we are reading active state, so shouldn't read from "remembered" values.
-                    // for some reason, trying to short circuit through the states that definitely don't match
-                    // (if (scriptParameter != state) continue;) doesn't work.
-
-                    IntPtr currentObjectBehavScriptStartPtr = new IntPtr((long)(mm.ramPtrBase + (((behaviour << 8) >> 8) & 0x00FFFFFF)));
-
-                    int scriptLinePtr = 0x0;
-                    int loopLinePtr = 0x4;
-                    bool isDoneWithThisScript = false;
-
-                    while (true)
-                    {
-                        byte[] behavScriptLineBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr, 0x4);
-
-                        if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[3]))
-                            isDoneWithThisScript = true;
-
-                        if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[3]))
-                            scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[3]] - 0x4;
-
-                        if (behavScriptLineBytes[3] == 0x08)
-                        {
-                            while (true)
-                            {
-                                byte[] loopedCmdBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr, 0x4);
-                                if (loopedCmdBytes[3] == 0x09)
-                                {
-                                    isDoneWithThisScript = true;
-                                    break;
-                                }
-                                else if (loopedCmdBytes[3] == 0x0C)
-                                {
-                                    byte[] calledASMBytes = Process.ReadBytes(currentObjectBehavScriptStartPtr + scriptLinePtr + loopLinePtr + 0x4, 0x4);
-                                    if (BitConverter.ToUInt32(calledASMBytes, 0x0) == searchBehavLikeCall && scriptParameter == state)
-                                        count++;
-                                }
-
-                                if (SM64CmdHelpers.behavCmdLengths.ContainsKey(loopedCmdBytes[3]))
-                                    loopLinePtr += SM64CmdHelpers.behavCmdLengths[loopedCmdBytes[3]] - 0x4;
-
-                                loopLinePtr += 0x4;
-                            }
-                        }
-                        else scriptLinePtr += 0x4;
-
-                        if (isDoneWithThisScript)
-                            break;
-                    }
-                }
-
-                address = BitConverter.ToUInt32(data, 0x8) & 0x7FFFFFFF;
-                if (address == 0x33D488 || address == 0)
-                    break;
-            }
             return count;
         }
 
