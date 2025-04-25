@@ -294,7 +294,7 @@ namespace StarDisplay
             catch (Exception) { }
         }
 
-        public void PerformRead()
+        public void PerformRead(ROMManager rm)
         {
             Igt = Process.ReadValue<int>(igtPtr);
             
@@ -310,8 +310,8 @@ namespace StarDisplay
                 Area = Process.ReadValue<byte>(areaPtr);
                 Reds = Process.ReadValue<sbyte>(redsPtr);
 
-                RestSecrets = GetSecrets();
-                ActivePanels = GetActivePanels();
+                RestSecrets = GetSecrets(rm);
+                ActivePanels = GetActivePanels(rm);
 
                 SelectedStar = Process.ReadValue<byte>(selectedStarPtr);
             }
@@ -413,20 +413,20 @@ namespace StarDisplay
             return request;
         }
 
-        int GetSecrets()
+        int GetSecrets(ROMManager rm)
         {
-            return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
+            return SearchObjects(rm == null ? GetBehaviourRAMAddress(0x3F1C) : GetBehaviourRAMAddress(rm.GetSecretsBehavAddress()));
         }
 
-        int GetActivePanels()
+        int GetActivePanels(ROMManager rm)
         {
-            uint request = GetBehaviourRAMAddress(0x5D8);
-            return SearchObjects(request, 1) + SearchObjects(request, 2); //1 - active, 2 - finalized
+            uint panelsBehav = rm == null ? GetBehaviourRAMAddress(0x5D8) : GetBehaviourRAMAddress(rm.GetPanelsBehavAddress());
+            return SearchObjects(panelsBehav, 1) + SearchObjects(panelsBehav, 2); //1 - active, 2 - finalized
         }
 
-        int GetAllPanels()
+        int GetAllPanels(ROMManager rm)
         {
-            return SearchObjects(GetBehaviourRAMAddress(0x5D8));
+            return SearchObjects(rm == null ? GetBehaviourRAMAddress(0x5D8) : GetBehaviourRAMAddress(rm.GetPanelsBehavAddress()));
         }
 
         public Bitmap GetImage()
@@ -638,7 +638,6 @@ namespace StarDisplay
                 {
                     UInt32 intparam = BitConverter.ToUInt32(data, 0x180);
                     UInt32 behaviour = BitConverter.ToUInt32(data, 0x20C);
-                    UInt32 scriptParameter = BitConverter.ToUInt32(data, 0x0F0);
 
                     if (behaviour == searchBehaviour)
                     {

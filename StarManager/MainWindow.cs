@@ -338,7 +338,7 @@ namespace StarDisplay
                     if (!mm.isReadyToRead())
                         return;
 
-                    mm.PerformRead();
+                    mm.PerformRead(rm);
                 }
                 catch (Exception)
                 {

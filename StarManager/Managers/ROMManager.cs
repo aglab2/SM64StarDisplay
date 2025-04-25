@@ -14,7 +14,9 @@ namespace StarDisplay
     {
         BinaryReader reader;
 
-        static int courseBaseAddress = 0x02AC094;
+        static int courseBaseAddress = 0x02AC094;       // BBH ("first" level, 0x04) ROM address
+        static uint seg15StartRomAddress = 0x02ABCA0;    // global(?) segment loads before switching by course ID, incl. bank 13 (see Quad64)
+        static uint seg13StartRomAddress = 0x0219E00;    // default, overwrite this if found to be repointed in level script
 
         static byte levelscriptEndDescriptor = 0x02;
         static byte jumpDescriptor = 0x05;
@@ -45,9 +47,29 @@ namespace StarDisplay
 
         static byte[] bossMIPSBehaviour = { 0x00, 0x44, 0xFC };
 
+        // default behav script addresses here; a hack (*cough* SS4 *cough*) may use others.
+        // loop call addrs here are only to search for those others
         static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
+        static uint redsBehavLoopCall = 0x802F2F2C;
         static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
+        static uint secretsBehavLoopCall = 0x802F31BC;
         static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
+        static uint flipswitchBehavLoopCall = 0x802A8238;
+
+        // TODO?: if changing byte[]s above to proper addresses(uints), remove this helper
+        private UInt32 ConstructAddrFromBytes(byte[] bytes)
+        {
+            UInt32 addr = 0x0;
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                addr |= (UInt32)(bytes[i] << (8 * (bytes.Length - 1 - i)));
+            }
+            return addr;
+        }
+        public uint GetRedsBehavAddress() { return ConstructAddrFromBytes(redsBehaviour); }
+        public uint GetSecretsBehavAddress() { return ConstructAddrFromBytes(secretsBehaviour); }
+        public uint GetPanelsBehavAddress() { return ConstructAddrFromBytes(flipswitchBehaviour); }
+
 
         Object[] boxObjects;
 
@@ -116,6 +138,9 @@ namespace StarDisplay
 
             reader = new BinaryReader(new MemoryStream(data));
             boxObjects = ReadBoxBehaviours();
+
+            seg13StartRomAddress = ReadSegmentROMStartAddress(0x13);
+            GetCollectablesBehavAddrs();
         }
 
         public ROMManager(byte[] data)
@@ -123,6 +148,97 @@ namespace StarDisplay
             if (data == null) throw new IOException("Data is null");
             reader = new BinaryReader(new MemoryStream(data));
             boxObjects = ReadBoxBehaviours();
+
+            seg13StartRomAddress = ReadSegmentROMStartAddress(0x13);
+            GetCollectablesBehavAddrs();
+        }
+
+        // Search for vanilla reds func call, vanilla secrets func call, and default panels func call to determine
+        // the behavior addresses that we can call "reds", "secrets", "flipswitches" for this application's counting.
+        // Always tries the entire bank 0x13 area, so if somehow multiple behavs use one of these calls, the LAST one will be "returned".
+        private void GetCollectablesBehavAddrs()
+        {
+            uint behavStartAddress = seg13StartRomAddress;
+            bool isInLoopBlock = false;
+            bool isInvalidScriptByte = false;
+            int scriptLinePtr = 0x0;
+
+            while (true)
+            {
+                reader.BaseStream.Position = behavStartAddress + scriptLinePtr;
+
+                byte[] behavScriptLineBytes = reader.ReadBytes(4);
+                scriptLinePtr += 0x4;
+
+                if (SM64CmdHelpers.behavTerminatingCmds.Contains(behavScriptLineBytes[0]))
+                {
+                    behavStartAddress = (uint)reader.BaseStream.Position;
+                    scriptLinePtr = 0x0;
+                }
+
+                // advance past the "parameter" bytes if the cmd is not of interest
+                if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[0]))
+                    scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[0]] - 0x4;
+
+                if (behavScriptLineBytes[0] == 0x08)
+                    isInLoopBlock = true;
+                else if (behavScriptLineBytes[0] == 0x01)
+                {
+                    // 0x01 is a legit behav cmd, but also 01 01 01 01... padding is common for extended roms.
+                    // the behav cmd is 01 00 XX XX, so if second byte is 01, assume padding (end of behav scripts).
+                    if (behavScriptLineBytes[1] == 0x01)
+                    {
+                        isInvalidScriptByte = true;
+                    }
+                }
+                // I don't know what's directly after the behav scripts area, but we're bound to read "obviously invalid" commands/bytes
+                // shortly, use that to indicate exit. (chance to read a "correct" sequence into a 0x08 then ASM address should be close to 0.)
+                else if (behavScriptLineBytes[0] > 0x37)
+                    isInvalidScriptByte = true;
+
+                while (isInLoopBlock)
+                {
+                    byte[] loopedCmdBytes = reader.ReadBytes(4);
+
+                    if (SM64CmdHelpers.behavCmdLengths.ContainsKey(behavScriptLineBytes[0]))
+                        scriptLinePtr += SM64CmdHelpers.behavCmdLengths[behavScriptLineBytes[0]] - 0x4;
+
+                    if (loopedCmdBytes[0] == 0x09)
+                    {
+                        // technically it would be better to update address on start(0x00), but this is good enough.
+                        // it would only betray us if a behavior of interest is right after a poorly terminated behavior
+                        // (see vanilla (not of interest): 130035B0-13003628), and it would only lead to 0 detected collectables, not crashes.
+                        behavStartAddress = (uint)reader.BaseStream.Position;
+                        isInLoopBlock = false;
+                        scriptLinePtr = -0x4;
+                    }
+                    else if (loopedCmdBytes[0] == 0x0C)
+                    {
+                        uint calledASMAddr = SwapBytes(BitConverter.ToUInt32(reader.ReadBytes(4), 0x0));
+                        if (calledASMAddr == redsBehavLoopCall)
+                        {
+                            // FIXME?: aglab, why did you invent this representation for behav addresses instead of directly using an address(uint)
+                            byte[] behavAsArray = BitConverter.GetBytes(behavStartAddress - seg13StartRomAddress);
+                            redsBehaviour = new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+                        }
+                        else if (calledASMAddr == secretsBehavLoopCall)
+                        {
+                            byte[] behavAsArray = BitConverter.GetBytes(behavStartAddress - seg13StartRomAddress);
+                            secretsBehaviour = new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+                        }
+                        else if (calledASMAddr == flipswitchBehavLoopCall)
+                        {
+                            byte[] behavAsArray = BitConverter.GetBytes(behavStartAddress - seg13StartRomAddress);
+                            flipswitchBehaviour = new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+                        }
+                    }
+
+                    scriptLinePtr += 0x4;
+                }
+
+                if (isInvalidScriptByte)    // done with behav scripts area
+                    break;
+            }
         }
 
         public void Dispose()
@@ -160,6 +276,13 @@ namespace StarDisplay
         {
             reader.BaseStream.Position = offset + 0x15;
             return reader.ReadBytes(3);
+        }
+
+        // level cmd 24 18 ... [BS BS BS BS] - BS read in full. useful if you will pass it indiscriminately into a BitConverter 4-byte read.
+        private byte[] ReadBehaviourFullAddr(int offset)
+        {
+            reader.BaseStream.Position = offset + 0x14;
+            return reader.ReadBytes(4);
         }
 
         private byte ReadBParam1(int offset)
@@ -273,6 +396,14 @@ namespace StarDisplay
                    ((x & 0xff000000) >> 24));
         }
 
+        public uint SwapBytes(uint x)
+        {
+            return ((x & 0x000000ff) << 24) +
+                   ((x & 0x0000ff00) << 8) +
+                   ((x & 0x00ff0000) >> 8) +
+                   ((x & 0xff000000) >> 24);
+        }
+
 
         private int GetAmountOfObjectsInternal (int start, int end, int Loffset, byte[] searchBehaviour, int currentStar, int currentArea, ref int area)
         {
@@ -352,6 +483,7 @@ namespace StarDisplay
                     {
                         reader.BaseStream.Position = offset + 0x3;
                         int bank = reader.ReadByte();
+
                         if (bank != 0xE)
                             continue;
 
@@ -473,6 +605,41 @@ namespace StarDisplay
                 Object obj = new Object(data[1], data[2], data[3], IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 4)));
                 ret[data[0]] = obj;
             }
+        }
+
+        // intended for only bank 13 until further notice
+        private uint ReadSegmentROMStartAddress(uint segment)
+        {
+            uint segmentROMStartAddress = 0;
+
+            reader.BaseStream.Position = seg15StartRomAddress;
+            int offset = 0;
+            while (true)
+            {
+                // load cmds 0x16, 17, 18 are all length 0xC
+                byte[] loadCmdLineBytes = reader.ReadBytes(0xC);
+
+                if (loadCmdLineBytes[0] == 0x1D)
+                    break;
+
+                //if (loadCmdLineBytes[0] != 0x17) return 0;  // only deal with 0x17; I'm not sure why I would force that
+                if (loadCmdLineBytes[3] == segment)
+                {
+                    // get only start address; if necessary, you can also get end address from offset 0x8
+                    segmentROMStartAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x4));
+                }
+
+                offset += 0xC;
+                reader.BaseStream.Position = seg15StartRomAddress + offset;
+            }
+
+            return segmentROMStartAddress;
+        }
+
+        // assumes bank 13 until Read_() and GetAmountOfObjectInternal stuff are reimplemented without that assumption
+        private uint Bank13_BehavSegmentedToROM(uint segmented)
+        {
+            return seg13StartRomAddress + (segmented & 0x00FFFFFF);
         }
 
         public Bitmap GetStarImage()
