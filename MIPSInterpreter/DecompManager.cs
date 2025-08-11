@@ -90,6 +90,14 @@ namespace MIPSInterpreter
             0x24840001, 0xA080FFFF, 0x1485FFFD, 0x00000000, 0x03E00008, 0x00000000
         };
 
+        static readonly uint[] BZero4 = new uint[]
+        {
+            0x00041023, 0x30420003, 0x00821821, 0x00803025, 0x14C30010, 0x24C60001, 0x00A21023, 0x00603025,
+            0x00624021, 0x01063823, 0x2CE70004, 0x50E0000B, 0x24C60004, 0x00021082, 0x00021080, 0x00431021,
+            0x00852021, 0x54820007, 0x24420001, 0x03E00008, 0x00000000, 0x1000FFEE, 0xA0C0FFFF, 0x1000FFF1,
+            0xACC0FFFC, 0x1000FFF7, 0xA040FFFF
+        };
+
         static bool IsVAddr(uint addr)
         {
             if (0x80000000 != (0xff000000 & addr))
@@ -110,12 +118,10 @@ namespace MIPSInterpreter
         public DecompManager(uint[] mem)
         {
             uint instructionsToInterpretCount = 16;
-            List<int> bzero1Positions = IndicesOf(mem, BZero1);
-            List<int> bzero2Positions = IndicesOf(mem, BZero2);
-            List<int> bzero3Positions = IndicesOf(mem, BZero3);
-            List<int> bzeroPositions = bzero1Positions
-                .Concat(bzero2Positions)
-                .Concat(bzero3Positions)
+            List<int> bzeroPositions = IndicesOf(mem, BZero1)
+                .Concat(IndicesOf(mem, BZero2))
+                .Concat(IndicesOf(mem, BZero3))
+                .Concat(IndicesOf(mem, BZero4))
                 .ToList();
             if (bzeroPositions.Count() == 0)
                 throw new ArgumentException("Failed to find bzero!");
