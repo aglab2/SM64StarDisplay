@@ -55,8 +55,8 @@ namespace StarDisplay
 
         int layoutOff = 0;
 
-        byte[] otherStars = null;
-        
+        byte[] otherStars = new byte[0x8000];
+
         public MainWindow()
         {
             InitializeComponent();
@@ -1330,7 +1330,7 @@ namespace StarDisplay
 
         private void clearOtherPlayerScoreToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            otherStars = new byte[mm.FileLength];
+            otherStars = new byte[0x8000];
         }
 
         private void enableClickToWarpToolStripMenuItem_Click(object sender, EventArgs e)

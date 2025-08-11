@@ -21,6 +21,7 @@ namespace StarDisplay
         public SyncLoginForm(MemoryManager mm)
         {
             InitializeComponent();
+            this.mm = mm;
         }
 
         public string GetNet64Name()
