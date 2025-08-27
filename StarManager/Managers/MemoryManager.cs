@@ -414,18 +414,48 @@ namespace StarDisplay
 
         int GetSecrets(ROMManager rm)
         {
-            return SearchObjects(rm == null ? GetBehaviourRAMAddress(0x3F1C) : GetBehaviourRAMAddress(rm.GetSecretsBehavAddress()));
+            if (rm == null)
+                return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
+            else
+            {
+                int objCount = 0;
+                foreach (uint behavAddr in rm.GetSecretsBehavAddresses())
+                {
+                    objCount += SearchObjects(GetBehaviourRAMAddress(behavAddr));
+                }
+                return objCount;
+            }
         }
 
         int GetActivePanels(ROMManager rm)
         {
-            uint panelsBehav = rm == null ? GetBehaviourRAMAddress(0x5D8) : GetBehaviourRAMAddress(rm.GetPanelsBehavAddress());
-            return SearchObjects(panelsBehav, 1) + SearchObjects(panelsBehav, 2); //1 - active, 2 - finalized
+            if (rm == null)
+                return SearchObjects(GetBehaviourRAMAddress(0x5D8), 1) + SearchObjects(GetBehaviourRAMAddress(0x5D8), 2); //1 - active, 2 - finalized
+            else
+            {
+                int objCount = 0;
+                foreach (uint behavAddr in rm.GetPanelsBehavAddresses())
+                {
+                    objCount += SearchObjects(GetBehaviourRAMAddress(behavAddr), 1);
+                    objCount += SearchObjects(GetBehaviourRAMAddress(behavAddr), 2);
+                }
+                return objCount;
+            }
         }
 
         int GetAllPanels(ROMManager rm)
         {
-            return SearchObjects(rm == null ? GetBehaviourRAMAddress(0x5D8) : GetBehaviourRAMAddress(rm.GetPanelsBehavAddress()));
+            if (rm == null)
+                return SearchObjects(GetBehaviourRAMAddress(0x5D8));
+            else
+            {
+                int objCount = 0;
+                foreach (uint behavAddr in rm.GetPanelsBehavAddresses())
+                {
+                    objCount += SearchObjects(GetBehaviourRAMAddress(behavAddr));
+                }
+                return objCount;
+            }
         }
 
         public Bitmap GetImage()
