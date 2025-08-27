@@ -17,6 +17,8 @@ namespace StarDisplay
         static int courseBaseAddress = 0x02AC094;       // BBH ("first" level, 0x04) ROM address
         static uint seg15StartRomAddress = 0x02ABCA0;    // global(?) segment loads before switching by course ID, incl. bank 13 (see Quad64)
         static uint seg13StartRomAddress = 0x0219E00;    // default, overwrite this if found to be repointed in level script
+        static uint seg13EndRomAddress;                  // get this (together with start) from the bank 15 read on init
+        static uint[] seg13Words;
 
         static byte levelscriptEndDescriptor = 0x02;
         static byte jumpDescriptor = 0x05;
@@ -69,6 +71,12 @@ namespace StarDisplay
         public uint GetRedsBehavAddress() { return ConstructAddrFromBytes(redsBehaviour); }
         public uint GetSecretsBehavAddress() { return ConstructAddrFromBytes(secretsBehaviour); }
         public uint GetPanelsBehavAddress() { return ConstructAddrFromBytes(flipswitchBehaviour); }
+
+        private byte[] ConstructBytesFromAddr(uint addr)
+        {
+            byte[] behavAsArray = BitConverter.GetBytes(addr);
+            return new byte[] { behavAsArray[2], behavAsArray[1], behavAsArray[0] };
+        }
 
 
         Object[] boxObjects;
@@ -139,8 +147,30 @@ namespace StarDisplay
             reader = new BinaryReader(new MemoryStream(data));
             boxObjects = ReadBoxBehaviours();
 
-            seg13StartRomAddress = ReadSegmentROMStartAddress(0x13);
-            GetCollectablesBehavAddrs();
+            ReadSegment13ROMRangeAddrs();
+            //uint[] seg13Words;
+            {
+                reader.BaseStream.Position = seg13StartRomAddress;
+                byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
+                int size = seg13Bytes.Count() / 4;
+                seg13Words = new uint[size];
+                for (int idx = 0; idx < size; idx++)
+                {
+                    byte[] dataInt = new byte[4];
+                    dataInt[0] = seg13Bytes[3 + 4 * idx];
+                    dataInt[1] = seg13Bytes[2 + 4 * idx];
+                    dataInt[2] = seg13Bytes[1 + 4 * idx];
+                    dataInt[3] = seg13Bytes[0 + 4 * idx];
+                    seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                }
+            }
+            uint redsAddr = FindSeg13BehavAddr(redsBehavLoopCall);
+            if (redsAddr != 0) redsBehaviour = ConstructBytesFromAddr(redsAddr);
+            uint secretsAddr = FindSeg13BehavAddr(secretsBehavLoopCall);
+            if (secretsAddr != 0) secretsBehaviour = ConstructBytesFromAddr(secretsAddr);
+            uint flipswitchAddr = FindSeg13BehavAddr(flipswitchBehavLoopCall);
+            if (flipswitchAddr != 0) flipswitchBehaviour = ConstructBytesFromAddr(flipswitchAddr);
+            //GetCollectablesBehavAddrs();
         }
 
         public ROMManager(byte[] data)
@@ -149,8 +179,65 @@ namespace StarDisplay
             reader = new BinaryReader(new MemoryStream(data));
             boxObjects = ReadBoxBehaviours();
 
-            seg13StartRomAddress = ReadSegmentROMStartAddress(0x13);
-            GetCollectablesBehavAddrs();
+            ReadSegment13ROMRangeAddrs();
+            //uint[] seg13Words;
+            {
+                reader.BaseStream.Position = seg13StartRomAddress;
+                byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
+                int size = seg13Bytes.Count() / 4;
+                seg13Words = new uint[size];
+                for (int idx = 0; idx < size; idx++)
+                {
+                    byte[] dataInt = new byte[4];
+                    dataInt[0] = seg13Bytes[3 + 4 * idx];
+                    dataInt[1] = seg13Bytes[2 + 4 * idx];
+                    dataInt[2] = seg13Bytes[1 + 4 * idx];
+                    dataInt[3] = seg13Bytes[0 + 4 * idx];
+                    seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                }
+            }
+            uint redsAddr = FindSeg13BehavAddr(redsBehavLoopCall);
+            if (redsAddr != 0) redsBehaviour = ConstructBytesFromAddr(redsAddr);
+            uint secretsAddr = FindSeg13BehavAddr(secretsBehavLoopCall);
+            if (secretsAddr != 0) secretsBehaviour = ConstructBytesFromAddr(secretsAddr);
+            uint flipswitchAddr = FindSeg13BehavAddr(flipswitchBehavLoopCall);
+            if (flipswitchAddr != 0) flipswitchBehaviour = ConstructBytesFromAddr(flipswitchAddr);
+            //GetCollectablesBehavAddrs();
+        }
+
+        // Returns offset in segment 13 of behavior by ASM call address, or 0 if the count is not found.
+        // Breaks on FIRST find. (cf. GetCollectablesBehavAddrs().)
+        // Could remove the break to return LAST find, but if that makes the difference, it's a gamble whether we find the desired behavior.
+        private uint FindSeg13BehavAddr(uint targetCallWord)
+        {
+            // find address of target call
+            uint wordOffset = 0;
+            for (int i = 0; i < seg13Words.Length; i++)
+            {
+                if (seg13Words[i] == targetCallWord)
+                {
+                    wordOffset = 4 * (uint)i;
+                    break;
+                }
+            }
+            if (wordOffset == 0) return 0;  // target call is not used in seg13, we won't find a behavior below
+
+            // found segment offset of target call, go backwards towards start of script
+            reader.BaseStream.Position = seg13StartRomAddress + wordOffset;
+            byte[] behavScriptLineBytes;
+            wordOffset += 0x04; // workaround for last step in while-loop happening before it figures out whether it needs to do it
+            do
+            {
+                behavScriptLineBytes = reader.ReadBytes(4);
+                reader.BaseStream.Position -= 0x08;
+                wordOffset -= 0x04;
+            }
+            // XXX: start behav is 00 XX 00 00, XX == 00-0C, ignore bigger values. also ignore 00 because in cmd 00 that group is only Mario.
+            // this is STILL error-prone, if a command uses 00 XX aligned to 4 bytes as parameter (see cmds 23, 30), we'll get garbage here.
+            // sure, the while-loop can never run longer than one valid behav script anyway, but not getting correct behav over this sounds dumb.
+            while (behavScriptLineBytes[0] != 0x00 || behavScriptLineBytes[1] == 0x00 || behavScriptLineBytes[1] > 0x0D);
+
+            return wordOffset;
         }
 
         // Search for vanilla reds func call, vanilla secrets func call, and default panels func call to determine
@@ -607,11 +694,9 @@ namespace StarDisplay
             }
         }
 
-        // intended for only bank 13 until further notice
-        private uint ReadSegmentROMStartAddress(uint segment)
+        // hardcoded to reading for segment 13; returns void + values to class vars as lazy way to not design for "multiple returns"
+        private void ReadSegment13ROMRangeAddrs()
         {
-            uint segmentROMStartAddress = 0;
-
             reader.BaseStream.Position = seg15StartRomAddress;
             int offset = 0;
             while (true)
@@ -623,17 +708,15 @@ namespace StarDisplay
                     break;
 
                 //if (loadCmdLineBytes[0] != 0x17) return 0;  // only deal with 0x17; I'm not sure why I would force that
-                if (loadCmdLineBytes[3] == segment)
+                if (loadCmdLineBytes[3] == 0x13)    // 4th byte is segment number
                 {
-                    // get only start address; if necessary, you can also get end address from offset 0x8
-                    segmentROMStartAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x4));
+                    seg13StartRomAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x4));
+                    seg13EndRomAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x8));
                 }
 
                 offset += 0xC;
                 reader.BaseStream.Position = seg15StartRomAddress + offset;
             }
-
-            return segmentROMStartAddress;
         }
 
         // assumes bank 13 until Read_() and GetAmountOfObjectInternal stuff are reimplemented without that assumption
