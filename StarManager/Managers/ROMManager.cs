@@ -16,8 +16,8 @@ namespace StarDisplay
 
         static int courseBaseAddress = 0x02AC094;       // BBH ("first" level, 0x04) ROM address
         static uint seg15StartRomAddress = 0x02ABCA0;    // global(?) segment loads before switching by course ID, incl. bank 13 (see Quad64)
-        static uint seg13StartRomAddress = 0x0219E00;    // default, overwrite this if found to be repointed in level script
-        static uint seg13EndRomAddress;                  // get this (together with start) from the bank 15 read on init
+        static uint seg13StartRomAddress = 0x0219E00;    // default in old binary (Editor) ROMs, but scanned for in seg15 on init
+        static uint seg13EndRomAddress = 0x021F4C0;      // default in old binary (Editor) ROMs, but scanned for in seg15 on init
         static uint[] seg13Words;
 
         static byte levelscriptEndDescriptor = 0x02;
@@ -196,16 +196,20 @@ namespace StarDisplay
             {
                 reader.BaseStream.Position = seg13StartRomAddress + wordOffsets[i];
                 byte[] behavScriptLineBytes;
+                int reads = 0;
                 wordOffsets[i] += 0x04; // workaround for last step in while-loop happening before it figures out whether it needs to do it
                 do
                 {
                     behavScriptLineBytes = reader.ReadBytes(4);
                     reader.BaseStream.Position -= 0x08;
                     wordOffsets[i] -= 0x04;
+                    reads++;
                 }
-                // FIXME: start behav is 00 XX 00 00, XX == 00-0C, ignore bigger values. also ignore 00 because in cmd 00 that group is only Mario.
-                // this MAY STILL get garbage, if a command has parameter looking like 00 [00-0C] [...] aligned to 4 bytes (see cmds 23, 30).
-                while (behavScriptLineBytes[0] != 0x00 || behavScriptLineBytes[1] == 0x00 || behavScriptLineBytes[1] > 0x0D);
+                // FIXME: "Start behav" cmd is 00 XX 00 00, XX == 00-0C, ignore bigger values. also ignore 00 because in cmd 00 that group is only Mario.
+                // This MAY STILL get garbage, if a command has parameter looking like 00 [00-0C] [...] aligned to 4 bytes (see cmds 23, 30).
+                // XXX: Line reads are limited to 40, rounding up from longest vanilla behav (13000338, particle; 0x84 bytes/0x21 words).
+                // Same behav would also trip this function with its cmd parameter values.
+                while (reads < 0x28 && (behavScriptLineBytes[0] != 0x00 || behavScriptLineBytes[1] == 0x00 || behavScriptLineBytes[1] > 0x0C));
             }
 
             return wordOffsets;
@@ -588,11 +592,13 @@ namespace StarDisplay
         }
 
         // hardcoded to reading for segment 13; returns void + values to class vars as lazy way to not design for "multiple returns"
+        // if it somehow fails, default values are used
         private void ReadSegment13ROMRangeAddrs()
         {
             reader.BaseStream.Position = seg15StartRomAddress;
             int offset = 0;
-            while (true)
+            // XXX: Reads are limited to 0x20, because there are that many segments, assumption is each only needs to be loaded once.
+            for (int reads = 0; reads < 0x20; reads++)
             {
                 // load cmds 0x16, 17, 18 are all length 0xC
                 byte[] loadCmdLineBytes = reader.ReadBytes(0xC);
