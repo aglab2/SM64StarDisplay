@@ -183,13 +183,13 @@ namespace StarDisplay
         {
             List<uint> wordOffsets = new List<uint>();
 
-            // find address of target call
+            // find addresses calling the target function
             for (int i = 0; i < seg13Words.Length; i++)
             {
                 if (seg13Words[i] == targetCallWord)
                     wordOffsets.Add(4 * (uint)i);
             }
-            if (wordOffsets.Count == 0) return wordOffsets;  // target call not used, we won't find a behavior below. return empty list early
+            if (wordOffsets.Count == 0) return wordOffsets;  // target function not used, we won't find a behavior below. return empty list early
 
             // for each offset considered valid, go backwards towards start of script to turn offset into script address
             for (int i = 0; i < wordOffsets.Count; i++)
@@ -203,9 +203,8 @@ namespace StarDisplay
                     reader.BaseStream.Position -= 0x08;
                     wordOffsets[i] -= 0x04;
                 }
-                // XXX: start behav is 00 XX 00 00, XX == 00-0C, ignore bigger values. also ignore 00 because in cmd 00 that group is only Mario.
-                // this is STILL error-prone, if a command uses 00 XX aligned to 4 bytes as parameter (see cmds 23, 30), we'll get garbage here.
-                // sure, the while-loop can never run longer than one valid behav script anyway, but not getting correct behav over this sounds dumb.
+                // FIXME: start behav is 00 XX 00 00, XX == 00-0C, ignore bigger values. also ignore 00 because in cmd 00 that group is only Mario.
+                // this MAY STILL get garbage, if a command has parameter looking like 00 [00-0C] [...] aligned to 4 bytes (see cmds 23, 30).
                 while (behavScriptLineBytes[0] != 0x00 || behavScriptLineBytes[1] == 0x00 || behavScriptLineBytes[1] > 0x0D);
             }
 
@@ -454,7 +453,7 @@ namespace StarDisplay
                         }
 
                         byte[] behaviour = ReadBehaviourFullAddr(offset);
-                        behaviour[0] = 0x00;    // read 4 bytes for BitConverter below, but drop the leading (segment) byte
+                        behaviour[0] = 0x00;    // read 4 bytes for BitConverter below, but clear the unnecessary segment byte
                         uint behaviorAsAddr = SwapBytes(BitConverter.ToUInt32(behaviour, 0));
                         if (behaviorAsAddr == searchBehaviour)
                         {
@@ -465,7 +464,6 @@ namespace StarDisplay
                     {
                         reader.BaseStream.Position = offset + 0x3;
                         int bank = reader.ReadByte();
-
                         if (bank != 0xE)
                             continue;
 
@@ -602,7 +600,6 @@ namespace StarDisplay
                 if (loadCmdLineBytes[0] == 0x1D)
                     break;
 
-                //if (loadCmdLineBytes[0] != 0x17) return 0;  // only deal with 0x17; I'm not sure why I would force that
                 if (loadCmdLineBytes[3] == 0x13)    // 4th byte is segment number
                 {
                     seg13StartRomAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x4));
@@ -612,12 +609,6 @@ namespace StarDisplay
                 offset += 0xC;
                 reader.BaseStream.Position = seg15StartRomAddress + offset;
             }
-        }
-
-        // assumes bank 13 until Read_() and GetAmountOfObjectInternal stuff are reimplemented without that assumption
-        private uint Bank13_BehavSegmentedToROM(uint segmented)
-        {
-            return seg13StartRomAddress + (segmented & 0x00FFFFFF);
         }
 
         public Bitmap GetStarImage()
