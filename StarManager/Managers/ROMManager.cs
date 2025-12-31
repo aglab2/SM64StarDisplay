@@ -14,7 +14,11 @@ namespace StarDisplay
     {
         BinaryReader reader;
 
-        static int courseBaseAddress = 0x02AC094;
+        static int courseBaseAddress = 0x02AC094;       // BBH ("first" level, 0x04) ROM address
+        static uint seg15StartRomAddress = 0x02ABCA0;    // global(?) segment loads before switching by course ID, incl. bank 13 (see Quad64)
+        static uint seg13StartRomAddress = 0x0219E00;    // default in old binary (Editor) ROMs, but scanned for in seg15 on init
+        static uint seg13EndRomAddress = 0x021F4C0;      // default in old binary (Editor) ROMs, but scanned for in seg15 on init
+        static uint[] seg13Words;
 
         static byte levelscriptEndDescriptor = 0x02;
         static byte jumpDescriptor = 0x05;
@@ -45,9 +49,13 @@ namespace StarDisplay
 
         static byte[] bossMIPSBehaviour = { 0x00, 0x44, 0xFC };
 
-        static byte[] redsBehaviour = { 0x00, 0x3E, 0xAC };
-        static byte[] secretsBehaviour = { 0x00, 0x3F, 0x1C };
-        static byte[] flipswitchBehaviour = { 0x00, 0x05, 0xD8 };
+
+        List<uint> redsBehaviours;
+        static uint redsBehavLoopCall = 0x802F2F2C;
+        List<uint> secretsBehaviours;
+        static uint secretsBehavLoopCall = 0x802F31BC;
+        List<uint> flipswitchBehaviours;
+        static uint flipswitchBehavLoopCall = 0x802A8238;
 
         Object[] boxObjects;
 
@@ -116,6 +124,27 @@ namespace StarDisplay
 
             reader = new BinaryReader(new MemoryStream(data));
             boxObjects = ReadBoxBehaviours();
+
+            ReadSegment13ROMRangeAddrs();
+            //uint[] seg13Words;
+            {
+                reader.BaseStream.Position = seg13StartRomAddress;
+                byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
+                int size = seg13Bytes.Count() / 4;
+                seg13Words = new uint[size];
+                for (int idx = 0; idx < size; idx++)
+                {
+                    byte[] dataInt = new byte[4];
+                    dataInt[0] = seg13Bytes[3 + 4 * idx];
+                    dataInt[1] = seg13Bytes[2 + 4 * idx];
+                    dataInt[2] = seg13Bytes[1 + 4 * idx];
+                    dataInt[3] = seg13Bytes[0 + 4 * idx];
+                    seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                }
+            }
+            redsBehaviours = FindSeg13BehavAddrs(redsBehavLoopCall);
+            secretsBehaviours = FindSeg13BehavAddrs(secretsBehavLoopCall);
+            flipswitchBehaviours = FindSeg13BehavAddrs(flipswitchBehavLoopCall);
         }
 
         public ROMManager(byte[] data)
@@ -123,6 +152,67 @@ namespace StarDisplay
             if (data == null) throw new IOException("Data is null");
             reader = new BinaryReader(new MemoryStream(data));
             boxObjects = ReadBoxBehaviours();
+
+            ReadSegment13ROMRangeAddrs();
+            //uint[] seg13Words;
+            {
+                reader.BaseStream.Position = seg13StartRomAddress;
+                byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
+                int size = seg13Bytes.Count() / 4;
+                seg13Words = new uint[size];
+                for (int idx = 0; idx < size; idx++)
+                {
+                    byte[] dataInt = new byte[4];
+                    dataInt[0] = seg13Bytes[3 + 4 * idx];
+                    dataInt[1] = seg13Bytes[2 + 4 * idx];
+                    dataInt[2] = seg13Bytes[1 + 4 * idx];
+                    dataInt[3] = seg13Bytes[0 + 4 * idx];
+                    seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                }
+            }
+            redsBehaviours = FindSeg13BehavAddrs(redsBehavLoopCall);
+            secretsBehaviours = FindSeg13BehavAddrs(secretsBehavLoopCall);
+            flipswitchBehaviours = FindSeg13BehavAddrs(flipswitchBehavLoopCall);
+        }
+
+        public List<uint> GetRedsBehavAddresses() { return redsBehaviours; }
+        public List<uint> GetSecretsBehavAddresses() { return secretsBehaviours; }
+        public List<uint> GetPanelsBehavAddresses() { return flipswitchBehaviours; }
+
+        private List<uint> FindSeg13BehavAddrs(uint targetCallWord)
+        {
+            List<uint> wordOffsets = new List<uint>();
+
+            // find addresses calling the target function
+            for (int i = 0; i < seg13Words.Length; i++)
+            {
+                if (seg13Words[i] == targetCallWord)
+                    wordOffsets.Add(4 * (uint)i);
+            }
+            if (wordOffsets.Count == 0) return wordOffsets;  // target function not used, we won't find a behavior below. return empty list early
+
+            // for each offset considered valid, go backwards towards start of script to turn offset into script address
+            for (int i = 0; i < wordOffsets.Count; i++)
+            {
+                reader.BaseStream.Position = seg13StartRomAddress + wordOffsets[i];
+                byte[] behavScriptLineBytes;
+                int reads = 0;
+                wordOffsets[i] += 0x04; // workaround for last step in while-loop happening before it figures out whether it needs to do it
+                do
+                {
+                    behavScriptLineBytes = reader.ReadBytes(4);
+                    reader.BaseStream.Position -= 0x08;
+                    wordOffsets[i] -= 0x04;
+                    reads++;
+                }
+                // FIXME: "Start behav" cmd is 00 XX 00 00, XX == 00-0C, ignore bigger values. also ignore 00 because in cmd 00 that group is only Mario.
+                // This MAY STILL get garbage, if a command has parameter looking like 00 [00-0C] [...] aligned to 4 bytes (see cmds 23, 30).
+                // XXX: Line reads are limited to 40, rounding up from longest vanilla behav (13000338, particle; 0x84 bytes/0x21 words).
+                // Same behav would also trip this function with its cmd parameter values.
+                while (reads < 0x28 && (behavScriptLineBytes[0] != 0x00 || behavScriptLineBytes[1] == 0x00 || behavScriptLineBytes[1] > 0x0C));
+            }
+
+            return wordOffsets;
         }
 
         public void Dispose()
@@ -160,6 +250,13 @@ namespace StarDisplay
         {
             reader.BaseStream.Position = offset + 0x15;
             return reader.ReadBytes(3);
+        }
+
+        // level cmd 24 18 ... [BS BS BS BS] - BS read in full. useful if you will pass it indiscriminately into a BitConverter 4-byte read.
+        private byte[] ReadBehaviourFullAddr(int offset)
+        {
+            reader.BaseStream.Position = offset + 0x14;
+            return reader.ReadBytes(4);
         }
 
         private byte ReadBParam1(int offset)
@@ -240,7 +337,10 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, redsBehaviour, currentStar, currentArea);
+            int objCount = 0;
+            foreach (uint redsBehav in redsBehaviours)
+                objCount += GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, redsBehav, currentStar, currentArea);
+            return objCount;
         }
 
         public int ParseSecrets(int level, int currentStar, int currentArea)
@@ -248,7 +348,10 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, secretsBehaviour, currentStar, currentArea);
+            int objCount = 0;
+            foreach (uint secretsBehav in secretsBehaviours)
+                objCount += GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, secretsBehav, currentStar, currentArea);
+            return objCount;
         }
     
         public int ParseFlipswitches(int level, int currentStar, int currentArea)
@@ -256,10 +359,13 @@ namespace StarDisplay
             int result = PrepareAddresses(level, out int levelAddressStart, out int levelAddressEnd, out int levelOffset);
             if (result != 0) return 0;
 
-            return GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, flipswitchBehaviour, currentStar, currentArea);
+            int objCount = 0;
+            foreach (uint flipswitchBehav in flipswitchBehaviours)
+                objCount += GetAmountOfObjects(levelAddressStart, levelAddressEnd, levelOffset, flipswitchBehav, currentStar, currentArea);
+            return objCount;
         }
 
-        private int GetAmountOfObjects(int start, int end, int offset, byte[] searchBehaviour, int currentStar, int currentArea)
+        private int GetAmountOfObjects(int start, int end, int offset, uint searchBehaviour, int currentStar, int currentArea)
         {
             int area = 0;
             return GetAmountOfObjectsInternal(start, end, offset, searchBehaviour, currentStar, currentArea, ref area);
@@ -273,8 +379,16 @@ namespace StarDisplay
                    ((x & 0xff000000) >> 24));
         }
 
+        public uint SwapBytes(uint x)
+        {
+            return ((x & 0x000000ff) << 24) +
+                   ((x & 0x0000ff00) << 8) +
+                   ((x & 0x00ff0000) >> 8) +
+                   ((x & 0xff000000) >> 24);
+        }
 
-        private int GetAmountOfObjectsInternal (int start, int end, int Loffset, byte[] searchBehaviour, int currentStar, int currentArea, ref int area)
+
+        private int GetAmountOfObjectsInternal (int start, int end, int Loffset, uint searchBehaviour, int currentStar, int currentArea, ref int area)
         {
             if (currentArea == 0) currentArea = 1;
             byte currentStarMask = (byte) (1 << currentStar);
@@ -342,8 +456,10 @@ namespace StarDisplay
                                 continue;
                         }
 
-                        byte[] behaviour = ReadBehaviour(offset);
-                        if (behaviour.SequenceEqual(searchBehaviour))
+                        byte[] behaviour = ReadBehaviourFullAddr(offset);
+                        behaviour[0] = 0x00;    // read 4 bytes for BitConverter below, but clear the unnecessary segment byte
+                        uint behaviorAsAddr = SwapBytes(BitConverter.ToUInt32(behaviour, 0));
+                        if (behaviorAsAddr == searchBehaviour)
                         {
                             counter++;
                         }
@@ -472,6 +588,32 @@ namespace StarDisplay
                 if (data[0] >= maxBehaviour) return ret;
                 Object obj = new Object(data[1], data[2], data[3], IPAddress.HostToNetworkOrder(BitConverter.ToInt32(data, 4)));
                 ret[data[0]] = obj;
+            }
+        }
+
+        // hardcoded to reading for segment 13; returns void + values to class vars as lazy way to not design for "multiple returns"
+        // if it somehow fails, default values are used
+        private void ReadSegment13ROMRangeAddrs()
+        {
+            reader.BaseStream.Position = seg15StartRomAddress;
+            int offset = 0;
+            // XXX: Reads are limited to 0x20, because there are that many segments, assumption is each only needs to be loaded once.
+            for (int reads = 0; reads < 0x20; reads++)
+            {
+                // load cmds 0x16, 17, 18 are all length 0xC
+                byte[] loadCmdLineBytes = reader.ReadBytes(0xC);
+
+                if (loadCmdLineBytes[0] == 0x1D)
+                    break;
+
+                if (loadCmdLineBytes[3] == 0x13)    // 4th byte is segment number
+                {
+                    seg13StartRomAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x4));
+                    seg13EndRomAddress = SwapBytes(BitConverter.ToUInt32(loadCmdLineBytes, 0x8));
+                }
+
+                offset += 0xC;
+                reader.BaseStream.Position = seg15StartRomAddress + offset;
             }
         }
 
