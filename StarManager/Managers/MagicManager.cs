@@ -95,7 +95,6 @@ namespace StarDisplay
 
         public MagicManager(Process process, long[] romPtrBaseSuggestions, long[] ramPtrBaseSuggestions, int offset, bool exScan)
         {
-            GC.Collect();
             this.process = process;
 
             bool isRomFound = false;

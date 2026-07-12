@@ -123,56 +123,78 @@ namespace StarDisplay
             }
 
             reader = new BinaryReader(new MemoryStream(data));
-            boxObjects = ReadBoxBehaviours();
 
-            ReadSegment13ROMRangeAddrs();
-            //uint[] seg13Words;
+            try
             {
-                reader.BaseStream.Position = seg13StartRomAddress;
-                byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
-                int size = seg13Bytes.Count() / 4;
-                seg13Words = new uint[size];
-                for (int idx = 0; idx < size; idx++)
+                boxObjects = ReadBoxBehaviours();
+
+                ReadSegment13ROMRangeAddrs();
+                //uint[] seg13Words;
                 {
-                    byte[] dataInt = new byte[4];
-                    dataInt[0] = seg13Bytes[3 + 4 * idx];
-                    dataInt[1] = seg13Bytes[2 + 4 * idx];
-                    dataInt[2] = seg13Bytes[1 + 4 * idx];
-                    dataInt[3] = seg13Bytes[0 + 4 * idx];
-                    seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                    reader.BaseStream.Position = seg13StartRomAddress;
+                    byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
+                    int size = seg13Bytes.Count() / 4;
+                    seg13Words = new uint[size];
+                    for (int idx = 0; idx < size; idx++)
+                    {
+                        byte[] dataInt = new byte[4];
+                        dataInt[0] = seg13Bytes[3 + 4 * idx];
+                        dataInt[1] = seg13Bytes[2 + 4 * idx];
+                        dataInt[2] = seg13Bytes[1 + 4 * idx];
+                        dataInt[3] = seg13Bytes[0 + 4 * idx];
+                        seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                    }
                 }
+                redsBehaviours = FindSeg13BehavAddrs(redsBehavLoopCall);
+                secretsBehaviours = FindSeg13BehavAddrs(secretsBehavLoopCall);
+                flipswitchBehaviours = FindSeg13BehavAddrs(flipswitchBehavLoopCall);
             }
-            redsBehaviours = FindSeg13BehavAddrs(redsBehavLoopCall);
-            secretsBehaviours = FindSeg13BehavAddrs(secretsBehavLoopCall);
-            flipswitchBehaviours = FindSeg13BehavAddrs(flipswitchBehavLoopCall);
+            catch (Exception e)
+            {
+                boxObjects = new Object[0];
+                redsBehaviours = new List<uint>();
+                secretsBehaviours = new List<uint>();
+                flipswitchBehaviours = new List<uint>();
+            }
         }
 
         public ROMManager(byte[] data)
         {
             if (data == null) throw new IOException("Data is null");
             reader = new BinaryReader(new MemoryStream(data));
-            boxObjects = ReadBoxBehaviours();
 
-            ReadSegment13ROMRangeAddrs();
-            //uint[] seg13Words;
+            try
             {
-                reader.BaseStream.Position = seg13StartRomAddress;
-                byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
-                int size = seg13Bytes.Count() / 4;
-                seg13Words = new uint[size];
-                for (int idx = 0; idx < size; idx++)
+                boxObjects = ReadBoxBehaviours();
+
+                ReadSegment13ROMRangeAddrs();
+                //uint[] seg13Words;
                 {
-                    byte[] dataInt = new byte[4];
-                    dataInt[0] = seg13Bytes[3 + 4 * idx];
-                    dataInt[1] = seg13Bytes[2 + 4 * idx];
-                    dataInt[2] = seg13Bytes[1 + 4 * idx];
-                    dataInt[3] = seg13Bytes[0 + 4 * idx];
-                    seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                    reader.BaseStream.Position = seg13StartRomAddress;
+                    byte[] seg13Bytes = reader.ReadBytes((int)(seg13EndRomAddress - seg13StartRomAddress));  // casts may lose info if segment size > 7FFFFFFF, which shouldn't happen
+                    int size = seg13Bytes.Count() / 4;
+                    seg13Words = new uint[size];
+                    for (int idx = 0; idx < size; idx++)
+                    {
+                        byte[] dataInt = new byte[4];
+                        dataInt[0] = seg13Bytes[3 + 4 * idx];
+                        dataInt[1] = seg13Bytes[2 + 4 * idx];
+                        dataInt[2] = seg13Bytes[1 + 4 * idx];
+                        dataInt[3] = seg13Bytes[0 + 4 * idx];
+                        seg13Words[idx] = BitConverter.ToUInt32(dataInt, 0);
+                    }
                 }
+                redsBehaviours = FindSeg13BehavAddrs(redsBehavLoopCall);
+                secretsBehaviours = FindSeg13BehavAddrs(secretsBehavLoopCall);
+                flipswitchBehaviours = FindSeg13BehavAddrs(flipswitchBehavLoopCall);
             }
-            redsBehaviours = FindSeg13BehavAddrs(redsBehavLoopCall);
-            secretsBehaviours = FindSeg13BehavAddrs(secretsBehavLoopCall);
-            flipswitchBehaviours = FindSeg13BehavAddrs(flipswitchBehavLoopCall);
+            catch (Exception e)
+            {
+                boxObjects = new Object[0];
+                redsBehaviours = new List<uint>();
+                secretsBehaviours = new List<uint>();
+                flipswitchBehaviours = new List<uint>();
+            }
         }
 
         public List<uint> GetRedsBehavAddresses() { return redsBehaviours; }
@@ -532,7 +554,7 @@ namespace StarDisplay
                 if (behaviour.SequenceEqual(boxBehaviour))
                 {
                     byte boxObjectByte = ReadBParam2(offset);
-                    Object currentObject = boxObjects[boxObjectByte];
+                    Object currentObject = boxObjects.ElementAtOrDefault(boxObjectByte);
                     //Console.WriteLine(String.Format("{1:X}: {0:X8}", currentObject.Behaviour, boxObjectByte));
                     if (boxObjectByte == 0x08)
                     {

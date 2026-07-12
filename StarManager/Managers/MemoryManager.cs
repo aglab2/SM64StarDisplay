@@ -415,9 +415,7 @@ namespace StarDisplay
 
         int GetSecrets(ROMManager rm)
         {
-            if (rm == null)
-                return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
-            else
+            try
             {
                 int objCount = 0;
                 foreach (uint behavAddr in rm.GetSecretsBehavAddresses())
@@ -426,13 +424,15 @@ namespace StarDisplay
                 }
                 return objCount;
             }
+            catch (Exception)
+            {
+                return SearchObjects(GetBehaviourRAMAddress(0x3F1C));
+            }
         }
 
         int GetActivePanels(ROMManager rm)
         {
-            if (rm == null)
-                return SearchObjects(GetBehaviourRAMAddress(0x5D8), 1) + SearchObjects(GetBehaviourRAMAddress(0x5D8), 2); //1 - active, 2 - finalized
-            else
+            try
             {
                 int objCount = 0;
                 foreach (uint behavAddr in rm.GetPanelsBehavAddresses())
@@ -442,13 +442,15 @@ namespace StarDisplay
                 }
                 return objCount;
             }
+            catch (Exception)
+            {
+                return SearchObjects(GetBehaviourRAMAddress(0x5D8), 1) + SearchObjects(GetBehaviourRAMAddress(0x5D8), 2); //1 - active, 2 - finalized
+            }
         }
 
         int GetAllPanels(ROMManager rm)
         {
-            if (rm == null)
-                return SearchObjects(GetBehaviourRAMAddress(0x5D8));
-            else
+            try
             {
                 int objCount = 0;
                 foreach (uint behavAddr in rm.GetPanelsBehavAddresses())
@@ -456,6 +458,10 @@ namespace StarDisplay
                     objCount += SearchObjects(GetBehaviourRAMAddress(behavAddr));
                 }
                 return objCount;
+            }
+            catch (Exception)
+            {
+                return SearchObjects(GetBehaviourRAMAddress(0x5D8));
             }
         }
 
