@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections;
 using System.Diagnostics;
 using System.Linq;
 using LiveSplit.ComponentUtil;
 using System.IO;
 using System.Drawing;
-using System.Windows.Forms;
-using System.Runtime.InteropServices;
 
 namespace StarDisplay
 {
@@ -154,46 +151,6 @@ namespace StarDisplay
 
             var name = Process.ProcessName.ToLower();
             int offset = 0;
-
-            if (name.Contains("project64") || name.Contains("wine-preloader"))
-            {
-                DeepPointer[] ramPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A1C),     //1.6
-                    new DeepPointer("RSP 1.7.dll", 0x4C054), new DeepPointer("RSP 1.7.dll", 0x44B5C),        //2.3.2; 2.4
-                };
-
-                DeepPointer[] romPtrBaseSuggestionsDPtrs = { new DeepPointer("Project64.exe", 0xD6A2C),     //1.6
-                    new DeepPointer("RSP 1.7.dll", 0x4C050), new DeepPointer("RSP 1.7.dll", 0x44B58)        //2.3.2; 2.4
-                };
-
-                // Time to generate some addesses for magic check
-                foreach (DeepPointer romSuggestionPtr in romPtrBaseSuggestionsDPtrs)
-                {
-                    int ptr = -1;
-                    try
-                    {
-                        ptr = romSuggestionPtr.Deref<int>(Process);
-                        romPtrBaseSuggestions.Add(ptr);
-                    }
-                    catch (Exception)
-                    {
-                        continue;
-                    }
-                }
-
-                foreach (DeepPointer ramSuggestionPtr in ramPtrBaseSuggestionsDPtrs)
-                {
-                    int ptr = -1;
-                    try
-                    {
-                        ptr = ramSuggestionPtr.Deref<int>(Process);
-                        ramPtrBaseSuggestions.Add(ptr);
-                    }
-                    catch (Exception)
-                    {
-                        continue;
-                    }
-                }
-            }
 
             if (name.Contains("mupen64"))
             {
@@ -496,9 +453,23 @@ namespace StarDisplay
                 if (rom != null) break;
             }
             if (rom == null) return null;
-            for (int i = 0; i < romSize; i += 4)
+            unsafe
             {
-                Array.Reverse(rom, i, 4);
+                fixed (byte* p = rom)
+                {
+                    for (int i = 0; i < romSize; i += 4)
+                    {
+                        byte t;
+
+                        t = rom[i];
+                        rom[i] = rom[i + 3];
+                        rom[i + 3] = t;
+
+                        t = rom[i + 1];
+                        rom[i + 1] = rom[i + 2];
+                        rom[i + 2] = t;
+                    }
+                }
             }
             return rom;
         }
