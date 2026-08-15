@@ -95,6 +95,9 @@ namespace StarDisplay
         IntPtr netHookPtr;
         uint netStatesOff;
 
+        IntPtr raLunaPtr; UInt32 raLuna;
+        IntPtr raHardcorePtr; UInt32 raHardcore;
+
         public bool isStarsInvalidated = false;
 
         private int selectedFile;
@@ -233,6 +236,9 @@ namespace StarDisplay
             netHookPtr = new IntPtr((long)(mm.ramPtrBase + 0x38a3c + 0x245000)); // 0x5840c
             netStatesOff = BitConverter.ToUInt32(data, 8) - 0x80000000;
 
+            raLunaPtr = new IntPtr((long)(mm.ramPtrBase + 0x800000));
+            raHardcorePtr = new IntPtr((long)(mm.ramPtrBase + 0x800010));
+
             bool wasSet = false;
             if (!wasSet)
             {
@@ -285,6 +291,8 @@ namespace StarDisplay
             }
 
             RomCRC = Process.ReadValue<UInt16>(romCRCPtr);
+            raHardcore = Process.ReadValue<UInt32>(raHardcorePtr);
+            raLuna = Process.ReadValue<UInt32>(raLunaPtr);
         }
 
         public void DeleteStars()
