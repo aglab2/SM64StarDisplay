@@ -789,6 +789,65 @@ namespace StarDisplay
             Process.WriteBytes(filePtr, stars);
         }
 
+        // Sets every star from the layout, plus caps, keys, doors and other progression flags
+        public void CompleteFile(LayoutDescriptionEx ld)
+        {
+            byte[] stars = (byte[]) Stars.Clone();
+
+            foreach (var descr in ld.courseDescription.Concat(ld.secretDescription))
+            {
+                if (descr is StarsLineDescription sld && sld.offset < FileLength)
+                    stars[sld.offset] |= sld.starMask;
+            }
+
+            // Save flags are a big-endian u32 at 0x08
+            stars[0x0B] = 0xFF; // file exists, wing/metal/vanish caps, keys 1/2, basement/upstairs doors
+            stars[0x0A] = 0xFF; // DDD moved back, moat drained, PSS/WF/CCM/JRB/BitDW/BitFS star doors
+            stars[0x09] |= 0x10; // 50 star door
+
+            // Cannon for course N is the 0x80 bit of courseStars[N]
+            if (FileLength / 2 == 0x38)
+            {
+                for (int i = 0x0C + 1; i < 0x0C + 25; i++)
+                    stars[i] |= 0x80;
+            }
+
+            WriteToFile(stars, ld);
+        }
+
+        // Selected file in EEPROM byte order with both copies made valid
+        public byte[] GetEEPROMFileData()
+        {
+            int copySize = FileLength / 2;
+            byte[] data = new byte[FileLength];
+            Array.Copy(Stars, 0, data, 0, copySize);
+
+            // SaveBlockSignature: magic 'DA' followed by a sum of all preceding bytes
+            data[copySize - 4] = 0x44;
+            data[copySize - 3] = 0x41;
+            ushort checksum = 0;
+            for (int i = 0; i < copySize - 2; i++)
+                checksum += data[i];
+            data[copySize - 2] = (byte)(checksum >> 8);
+            data[copySize - 1] = (byte)checksum;
+
+            Array.Copy(data, 0, data, copySize, copySize);
+            return data;
+        }
+
+        // ROM header name, which PJ64 uses as the save file name
+        public string GetRomInternalName()
+        {
+            byte[] name = Process.ReadBytes(romPtr + 0x20, 20);
+            if (name == null) return null;
+            for (int i = 0; i < name.Length; i += 4)
+                Array.Reverse(name, i, 4);
+
+            int length = Array.IndexOf(name, (byte)0);
+            if (length < 0) length = name.Length;
+            return System.Text.Encoding.Default.GetString(name, 0, length).TrimEnd(' ');
+        }
+
         public void WriteNetState(int id, byte[] data)
         {
             if (data is object)

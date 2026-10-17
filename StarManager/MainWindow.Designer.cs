@@ -49,6 +49,8 @@
             this.warpToLevelToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableClickToWarpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.editFlagsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.completeFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveFileToEEPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.enableAutoDeleteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pickFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fileAToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -206,6 +208,8 @@
             this.warpToLevelToolStripMenuItem,
             this.enableClickToWarpToolStripMenuItem,
             this.editFlagsToolStripMenuItem,
+            this.completeFileToolStripMenuItem,
+            this.saveFileToEEPToolStripMenuItem,
             this.enableAutoDeleteToolStripMenuItem,
             this.pickFileToolStripMenuItem});
             this.toolStripMenuItem13.Name = "toolStripMenuItem13";
@@ -241,6 +245,20 @@
             this.editFlagsToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
             this.editFlagsToolStripMenuItem.Text = "Edit Flags...";
             this.editFlagsToolStripMenuItem.Click += new System.EventHandler(this.editFlagsToolStripMenuItem_Click);
+            // 
+            // completeFileToolStripMenuItem
+            // 
+            this.completeFileToolStripMenuItem.Name = "completeFileToolStripMenuItem";
+            this.completeFileToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.completeFileToolStripMenuItem.Text = "100% File";
+            this.completeFileToolStripMenuItem.Click += new System.EventHandler(this.completeFileToolStripMenuItem_Click);
+            // 
+            // saveFileToEEPToolStripMenuItem
+            // 
+            this.saveFileToEEPToolStripMenuItem.Name = "saveFileToEEPToolStripMenuItem";
+            this.saveFileToEEPToolStripMenuItem.Size = new System.Drawing.Size(171, 22);
+            this.saveFileToEEPToolStripMenuItem.Text = "Save File to .eep";
+            this.saveFileToEEPToolStripMenuItem.Click += new System.EventHandler(this.saveFileToEEPToolStripMenuItem_Click);
             // 
             // enableAutoDeleteToolStripMenuItem
             // 
@@ -481,6 +499,8 @@
         private System.Windows.Forms.ToolStripMenuItem connectToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editFileToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editFlagsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem completeFileToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveFileToEEPToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem viewToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem editComponentsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem pickFileToolStripMenuItem;
