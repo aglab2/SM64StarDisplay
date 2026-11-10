@@ -180,7 +180,7 @@ namespace StarDisplay
                     }
 
                     // Modern mupen allocates a gigantic array with very strict alignment
-                    if (regionSize >= 0x100000000 || (regionSize >= 0x20000000 && process.ProcessName.Contains("RMG")))
+                    if (regionSize >= 0x20000000)
                     {
                         ScanForRAM(address, 0x20000, 0x1000, ref isRamFound, ref ramPtrBase);
 
