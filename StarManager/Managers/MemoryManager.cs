@@ -185,7 +185,8 @@ namespace StarDisplay
                 offset = 0;
             }
 
-            if (name.Contains("rmg")) {
+            if (name.Contains("rmg"))
+            {
                 offset = 0x40;
             }
 
