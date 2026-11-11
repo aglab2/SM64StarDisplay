@@ -57,6 +57,8 @@ namespace StarDisplay
 
         byte[] otherStars = new byte[0x8000];
 
+        string eepPath;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -1206,6 +1208,81 @@ namespace StarDisplay
             fef.ShowDialog();
             mm.WriteToFile(fef.stars, ld);
             InvalidateCache();
+        }
+
+        private void completeFileToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (mm == null || mm.GetStars() == null) return;
+
+            DialogResult r = MessageBox.Show("Give file " + (char)('A' + mm.SelectedFile) + " all stars, keys and caps?", "100% File", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+            if (r != DialogResult.OK) return;
+
+            mm.CompleteFile(ld);
+            InvalidateCache();
+        }
+
+        private void saveFileToEEPToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            if (mm == null || mm.GetStars() == null) return;
+
+            // Luna-PJ64 keeps saves in %AppData%\Luna-Project64\Save\<internal name>.eep
+            string path = null;
+            string romName = mm.GetRomInternalName();
+            string saveDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Luna-Project64", "Save");
+            if (!string.IsNullOrEmpty(romName) && File.Exists(Path.Combine(saveDir, romName + ".eep")))
+                path = Path.Combine(saveDir, romName + ".eep");
+
+            if (path == null)
+            {
+                // Not found there (custom save dir or another emulator), so ask
+                SaveFileDialog sfd = new SaveFileDialog
+                {
+                    Filter = "EEPROM save (*.eep)|*.eep|All files (*.*)|*.*",
+                    OverwritePrompt = false,
+                    Title = "Save file " + (char)('A' + mm.SelectedFile) + " into .eep"
+                };
+                if (eepPath != null)
+                {
+                    sfd.InitialDirectory = Path.GetDirectoryName(eepPath);
+                    sfd.FileName = Path.GetFileName(eepPath);
+                }
+                else
+                {
+                    if (Directory.Exists(saveDir))
+                        sfd.InitialDirectory = saveDir;
+                    if (!string.IsNullOrEmpty(romName))
+                        sfd.FileName = romName + ".eep";
+                }
+
+                if (sfd.ShowDialog() != DialogResult.OK) return;
+                path = sfd.FileName;
+            }
+
+            try
+            {
+                byte[] fileData = mm.GetEEPROMFileData();
+                int fileOffset = mm.SelectedFile * fileData.Length;
+                // 4 files followed by 2 copies of main menu data
+                int minLength = 4 * fileData.Length + 0x40;
+
+                // The emulator keeps the .eep open, so share access with it
+                using (FileStream fs = new FileStream(path, FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.ReadWrite))
+                {
+                    byte[] eep = new byte[Math.Max(fs.Length, Math.Max(minLength, 0x200))];
+                    fs.Read(eep, 0, (int)fs.Length);
+
+                    Array.Copy(fileData, 0, eep, fileOffset, fileData.Length);
+                    fs.Seek(0, SeekOrigin.Begin);
+                    fs.Write(eep, 0, eep.Length);
+                }
+                eepPath = path;
+
+                MessageBox.Show("File " + (char)('A' + mm.SelectedFile) + " saved to " + path, "Save to .eep", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Can't save .eep: " + ex.Message, "Save to .eep", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
         }
 
         private void editComponentsToolStripMenuItem_Click(object sender, EventArgs e)
