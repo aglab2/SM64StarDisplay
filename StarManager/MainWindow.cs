@@ -206,7 +206,8 @@ namespace StarDisplay
             "mupen64",
             "retroarch",
             "wine-preloader",
-            "RMG"
+            "RMG",
+            "ares"
         };
 
         private Process FindEmulatorProcess()
@@ -314,7 +315,7 @@ namespace StarDisplay
                 isEmulatorStarted = true;
 
                 // Well, that's just a minor magic but it works
-                if (mm.GetTitle().Contains("-"))
+                if (mm.CheckHackLoaded())
                     isHackLoaded = true;
 
                 if (!mm.isMagicDone())

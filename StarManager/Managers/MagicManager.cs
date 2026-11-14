@@ -93,7 +93,7 @@ namespace StarDisplay
             }
         }
 
-        public MagicManager(Process process, long[] romPtrBaseSuggestions, long[] ramPtrBaseSuggestions, int offset, bool exScan)
+        public MagicManager(Process process, long[] romPtrBaseSuggestions, long[] ramPtrBaseSuggestions, int offset, bool isAres)
         {
             this.process = process;
 
@@ -133,6 +133,8 @@ namespace StarDisplay
 
             ulong MaxAddress = process.Is64Bit() ? 0x800000000000U : 0xffffffffU;
             ulong address = 0;
+            if (isAres && !isRomFound)
+                FindAresRomBlock(ref isRomFound, ref romPtrBase);
             do
             {
                 if (isRomFound && isRamFound)
@@ -207,6 +209,29 @@ namespace StarDisplay
                             }
                         }
                     }
+
+                    if (isAres && !isRamFound)
+                    {
+                        // filter for 64k aligned 4mb/8mb (expansion pak) virtual memory sections
+                        if ((regionSize >= 0x800000 && regionSize <= 0x811000) || (regionSize >= 0x400000 && regionSize <= 0x411000))
+                        {
+                            // align the address
+                            ulong alignedAddress = (address & 0xFFFFFFFFFFFF0000);
+                            // always round up even with no remainder because of padding
+
+                            alignedAddress += 0x10000;
+                            uint alignedValue;
+                            bool alignedReadSuccess = process.ReadValue(new IntPtr((long)(alignedAddress)), out alignedValue);
+                            if (alignedReadSuccess)
+                            {
+                                if ((alignedValue & ramMagicMask) == ramMagic)
+                                {
+                                    ramPtrBase = alignedAddress;
+                                    isRamFound = true;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 address = (ulong)m.BaseAddress + (ulong)m.RegionSize;
@@ -239,6 +264,70 @@ namespace StarDisplay
             isDecomp = saveBufferOffset != 0x207700; // TODO: This is inaccurate
         }
 
+        // ares stores the rom twice, once that is Big Endian and unaligned, and a 2nd time that is the little endian and aligned to 64k.
+        // We find the biggest virtual memory allocation that matches the Big Endian rom magic and then use statistics about that block,
+        // to find the other block which is what we actually use.
+        void FindAresRomBlock(ref bool isRomFound, ref ulong romPtrBase)
+        {
+            const uint byteSwappedRomMagic = 0x40123780;
+            MEMORY_BASIC_INFORMATION m;
+            ulong MaxAddress = process.Is64Bit() ? 0x800000000000U : 0xffffffffU;
+            ulong address = 0;
+            ulong largestValidRegionSize = 0;
+            // first pass to find big endian rom
+            for (address = 0; address <= MaxAddress; address = (ulong)m.BaseAddress + (ulong)m.RegionSize)
+            {
+
+                int result = VirtualQueryEx(process.Handle, new UIntPtr(address), out m, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
+                ulong regionSize = (ulong)m.RegionSize;
+                ulong currentAddress = (ulong)m.BaseAddress;
+                if (address == (ulong)m.BaseAddress + (ulong)m.RegionSize || result == 0)
+                    break;
+                // PAGE_READWRITE
+                if ((m.Protect & 0xff) != 0x4)
+                    continue;
+                uint value;
+                bool readSuccess = process.ReadValue(new IntPtr((long)(currentAddress + 0x40)), out value);
+                if (readSuccess)
+                    if (value == byteSwappedRomMagic && regionSize > largestValidRegionSize)
+                        largestValidRegionSize = regionSize;
+            }
+            // 2nd pass to find the byteswapped rom
+            // ares rounds up when allocating the byteswapped rom
+            // round down a page before rounding up
+            largestValidRegionSize = RoundUpToPowerOfTwo(largestValidRegionSize - 0x1000);
+
+            for (address = 0; address <= MaxAddress; address = (ulong)m.BaseAddress + (ulong)m.RegionSize)
+            {
+                int result = VirtualQueryEx(process.Handle, new UIntPtr(address), out m, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
+                ulong regionSize = (ulong)m.RegionSize;
+                ulong currentAddress = (ulong)m.BaseAddress;
+                if (address == (ulong)m.BaseAddress + (ulong)m.RegionSize || result == 0)
+                    break;
+                // align the address
+                ulong alignedAddress = (currentAddress & 0xFFFFFFFFFFFF0000);
+
+                // always round up even with no remainder because of padding
+                alignedAddress += 0x10000;
+
+                // only search allocations that are close to the byte swapped size
+                if (regionSize < largestValidRegionSize || regionSize - 0x11000 > largestValidRegionSize)
+                    continue;
+
+                // PAGE_READWRITE
+                if ((m.Protect & 0xff) != 0x4)
+                    continue;
+                uint value;
+                bool readSuccess = process.ReadValue(new IntPtr((long)(alignedAddress)), out value);
+                if (readSuccess)
+                    if (value == romMagic)
+                    {
+                        isRomFound = true;
+                        romPtrBase = alignedAddress;
+                    }
+            }
+        }
+
         bool IsRamBaseValid()
         {
             uint value = 0;
@@ -256,6 +345,18 @@ namespace StarDisplay
         public bool isValid()
         {
             return IsRamBaseValid() && IsRomBaseValid() && saveBufferOffset != 0;
+        }
+
+        public static ulong RoundUpToPowerOfTwo(ulong value)
+        {
+            if ((value & (value - 1)) == 0)
+                return value;
+            value--;
+            for (int i = 1; i < 64; i *= 2)
+            {
+                value |= value >> i;
+            }
+            return value + 1;
         }
     }
 }

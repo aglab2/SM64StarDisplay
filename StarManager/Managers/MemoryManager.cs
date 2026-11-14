@@ -198,7 +198,7 @@ namespace StarDisplay
             }
 
             // Process.ProcessName;
-            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offset, name.Contains("retroarch"));
+            mm = new MagicManager(Process, romPtrBaseSuggestions.ToArray(), ramPtrBaseSuggestions.ToArray(), offset, name.Contains("ares"));
 
             isDecomp = mm.isDecomp;
             verificationPtr = new IntPtr((long) (mm.ramPtrBase + mm.verificationOffset));
@@ -830,10 +830,14 @@ namespace StarDisplay
             }
         }
 
-        public string GetTitle()
+        public bool CheckHackLoaded()
         {
             Process.Refresh();
-            return Process.MainWindowTitle;
+            if (Process.ProcessName.Equals("ares"))
+            {
+                return !Process.MainWindowTitle.StartsWith("ares ");
+            }
+            return Process.MainWindowTitle.Contains("-");
         }
 
         public void WriteWarp(byte warpID, byte levelID, byte areaID)
