@@ -293,6 +293,10 @@ namespace StarDisplay
                         largestValidRegionSize = regionSize;
             }
             // 2nd pass to find the byteswapped rom
+            // ares rounds up when allocating the byteswapped rom
+            // round down a page before rounding up
+            largestValidRegionSize = RoundUpToPowerOfTwo(largestValidRegionSize - 0x1000);
+
             for (address = 0; address <= MaxAddress; address = (ulong)m.BaseAddress + (ulong)m.RegionSize)
             {
                 int result = VirtualQueryEx(process.Handle, new UIntPtr(address), out m, (uint)Marshal.SizeOf(typeof(MEMORY_BASIC_INFORMATION)));
@@ -302,9 +306,9 @@ namespace StarDisplay
                     break;
                 // align the address
                 ulong alignedAddress = (currentAddress & 0xFFFFFFFFFFFF0000);
-                // round up
-                if ((currentAddress & 0xFFFF) > 0)
-                    alignedAddress += 0x10000;
+
+                // always round up even with no remainder because of padding
+                alignedAddress += 0x10000;
 
                 // only search allocations that are close to the byte swapped size
                 if (regionSize < largestValidRegionSize || regionSize - 0x11000 > largestValidRegionSize)
@@ -341,6 +345,18 @@ namespace StarDisplay
         public bool isValid()
         {
             return IsRamBaseValid() && IsRomBaseValid() && saveBufferOffset != 0;
+        }
+
+        public ulong RoundUpToPowerOfTwo(ulong value)
+        {
+            if ((value & (value - 1)) == 0)
+                return value;
+            value--;
+            for (int i = 1; i < 64; i *= 2)
+            {
+                value |= value >> i;
+            }
+            return value + 1;
         }
     }
 }
