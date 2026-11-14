@@ -217,9 +217,9 @@ namespace StarDisplay
                         {
                             // align the address
                             ulong alignedAddress = (address & 0xFFFFFFFFFFFF0000);
-                            // round up
-                            if ((address & 0xFFFF) > 0)
-                                alignedAddress += 0x10000;
+                            // always round up even with no remainder because of padding
+
+                            alignedAddress += 0x10000;
                             uint alignedValue;
                             bool alignedReadSuccess = process.ReadValue(new IntPtr((long)(alignedAddress)), out alignedValue);
                             if (alignedReadSuccess)
