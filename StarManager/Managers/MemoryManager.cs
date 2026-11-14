@@ -835,7 +835,7 @@ namespace StarDisplay
             Process.Refresh();
             if (Process.ProcessName.Equals("ares"))
             {
-                return !Process.MainWindowTitle.StartsWith("ares v");
+                return !Process.MainWindowTitle.StartsWith("ares ");
             }
             return Process.MainWindowTitle.Contains("-");
         }
