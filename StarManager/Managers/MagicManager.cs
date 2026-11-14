@@ -347,7 +347,7 @@ namespace StarDisplay
             return IsRamBaseValid() && IsRomBaseValid() && saveBufferOffset != 0;
         }
 
-        public ulong RoundUpToPowerOfTwo(ulong value)
+        public static ulong RoundUpToPowerOfTwo(ulong value)
         {
             if ((value & (value - 1)) == 0)
                 return value;
