@@ -479,13 +479,27 @@ namespace StarDisplay
                     }
                 }
 
+                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ?
+                    mm.GetCollectablesOnlyDrawActions(ld, rm) :
+                    mm.GetDrawActions(ld, rm, enableLockoutToolStripMenuItem.Checked ? otherStars : null, layoutOff, sm.GetConfig("StarLayoutInitAction_limit", 30));
+
+                if (actions == null) return;
+
+                int lineOffset = 0;
+                foreach (var entry in actions)
+                {
+                    lineOffset += entry.GetLength(gm, lineOffset, sm);
+                }
+                int height = (int)(lineOffset * gm.SHeight) + 10;
+
                 //Display stars routine
-                baseImage = new Bitmap(starPicture.Width, starPicture.Width * 4);
+                baseImage = new Bitmap(starPicture.Width, height);
 
                 Graphics baseGraphics = Graphics.FromImage(baseImage);
                 baseGraphics.Clear(Color.Black);
                 baseGraphics.TextRenderingHint = TextRenderingHint.AntiAlias;
                 gm.graphics = Graphics.FromImage(baseImage);
+                gm.height = height;
 
                 if (!sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false))
                 {
@@ -533,24 +547,18 @@ namespace StarDisplay
                     InvalidateCache();
                 }
 
-                int lineOffset = 0;
-                var actions = sm.GetConfig(MainWindowsSettingsAction.collectablesOnlyConfigureName, false) ?
-                    mm.GetCollectablesOnlyDrawActions(ld, rm) : 
-                    mm.GetDrawActions(ld, rm, enableLockoutToolStripMenuItem.Checked ? otherStars : null, layoutOff, sm.GetConfig("StarLayoutInitAction_limit", 30));
-
-                if (actions == null) return;
-
+                lineOffset = 0;
                 foreach (var entry in actions)
                 {
                     lineOffset += entry.Execute(gm, lineOffset, sm);
                 }
-                
+
                 baseGraphics.Dispose();
                 this.SafeInvoke(delegate {
                     menuStrip.Enabled = true;
                     starPicture.Image = baseImage;
-                    starPicture.Height = (int) (lineOffset * gm.SHeight) + 10;
-                    this.Height = (int)(lineOffset * gm.SHeight) + 48;
+                    starPicture.Height = height;
+                    this.Height = height + 38;
                 });
             }
             catch (Win32Exception)
@@ -1378,8 +1386,6 @@ namespace StarDisplay
 
         private void MainWindow_Resize(object sender, EventArgs e)
         {
-            Console.WriteLine(this.Width);
-
             if (starPicture != null)
                 starPicture.Width = this.Width;
 

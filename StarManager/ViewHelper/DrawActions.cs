@@ -13,6 +13,7 @@ namespace StarDisplay
     public abstract class Action
     {
         public abstract int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm); //returns taken size
+        public abstract int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm);
 
         // This method is needed to perform draw of config, should be defined in base class on need
         // C# does nto allow abstract static methods :[
@@ -57,6 +58,11 @@ namespace StarDisplay
                 if (isAcquired)
                     gm.graphics.DrawImage(FilledStar, x, y, gm.SWidth, gm.SWidth);
             }
+            return 0; //Line Actions should not increase global offset
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
             return 0; //Line Actions should not increase global offset
         }
     }
@@ -284,6 +290,15 @@ namespace StarDisplay
             }
             return 2;
         }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            bool isShown = sm.GetConfig(configureName, true);
+            if (!isShown)
+                return 0;
+
+            return 2;
+        }
     }
 
     public class LastStarHighlightAction : Action
@@ -337,6 +352,11 @@ namespace StarDisplay
                     gm.graphics.DrawImage(gm.Ld.redOutline, x, y, gm.SWidth, gm.SWidth);
                 }
             }
+            return 0;
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
             return 0;
         }
     }
@@ -396,6 +416,11 @@ namespace StarDisplay
 
             return 0;
         }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return 0;
+        }
     }
 
     public class LastHighlight : Action
@@ -416,6 +441,11 @@ namespace StarDisplay
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
             gm.LastSHA = this;
+            return 0;
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
             return 0;
         }
     }
@@ -470,6 +500,11 @@ namespace StarDisplay
                 DrawFullReds(gm, lineOffset);
             return 0;
         }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return 0;
+        }
     }
 
     public class SecretsDrawAction : Action
@@ -522,6 +557,11 @@ namespace StarDisplay
                 DrawFullSecrets(gm, lineOffset);
             return 0;
         }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return 0;
+        }
     }
 
     public class StarLayoutFiniAction : Action
@@ -534,6 +574,11 @@ namespace StarDisplay
         }
 
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return Length;
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
             return Length;
         }
@@ -591,6 +636,15 @@ namespace StarDisplay
 
             blackBrush.Dispose();
             drawBrush.Dispose();
+            return 1;
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            bool isShown = sm.GetConfig(configureName, true);
+            if (!isShown)
+                return 0;
+
             return 1;
         }
     }
@@ -665,6 +719,15 @@ namespace StarDisplay
             drawBrush.Dispose();
             return 1;
         }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            bool isShown = sm.GetConfig(configureName, true);
+            if (!isShown)
+                return 0;
+
+            return 1;
+        }
     }
 
     public class StarLayoutInitAction : Action
@@ -718,7 +781,12 @@ namespace StarDisplay
 
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
-            gm.PaintHUD(lineOffset, off, limit);
+            gm.PaintHUD(lineOffset, off, limit, gm.height);
+            return 0;
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
             return 0;
         }
     }
@@ -752,6 +820,11 @@ namespace StarDisplay
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
             throw new NotSupportedException();
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return 0;
         }
     }
 
@@ -826,6 +899,11 @@ namespace StarDisplay
         {
             throw new NotSupportedException();
         }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return 0;
+        }
     }
 
     public class FontAction : Action
@@ -898,6 +976,11 @@ namespace StarDisplay
         public override int Execute(GraphicsManager gm, int lineOffset, SettingsManager sm)
         {
             throw new NotSupportedException();
+        }
+
+        public override int GetLength(GraphicsManager gm, int lineOffset, SettingsManager sm)
+        {
+            return 0;
         }
     }
 

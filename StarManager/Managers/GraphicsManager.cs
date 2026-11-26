@@ -52,6 +52,7 @@ namespace StarDisplay
         private LayoutDescriptionEx ld;
 
         public Graphics graphics;
+        public int height;
 
         private LastHighlight lastSHA;
         public bool IsFirstCall = true;
@@ -121,7 +122,7 @@ namespace StarDisplay
             TestFont();
         }
 
-        public void PaintHUD(int lineOffset, int off, int limit)
+        public void PaintHUD(int lineOffset, int off, int limit, int height)
         {
             SolidBrush blackBrush = new SolidBrush(Color.Black);
             SolidBrush drawBrush = new SolidBrush(Color.White);
@@ -131,7 +132,24 @@ namespace StarDisplay
             int lastLine = Math.Min(Math.Max(courseDescriptionLength, secretDescriptionLength), limit);
 
             if (Background != null)
-                graphics.DrawImage(Background, new RectangleF(0, 0, Width, Width * 2));
+            {
+                float ratioX = (float)Width / Background.Width;
+                float ratioY = (float)height / Background.Height;
+                float ratio = Math.Max(ratioX, ratioY);
+
+                int newWidth = (int)(Background.Width * ratio);
+                int newHeight = (int)(Background.Height * ratio);
+
+                PointF p1 = new PointF(0, 0);
+                PointF p2 = new PointF(Width, 0);
+                PointF p3 = new PointF(0, height);
+
+                float x1 = Width / ratio; float x2 = height / ratio;
+
+                graphics.DrawImage(Background, new PointF[] { p1, p2, p3 },
+                                               new RectangleF((Background.Width - x1) / 2, (Background.Height - x2) / 2, x1, x2),
+                                               GraphicsUnit.Pixel);
+            }
 
             for (int line = 0; line < Math.Min(courseDescriptionLength - off, limit); line++)
             {
@@ -219,15 +237,9 @@ namespace StarDisplay
 
         public void SetBackground(Image image, float opacity)
         {
-            float Height = Width * 2;
-            float ratioX = Width  / image.Width;
-            float ratioY = Height / image.Height;
-            float ratio = Math.Max(ratioX, ratioY);
-
-            int newWidth = (int)(image.Width * ratio);
-            int newHeight = (int)(image.Height * ratio);
-            
-            Background = new Bitmap((int)Width, (int)Height);
+            int Width = image.Width;
+            int Height = image.Height;
+            Background = new Bitmap(Width, Height);
 
             using (var graphics = Graphics.FromImage(Background))
             {
@@ -242,9 +254,8 @@ namespace StarDisplay
                 PointF p2 = new PointF(Width, 0);
                 PointF p3 = new PointF(0, Height);
 
-                float x1 = Width / ratio; float x2 = Height / ratio;
                 graphics.DrawImage(image, new PointF[]{ p1, p2, p3 }, 
-                                          new RectangleF((image.Width - x1) / 2, (image.Height - x2) / 2, x1, x2),
+                                          new RectangleF(0, 0, Width, Height),
                                           GraphicsUnit.Pixel, attrs);
             }
         }
