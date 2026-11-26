@@ -899,6 +899,11 @@ namespace StarDisplay
             return Process.MainWindowTitle.Contains("-");
         }
 
+        public string GetProcessName()
+        {
+            return Process.ProcessName.ToLower();
+        }
+
         public void WriteWarp(byte warpID, byte levelID, byte areaID)
         {
             Process.WriteBytes(areaPtr, new byte[] { areaID });

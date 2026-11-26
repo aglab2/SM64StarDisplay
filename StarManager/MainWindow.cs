@@ -1234,10 +1234,21 @@ namespace StarDisplay
         {
             if (mm == null || mm.GetStars() == null) return;
 
+            if (!mm.GetProcessName().Contains("project64"))
+            {
+                return;
+            }
+
             // Luna-PJ64 keeps saves in %AppData%\Luna-Project64\Save\<internal name>.eep
             string path = null;
             string romName = mm.GetRomInternalName();
             string saveDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Luna-Project64", "Save");
+
+            if (!Directory.Exists(saveDir))
+            {
+                return;
+            }
+
             if (!string.IsNullOrEmpty(romName) && File.Exists(Path.Combine(saveDir, romName + ".eep")))
                 path = Path.Combine(saveDir, romName + ".eep");
 
